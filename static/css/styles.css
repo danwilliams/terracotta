@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&family=Roboto+Slab&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Roboto+Slab&display=swap');
 
 * {
 	font-family: Quicksand, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -54,4 +54,8 @@ nav i.logo {
 
 form {
 	margin-top: 0.75em;
+}
+
+.content a {
+	font-weight: 500;
 }
