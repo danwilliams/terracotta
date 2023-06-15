@@ -19,8 +19,8 @@ it working before then using it as a foundation for a new project.
 
 Terracotta was created in response to the lack of full examples of how to use
 Axum, and the fact that many tutorials are out-of-date, lacking important
-elements, or just plain wrong. You may not need everything provided - and you
-also may well not agree with how some parts are implemented - but if you are
+elements, or just plain wrong. You may not need everything provided — and you
+also may well not agree with how some parts are implemented — but if you are
 wanting a leg-up to save some time, it's not a bad place to start!
 
 The main sections in this README are:
@@ -46,7 +46,7 @@ The main high-level points of note are:
   - Templates implemented using the [Tera](https://crates.io/crates/tera)
     template engine
   - Static file handling
-  - Single-file deployment - all assets baked in
+  - Single-file deployment — all assets baked in
   - CSS foundation using the [Bulma](https://bulma.io/) CSS framework
   - Icons using [Font Awesome](https://fontawesome.com/)
   - Simple authentication using sessions and config-based user list
@@ -102,11 +102,11 @@ the defaults and how.
 ## Usage
 
 The Terracotta repository is designed so that it can be used as a template for
-new projects, and then customised and
-extended. You will naturally rename the project and tailor it to your needs, and
-as you implement your own features it will get harder and harder to merge in any
-upstream changes. It is therefore likely best to consider this a starting point
-only, and an upgrade reference, rather than an on-going contributing source.
+new projects, and then customised and extended. You will naturally rename the
+project and tailor it to your needs, and as you implement your own features it
+will get harder and harder to merge in any upstream changes. It is therefore
+likely best to consider this a starting point only, and an upgrade reference,
+rather than an on-going contributing source.
 
 Note that Terracotta is not designed to be used as a library, and its existence
 on [crates.io](https://crates.io/crates/terracotta) is as a binary. This is to
