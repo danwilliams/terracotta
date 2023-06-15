@@ -2,12 +2,20 @@
 
 This repository provides a boilerplate webserver application, based on [Axum](https://crates.io/crates/axum),
 to act as a foundation and springboard for building web applications and APIs.
+The intention is for it to be used as a template for new projects.
 
 The name Terracotta was chosen because it's rusty in colour, and clay represents
 something that can be moulded into different shapes.
 
-It is intended to be easy to use and understand, easy to fork and extend, and
+It is intended to be easy to use and understand, easy to set up and extend, and
 easy to deploy.
+
+Terracotta exists as a crate on [crates.io](https://crates.io/crates/terracotta)
+to establish presence and gain visibility and awareness, and because there are
+plans to add command-line functionality to help with setup. It is not intended
+to be used as a library, and is not published as such. (See the [Usage](#usage)
+section for more information.) It may also be useful to able to run it and see
+it working before then using it as a foundation for a new project.
 
 Terracotta was created in response to the lack of full examples of how to use
 Axum, and the fact that many tutorials are out-of-date, lacking important
@@ -93,9 +101,19 @@ the defaults and how.
 
 ## Setup
 
-The steps to set up this project are simple and standard. You need a
+The steps to set up a Terracotta project are simple and standard. You need a
 reasonably-recent Rust environment, on a Linux machine. There are currently no
 special requirements beyond what is needed to build a standard Rust project.
+
+Note that these instructions are for building the application yourself, which
+will usually be in context of having used [Terracotta as a template for a new
+project](#getting-started). In this case these steps will apply for your project
+too. You can also download the crate using `cargo install terracotta`, which
+will install the latest version of Terracotta from crates.io, but this currently
+is not particularly useful beyond letting you poke at the default, running
+application without having to clone the repository and build it yourself, to see
+if you like it. See the [Getting started](#getting-started) section for more
+information on creating your project using Terracotta as a template.
 
 ### Environment
 
@@ -161,12 +179,62 @@ links to the source code.
 
 ## Usage
 
-The repository is designed so that it can be forked, and then customised and
+The Terracotta repository is designed so that it can be used as a template for
+new projects, and then customised and
 extended. You will naturally rename the project and tailor it to your needs, and
 as you implement your own features it will get harder and harder to merge in any
 upstream changes. It is therefore likely best to consider this a starting point
 only, and an upgrade reference, rather than an on-going contributing source.
 
+Note that Terracotta is not designed to be used as a library, and its existence
+on [crates.io](https://crates.io/crates/terracotta) is as a binary. This is to
+establish presence, but also there are plans for command-line tools to be added.
+
+### Getting started
+
+The Terracotta repository is set up as a template repository on GitHub, so that
+you can easily [click the "Use this template" button to create a new repository
+based on it](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+You can then clone your new repository and start working on it. This will give
+you a starting point where you have all the project files, but none of the
+commit history. This is the currently-recommended way to start a new project
+using Terracotta (there are plans to also have a command-line tool at a later
+date).
+
+You may instead decide that you want to fork the repository, or clone it and
+then push it to a new repository. This is also fine, but you should be aware of
+the following points:
+
+  - You will have the full commit history, which may be useful, but it is
+    specifically relevant to Terracotta, and so mention of e.g. release versions
+    will be misleading as your project will most likely maintain its own,
+    independent versioning scheme.
+  - You will also have the various release version tags created on the
+    Terracotta repository, which will be misleading for the same reason, and
+    likely conflict with your own tags.
+  - There is no particular advantage to maintaining a Git tree association with
+    Terracotta as an upstream repository, and as the development you do on your
+    application will lead to conflicts, you are best not be pulling in updates
+    for it. You should instead apply any Terracotta updates manually. This is
+    the same as when using other web application scaffolds.
+  - Forks on GitHub are treated as subsidiaries of the original repository, and
+    not first-class repositories in their own right. For this reason, [commits
+    made to forks don't count as contributions in user profiles](https://github.com/orgs/community/discussions/45474),
+    which is not a desirable situation if you are starting a new project.
+
+For these reasons, forking in the GitHub-recognised sense is not recommended,
+and cloning and pushing to a new repository is only recommended if you are
+comfortable with the caveats mentioned above.
+
+To see an example of a project that has been created based on Terracotta, you
+can look at the [Rustmark](https://crates.io/crates/rustmark) application. This
+shows how Terracotta can be used as a starting point, and then extended to
+create a more complex application. Note that in the case of Rustmark, the
+decision was made to actually fork Terracotta at a stage before its initial
+release, as the commit history was considered useful, and there were no release
+commits or tags to cause the conflict issues mentioned above. However, after
+that point of inception, all Terracotta updates have been applied manually, and
+it is not a "true" fork in GitHub terms.
 
 ### Structure
 
