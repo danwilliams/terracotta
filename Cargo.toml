@@ -1,8 +1,8 @@
 [package]
 name = "terracotta"
-version = "0.1.0"
+version = "0.1.1"
 description = "Boilerplate webserver application based on Axum"
-categories = ["asynchronous", "authentication", "web-programming", "web-programming::http-server"]
+categories = ["asynchronous", "authentication", "rust-patterns", "web-programming", "web-programming::http-server"]
 keywords = ["web", "server", "boilerplate", "example", "authentication"]
 edition = "2021"
 license = "MIT"
