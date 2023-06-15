@@ -26,8 +26,8 @@ wanting a leg-up to save some time, it's not a bad place to start!
 The main sections in this README are:
 
   - [Features](#features)
-  - [Setup](#setup)
   - [Usage](#usage)
+  - [Setup](#setup)
   - [Deployment](#deployment)
   - [Attributions](#attributions)
 
@@ -97,84 +97,6 @@ The choice of Tera is unlikely to upset anyone, but if there is a preferred
 option then it is easy to change or remove. Tera has been implemented in a
 slightly opinionated manner, but it should be clear what has been changed from
 the defaults and how.
-
-
-## Setup
-
-The steps to set up a Terracotta project are simple and standard. You need a
-reasonably-recent Rust environment, on a Linux machine. There are currently no
-special requirements beyond what is needed to build a standard Rust project.
-
-Note that these instructions are for building the application yourself, which
-will usually be in context of having used [Terracotta as a template for a new
-project](#getting-started). In this case these steps will apply for your project
-too. You can also download the crate using `cargo install terracotta`, which
-will install the latest version of Terracotta from crates.io, but this currently
-is not particularly useful beyond letting you poke at the default, running
-application without having to clone the repository and build it yourself, to see
-if you like it. See the [Getting started](#getting-started) section for more
-information on creating your project using Terracotta as a template.
-
-### Environment
-
-There are some key points to note about the environment you choose:
-
-  - Debian and Ubuntu are the Linux distros of choice, although other distros
-    should also work just fine, as there are no special requirements.
-  - Running natively on Windows is not targeted or tested, and there are no
-    plans to support it, so although it may work, it also may not. Running on
-    WSL does work fine, and is the recommended way to run on Windows.
-  - Running natively on MacOS is untested, although there is no known technical
-    reason why it would not work.
-
-Typically, you will set up Rust using [`rustup`](https://rustup.rs/), which is
-the recommended way to install Rust. The `stable` toolchain is targeted, as the
-focus is on stability and correctness, rather than bleeding-edge features.
-
-Once you have Rust installed, you can build the project using `cargo build`.
-This will download and compile all dependencies, and build the project. You can
-then run the project using `cargo run`.
-
-### Configuration
-
-Terracotta is configured using a TOML file. The default configuration file is
-`Config.toml`, which should be placed in the same directory as the binary. The
-configuration settings (and file) are optional, and if not provided, Terracotta
-will use default values for all configuration options.
-
-It is also possible to pass configuration parameters from the command line, as
-environment variables. The environment variables take precedence over the
-configuration file options.
-
-### Running
-
-Terracotta can be run using the `cargo run` command, or by running the compiled
-binary directly. The server will listen on port 8000 by default, and will serve
-content from the `static` directory, plus any request handlers that you define.
-The `static` directory contains the static files to be served.
-
-### Testing
-
-You can run the test suite using `cargo test`. This will run all unit and
-integration tests.
-
-**Note that, at present, there are no tests written specifically for this
-project, as it is mostly a combination of other crates from the Rust ecosystem.
-Tests might be added when the project is more mature and sensible things to test
-have been clearly identified.**
-
-### Documentation
-
-This is the first release, so there is not much in the way of documentation just
-yet. A few things may change when Axum 0.7 comes out, so documentation will be
-written once Terracotta has been updated to be compatible.
-
-You can build the developer documentation using `cargo doc`. This will generate
-HTML files and place them into `target/doc`. You can then open the documentation
-in your browser by opening `target/doc/terracotta/index.html`.
-
-Building the documentation for local development use will also provide you with
-links to the source code.
 
 
 ## Usage
@@ -256,6 +178,85 @@ proper application it is likely that the handlers should be split out into more
 files, and there would also be various other supporting files too. Rather than
 dictate a layout, it is left as an exercise for the reader to implement their
 preferred approach.
+
+
+## Setup
+
+The steps to set up a Terracotta project are simple and standard. You need a
+reasonably-recent Rust environment, on a Linux machine. There are currently no
+special requirements beyond what is needed to build a standard Rust project.
+
+Note that these instructions are for building the application yourself, which
+will usually be in context of having used [Terracotta as a template for a new
+project](#getting-started). In this case these steps will apply for your project
+too. You can also download the crate using `cargo install terracotta`, which
+will install the latest version of Terracotta from crates.io, but this currently
+is not particularly useful beyond letting you poke at the default, running
+application without having to clone the repository and build it yourself, to see
+if you like it. See the [Getting started](#getting-started) section for more
+information on creating your project using Terracotta as a template.
+
+### Environment
+
+There are some key points to note about the environment you choose:
+
+  - Debian and Ubuntu are the Linux distros of choice, although other distros
+    should also work just fine, as there are no special requirements.
+  - Running natively on Windows is not targeted or tested, and there are no
+    plans to support it, so although it may work, it also may not. Running on
+    WSL does work fine, and is the recommended way to run on Windows.
+  - Running natively on MacOS is untested, although there is no known technical
+    reason why it would not work.
+
+Typically, you will set up Rust using [`rustup`](https://rustup.rs/), which is
+the recommended way to install Rust. The `stable` toolchain is targeted, as the
+focus is on stability and correctness, rather than bleeding-edge features.
+
+Once you have Rust installed, you can build the project using `cargo build`.
+This will download and compile all dependencies, and build the project. You can
+then run the project using `cargo run`.
+
+### Configuration
+
+Terracotta is configured using a TOML file. The default configuration file is
+`Config.toml`, which should be placed in the same directory as the binary. The
+configuration settings (and file) are optional, and if not provided, Terracotta
+will use default values for all configuration options.
+
+It is also possible to pass configuration parameters from the command line, as
+environment variables. The environment variables take precedence over the
+configuration file options.
+
+### Running
+
+Terracotta can be run using the `cargo run` command, or by running the compiled
+binary directly. The server will listen on port 8000 by default, and will serve
+content from the `static` directory, plus any request handlers that you define.
+The `static` directory contains the static files to be served.
+
+### Testing
+
+You can run the test suite using `cargo test`. This will run all unit and
+integration tests.
+
+**Note that, at present, there are no tests written specifically for this
+project, as it is mostly a combination of other crates from the Rust ecosystem.
+Tests might be added when the project is more mature and sensible things to test
+have been clearly identified.**
+
+### Documentation
+
+This is the first release, so there is not much in the way of documentation just
+yet. A few things may change when Axum 0.7 comes out, so documentation will be
+written once Terracotta has been updated to be compatible.
+
+You can build the developer documentation using `cargo doc`. This will generate
+HTML files and place them into `target/doc`. You can then open the documentation
+in your browser by opening `target/doc/terracotta/index.html`.
+
+Building the documentation for local development use will also provide you with
+links to the source code.
+
 
 ## Deployment
 
