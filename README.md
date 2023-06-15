@@ -179,6 +179,18 @@ files, and there would also be various other supporting files too. Rather than
 dictate a layout, it is left as an exercise for the reader to implement their
 preferred approach.
 
+### Coding standards
+
+The code in this repository follows some specific and opinionated [coding
+standards](https://github.com/danwilliams/standards-rs). These mostly follow
+typical community conventions, but notable differences are the use of tabs for
+indentation, the alignment of various terms to aid reabability, the use of
+comment headers to separate sections of code, and the usage of Nerd Font symbols
+in those headers to belay semantic meaning in order to apply highlighting.
+
+You may well dislike aspects of the coding style, which is fine — feel free to
+change things, and make the code your own! Individuality is important.
+
 
 ## Setup
 
