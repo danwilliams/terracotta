@@ -1,6 +1,9 @@
 # Terracotta
 
-This repository provides a boilerplate webserver application, based on [Axum](https://crates.io/crates/axum),
+[Axum]:       https://crates.io/crates/axum
+[Terracotta]: https://crates.io/crates/terracotta
+
+This repository provides a boilerplate webserver application, based on [Axum][],
 to act as a foundation and springboard for building web applications and APIs.
 The intention is for it to be used as a template for new projects.
 
@@ -10,12 +13,12 @@ something that can be moulded into different shapes.
 It is intended to be easy to use and understand, easy to set up and extend, and
 easy to deploy.
 
-Terracotta exists as a crate on [crates.io](https://crates.io/crates/terracotta)
-to establish presence and gain visibility and awareness, and because there are
-plans to add command-line functionality to help with setup. It is not intended
-to be used as a library, and is not published as such. (See the [Usage](#usage)
-section for more information.) It may also be useful to able to run it and see
-it working before then using it as a foundation for a new project.
+Terracotta exists as a crate on [crates.io][Terracotta] to establish presence
+and gain visibility and awareness, and because there are plans to add
+command-line functionality to help with setup. It is not intended to be used as
+a library, and is not published as such. (See the [Usage](#usage) section for
+more information.) It may also be useful to able to run it and see it working
+before then using it as a foundation for a new project.
 
 Terracotta was created in response to the lack of full examples of how to use
 Axum, and the fact that many tutorials are out-of-date, lacking important
@@ -34,21 +37,27 @@ The main sections in this README are:
 
 ## Features
 
+[Bulma]:        https://bulma.io/
+[Figment]:      https://crates.io/crates/figment
+[Font Awesome]: https://fontawesome.com/
+[Tera]:         https://crates.io/crates/tera
+[Tracing]:      https://crates.io/crates/tracing
+[Hyper]:        https://crates.io/crates/hyper
+
 The main high-level points of note are:
 
   - Simple codebase layout
   - Full yet minimal web application working out of the box
   - Easy to extend and build upon
-  - High-performance asynchronous HTTP server using [Tokio Hyper](https://crates.io/crates/hyper)
-  - Based on the robust and ergonomic web framework [Axum](https://crates.io/crates/axum)
-  - Configuration from config file and env vars using [Figment](https://crates.io/crates/figment)
-  - Logging of HTTP requests and events using [Tokio Tracing](https://crates.io/crates/tracing)
-  - Templates implemented using the [Tera](https://crates.io/crates/tera)
-    template engine
+  - High-performance asynchronous HTTP server using [Tokio Hyper][Hyper]
+  - Based on the robust and ergonomic web framework [Axum][]
+  - Configuration from config file and env vars using [Figment][]
+  - Logging of HTTP requests and events using [Tokio Tracing][Tracing]
+  - Templates implemented using the [Tera][] template engine
   - Static file handling
   - Single-file deployment — all assets baked in
-  - CSS foundation using the [Bulma](https://bulma.io/) CSS framework
-  - Icons using [Font Awesome](https://fontawesome.com/)
+  - CSS foundation using the [Bulma][] CSS framework
+  - Icons using [Font Awesome][]
   - Simple authentication using sessions and config-based user list
   - Login page, public and protected routes, logout ability
   - Graceful handling of 404 and 500 HTTP errors
@@ -56,7 +65,7 @@ The main high-level points of note are:
 
 ### Authentication
 
-Terracotta features a custom-rolled authetication system, to demonstrate how to
+Terracotta features a custom-rolled authentication system, to demonstrate how to
 implement a basic session-based setup. Although storing a user list in plain
 text on a server is okay for small, limited projects and experiments, it is
 highly recommended to store the credentials securely in a database. That is
@@ -101,6 +110,11 @@ the defaults and how.
 
 ## Usage
 
+[Coding standards]:          https://github.com/danwilliams/terracotta#coding-standards
+[Commits to forks]:          https://github.com/orgs/community/discussions/45474
+[Create repo from template]: https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template
+[Rustmark]:                  https://crates.io/crates/rustmark
+
 The Terracotta repository is designed so that it can be used as a template for
 new projects, and then customised and extended. You will naturally rename the
 project and tailor it to your needs, and as you implement your own features it
@@ -109,19 +123,18 @@ likely best to consider this a starting point only, and an upgrade reference,
 rather than an on-going contributing source.
 
 Note that Terracotta is not designed to be used as a library, and its existence
-on [crates.io](https://crates.io/crates/terracotta) is as a binary. This is to
-establish presence, but also there are plans for command-line tools to be added.
+on [crates.io][Terracotta] is as a binary. This is to establish presence, but
+also there are plans for command-line tools to be added.
 
 ### Getting started
 
 The Terracotta repository is set up as a template repository on GitHub, so that
 you can easily [click the "Use this template" button to create a new repository
-based on it](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
-You can then clone your new repository and start working on it. This will give
-you a starting point where you have all the project files, but none of the
-commit history. This is the currently-recommended way to start a new project
-using Terracotta (there are plans to also have a command-line tool at a later
-date).
+based on it][Create repo from template]. You can then clone your new repository
+and start working on it. This will give you a starting point where you have all
+the project files, but none of the commit history. This is the
+currently-recommended way to start a new project using Terracotta (there are
+plans to also have a command-line tool at a later date).
 
 You may instead decide that you want to fork the repository, or clone it and
 then push it to a new repository. This is also fine, but you should be aware of
@@ -141,7 +154,7 @@ the following points:
     the same as when using other web application scaffolds.
   - Forks on GitHub are treated as subsidiaries of the original repository, and
     not first-class repositories in their own right. For this reason, [commits
-    made to forks don't count as contributions in user profiles](https://github.com/orgs/community/discussions/45474),
+    made to forks don't count as contributions in user profiles][Commits to forks],
     which is not a desirable situation if you are starting a new project.
 
 For these reasons, forking in the GitHub-recognised sense is not recommended,
@@ -149,14 +162,14 @@ and cloning and pushing to a new repository is only recommended if you are
 comfortable with the caveats mentioned above.
 
 To see an example of a project that has been created based on Terracotta, you
-can look at the [Rustmark](https://crates.io/crates/rustmark) application. This
-shows how Terracotta can be used as a starting point, and then extended to
-create a more complex application. Note that in the case of Rustmark, the
-decision was made to actually fork Terracotta at a stage before its initial
-release, as the commit history was considered useful, and there were no release
-commits or tags to cause the conflict issues mentioned above. However, after
-that point of inception, all Terracotta updates have been applied manually, and
-it is not a "true" fork in GitHub terms.
+can look at the [Rustmark][] application. This shows how Terracotta can be used
+as a starting point, and then extended to create a more complex application.
+Note that in the case of Rustmark, the decision was made to actually fork
+Terracotta at a stage before its initial release, as the commit history was
+considered useful, and there were no release commits or tags to cause the
+conflict issues mentioned above. However, after that point of inception, all
+Terracotta updates have been applied manually, and it is not a "true" fork in
+GitHub terms.
 
 ### Structure
 
@@ -182,17 +195,19 @@ preferred approach.
 ### Coding standards
 
 The code in this repository follows some specific and opinionated [coding
-standards](https://github.com/danwilliams/standards-rs). These mostly follow
-typical community conventions, but notable differences are the use of tabs for
-indentation, the alignment of various terms to aid reabability, the use of
-comment headers to separate sections of code, and the usage of Nerd Font symbols
-in those headers to belay semantic meaning in order to apply highlighting.
+standards][]. These mostly follow typical community conventions, but notable
+differences are the use of tabs for indentation, the alignment of various terms
+to aid reabability, the use of comment headers to separate sections of code, and
+the usage of Nerd Font symbols in those headers to belay semantic meaning in
+order to apply highlighting.
 
 You may well dislike aspects of the coding style, which is fine — feel free to
 change things, and make the code your own! Individuality is important.
 
 
 ## Setup
+
+[Rustup]: https://rustup.rs/
 
 The steps to set up a Terracotta project are simple and standard. You need a
 reasonably-recent Rust environment, on a Linux machine. There are currently no
@@ -220,8 +235,8 @@ There are some key points to note about the environment you choose:
   - Running natively on MacOS is untested, although there is no known technical
     reason why it would not work.
 
-Typically, you will set up Rust using [`rustup`](https://rustup.rs/), which is
-the recommended way to install Rust. The `stable` toolchain is targeted, as the
+Typically, you will set up Rust using [`rustup`][Rustup], which is the
+recommended way to install Rust. The `stable` toolchain is targeted, as the
 focus is on stability and correctness, rather than bleeding-edge features.
 
 Once you have Rust installed, you can build the project using `cargo build`.
@@ -310,10 +325,12 @@ links to the source code.
 
 ## Deployment
 
+[UPX]: https://upx.github.io/
+
 You can build the project in release mode by using `cargo build --release`.
 Everything required for deployment will be contained in the single binary file
-produced. It is recommended to run [`upx`](https://upx.github.io/) on the
-executable before deployment, to reduce the file size.
+produced. It is recommended to run [`upx`][UPX] on the executable before
+deployment, to reduce the file size.
 
 The resulting binary file can then be copied to the deployment environment, and
 run directly. This will often be in a Docker or Kubernetes container, but that
@@ -329,15 +346,19 @@ scp target/release/terracotta you@yourserver:/path/to/deployment/directory
 
 ## Attributions
 
-This project uses the [Bulma CSS framework](https://bulma.io/), which is
-[published](https://github.com/jgthms/bulma/blob/master/LICENSE) under the
-[MIT license](http://opensource.org/licenses/MIT) and free to use without
-restriction.
+[Bulma license]:        https://github.com/jgthms/bulma/blob/master/LICENSE
+[CC-BY license]:        https://creativecommons.org/licenses/by/4.0/
+[Font Awesome license]: https://fontawesome.com/license/free
+[MIT license]:          http://opensource.org/licenses/MIT
+[SIL OFL license]:      https://scripts.sil.org/OFL
 
-The [Font Awesome](https://fontawesome.com/) icons are [published](https://fontawesome.com/license/free)
-under the [CC-BY (Creative Commons Attribution) license](https://creativecommons.org/licenses/by/4.0/),
-and the webfonts under the [SIL OFL (Open Font License)](https://scripts.sil.org/OFL).
-They are freely usable, along with the CSS code used to display them, which is
-released under the [MIT license](http://opensource.org/licenses/MIT).
+This project uses the [Bulma CSS framework][Bulma], which is [published][Bulma license]
+under the [MIT license][] and free to use without restriction.
+
+The [Font Awesome][] icons are [published][Font Awesome license] under the
+[CC-BY (Creative Commons Attribution) license][CC-BY license], and the webfonts
+under the [SIL OFL (Open Font License)][SIL OFL license]. They are freely
+usable, along with the CSS code used to display them, which is released under
+the [MIT license][].
 
 
