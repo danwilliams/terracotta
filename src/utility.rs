@@ -6,16 +6,21 @@ use crate::{
 	health,
 	stats::{AppStateStats, self},
 };
-use axum::http::{Method, Uri};
+use axum::{
+	http::{Method, Uri},
+	response::Html,
+};
 use ring::hmac;
 use serde::{Deserialize, Serialize, Serializer};
 use smart_default::SmartDefault;
 use std::{
 	collections::HashMap,
+	fs,
 	net::IpAddr,
 	path::PathBuf,
+	sync::Arc,
 };
-use tera::Tera;
+use tera::{Context, Tera};
 use url::form_urlencoded;
 use utoipa::OpenApi;
 
@@ -25,7 +30,7 @@ use utoipa::OpenApi;
 
 //		LoadingBehavior															
 /// The possible options for loading local, non-baked-in resources.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub enum LoadingBehavior {
 	/// Deny loading of local resources.
 	Deny,
@@ -97,6 +102,10 @@ pub struct Config {
 #[derive(Deserialize, Serialize, SmartDefault)]
 pub struct LocalLoading {
 	//		Public properties													
+	/// The loading behaviour for HTML templates.
+	#[default(LoadingBehavior::Deny)]
+	pub html:             LoadingBehavior,
+	
 	/// The loading behaviour for protected static assets.
 	#[default(LoadingBehavior::Deny)]
 	pub protected_assets: LoadingBehavior,
@@ -111,6 +120,10 @@ pub struct LocalLoading {
 #[derive(Deserialize, Serialize, SmartDefault)]
 pub struct LocalPaths {
 	//		Public properties													
+	/// The path to the HTML templates.
+	#[default = "html"]
+	pub html:             PathBuf,
+	
 	/// The path to the protected static assets.
 	#[default = "content"]
 	pub protected_assets: PathBuf,
@@ -320,6 +333,40 @@ pub fn build_uri(path: String, params: HashMap<String, String>) -> Uri {
 		))
 		.build()
 		.unwrap()
+}
+
+//		render																	
+/// Renders a template.
+/// 
+/// Renders a template with the given context and returns the result.
+/// 
+/// If the application has been configured to allow template overrides, the
+/// local filesystem will be searched, and any matching templates found will be
+/// used in preference to the baked-in ones.
+/// 
+/// # Parameters
+/// 
+/// * `state`    - The application state.
+/// * `template` - The name of the template to render.
+/// * `context`  - The context to render the template with.
+/// 
+pub fn render(
+	state:    Arc<AppState>,
+	template: &str,
+	context:  Context,
+) -> Html<String> {
+	let local_template = state.Config.local_paths.html.join(format!("{}.tera.html", template));
+	let local_layout   = state.Config.local_paths.html.join("layout.tera.html");
+	let mut tera       = state.Template.clone();
+	if state.Config.local_loading.html == LoadingBehavior::Override {
+		if local_layout.exists() {
+			tera.add_raw_template("layout", &fs::read_to_string(local_layout).ok().unwrap()).unwrap();
+		};
+		if local_template.exists() {
+			tera.add_raw_template(template, &fs::read_to_string(local_template).ok().unwrap()).unwrap();
+		};
+	};
+	Html(tera.render(template, &context).unwrap())
 }
 
 
