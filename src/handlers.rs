@@ -19,6 +19,12 @@ use tera::Context;
 //		Functions
 
 //		get_index																
+/// Shows the index page.
+/// 
+/// # Parameters
+/// 
+/// * `state` - The application state.
+/// 
 pub async fn get_index(State(state): State<Arc<AppState>>) -> Html<String> {
 	let mut context = Context::new();
 	context.insert("Title",   &state.Config.title);
@@ -27,6 +33,12 @@ pub async fn get_index(State(state): State<Arc<AppState>>) -> Html<String> {
 }
 
 //		get_static_asset														
+/// Serves static assets.
+/// 
+/// # Parameters
+/// 
+/// * `uri` - The URI of the asset.
+/// 
 pub async fn get_static_asset(uri: Uri) -> impl IntoResponse {
 	let path       =  uri.path().trim_start_matches('/');
 	let mime_type  =  mime_guess::from_path(path).first_or_text_plain();
