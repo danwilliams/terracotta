@@ -6,7 +6,7 @@ use crate::{
 	utility::*,
 };
 use axum::{
-	body::StreamBody,
+	body::Body,
 	extract::State,
 	http::{HeaderValue, StatusCode, Uri, header},
 	response::{Html, IntoResponse, Response},
@@ -16,7 +16,7 @@ use std::sync::Arc;
 use tera::Context;
 use tokio::{
 	fs::File,
-	io::BufReader,
+	io::{AsyncReadExt, BufReader},
 };
 use tokio_util::io::ReaderStream;
 
@@ -129,10 +129,16 @@ async fn get_static_asset(
 	};
 	match file {
 		None           => Err((StatusCode::NOT_FOUND, "")),
-		Some(file)     => {
-			let reader =  BufReader::with_capacity(1024 * 128, file);
-			let stream =  ReaderStream::new(reader);
-			let body   =  StreamBody::new(stream);
+		Some(mut file) => {
+			let body   =  if file.metadata().await.unwrap().len() > 1024 * 1000 {
+				let reader = BufReader::with_capacity(1024 * 128, file);
+				let stream = ReaderStream::new(reader);
+				Body::wrap_stream(stream)
+			} else {
+				let mut contents = vec![];
+				file.read_to_end(&mut contents).await.unwrap();
+				Body::from(contents)
+			};
 			Ok(Response::builder()
 				.status(StatusCode::OK)
 				.header(
