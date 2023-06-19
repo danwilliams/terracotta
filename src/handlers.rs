@@ -14,7 +14,10 @@ use axum::{
 use mime_guess::{self};
 use std::sync::Arc;
 use tera::Context;
-use tokio::fs::File;
+use tokio::{
+	fs::File,
+	io::BufReader,
+};
 use tokio_util::io::ReaderStream;
 
 
@@ -127,7 +130,8 @@ async fn get_static_asset(
 	match file {
 		None           => Err((StatusCode::NOT_FOUND, "")),
 		Some(file)     => {
-			let stream =  ReaderStream::new(file);
+			let reader =  BufReader::with_capacity(1024 * 128, file);
+			let stream =  ReaderStream::new(reader);
 			let body   =  StreamBody::new(stream);
 			Ok(Response::builder()
 				.status(StatusCode::OK)
