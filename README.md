@@ -332,6 +332,11 @@ protected_assets = "content"
 public_assets    = "static"
 ```
 
+An example is provided, `rustacean-flat-happy.png`, which is available through
+http://localhost:8000/rustacean-flat-happy.png if using the settings in the
+example configuration file. This is a protected asset, and so will only be
+served to logged-in users.
+
 #### Static file options
 
 When static files are requested, the method by which they are served depends
@@ -599,13 +604,19 @@ docker run \
 [CC-BY license]:        https://creativecommons.org/licenses/by/4.0/
 [Font Awesome license]: https://fontawesome.com/license/free
 [MIT license]:          http://opensource.org/licenses/MIT
+[Public Domain]:        https://creativecommons.org/publicdomain/zero/1.0/
 [Rust logo use]:        https://github.com/rust-lang/rust/issues/11562#issuecomment-50833809
 [Rust logo]:            https://github.com/rust-lang/rust/issues/11562#issuecomment-32700278
+[Rustacean]:            https://rustacean.net/
 [SIL OFL license]:      https://scripts.sil.org/OFL
 
 This project uses the [Rust logo][] as a default, due to being written in Rust.
 The logo is [freely usable][Rust logo use] under the [CC-BY (Creative Commons
 Attribution) license][CC-BY license].
+
+An image of Ferris the crab (the Rust mascot) is used as an example of protected
+content. This image is sourced from [rustacean.net][Rustacean] and is in the
+[Public Domain][], so can be freely used.
 
 This project uses the [Bulma CSS framework][Bulma], which is [published][Bulma license]
 under the [MIT license][] and free to use without restriction.
