@@ -599,7 +599,13 @@ docker run \
 [CC-BY license]:        https://creativecommons.org/licenses/by/4.0/
 [Font Awesome license]: https://fontawesome.com/license/free
 [MIT license]:          http://opensource.org/licenses/MIT
+[Rust logo use]:        https://github.com/rust-lang/rust/issues/11562#issuecomment-50833809
+[Rust logo]:            https://github.com/rust-lang/rust/issues/11562#issuecomment-32700278
 [SIL OFL license]:      https://scripts.sil.org/OFL
+
+This project uses the [Rust logo][] as a default, due to being written in Rust.
+The logo is [freely usable][Rust logo use] under the [CC-BY (Creative Commons
+Attribution) license][CC-BY license].
 
 This project uses the [Bulma CSS framework][Bulma], which is [published][Bulma license]
 under the [MIT license][] and free to use without restriction.
