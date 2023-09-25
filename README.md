@@ -55,6 +55,7 @@ The main high-level points of note are:
   - Logging of HTTP requests and events using [Tokio Tracing][Tracing]
   - Templates implemented using the [Tera][] template engine
   - Static file handling
+  - Ability to serve static files as protected or public
   - Single-file deployment — all assets baked in
   - CSS foundation using the [Bulma][] CSS framework
   - Icons using [Font Awesome][]
@@ -125,6 +126,11 @@ rather than an on-going contributing source.
 Note that Terracotta is not designed to be used as a library, and its existence
 on [crates.io][Terracotta] is as a binary. This is to establish presence, but
 also there are plans for command-line tools to be added.
+
+Any images and other files that need to be protected by authentication should be
+placed in the `content` directory. Public images should be placed in
+`static/img`, and will be served from the `/img` URL path, similar to the CSS,
+JS, and WebFont files.
 
 ### Getting started
 
