@@ -3,5 +3,13 @@ port   = 8000
 logdir = "log"
 title  = "Terracotta"
 
+[local_loading]
+protected_assets = "Override"
+public_assets    = "Override"
+
+[local_paths]
+protected_assets = "content"
+public_assets    = "static"
+
 [users]
 #joe = "1a2b3c"
