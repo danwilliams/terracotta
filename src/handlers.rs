@@ -6,17 +6,19 @@ use crate::{
 	utility::*,
 };
 use axum::{
-	body,
+	body::Body,
 	extract::State,
 	http::{HeaderValue, StatusCode, Uri, header},
 	response::{Html, IntoResponse, Response},
 };
 use mime_guess::{self};
-use std::{
-	fs,
-	sync::Arc,
-};
+use std::sync::Arc;
 use tera::Context;
+use tokio::{
+	fs::File,
+	io::{AsyncReadExt, BufReader},
+};
+use tokio_util::io::ReaderStream;
 
 
 
@@ -113,27 +115,36 @@ async fn get_static_asset(
 		LoadingBehavior::Supplement => basedir.get_file(path).is_none(),
 		LoadingBehavior::Override   => local_path.exists(),
 	};
-	let contents   =  if is_local {
-		local_path.exists().then(|| fs::read(local_path).ok()).flatten()
-	} else {
-		basedir.get_file(path).map(|file| file.contents().to_vec())
-	};
-	match contents {
-		None       => Response::builder()
-			.status(StatusCode::NOT_FOUND)
-			.body(body::boxed(body::Empty::new()))
-			.unwrap()
-		,
-		Some(file) => Response::builder()
-			.status(StatusCode::OK)
-			.header(
-				header::CONTENT_TYPE,
-				HeaderValue::from_str(mime_type.as_ref()).unwrap(),
-			)
-			.body(body::boxed(body::Full::from(file)))
-			.unwrap()
-		,
+	if !(
+			( is_local && local_path.exists())
+		||	(!is_local && basedir.get_file(path).is_some())
+	) {
+		return Err((StatusCode::NOT_FOUND, ""));
 	}
+	let body = if is_local {
+		let mut file   = File::open(local_path).await.ok().unwrap();
+		let config     =  &state.Config.static_files;
+		if file.metadata().await.unwrap().len() as usize > 1024 * config.stream_threshold {
+			let reader = BufReader::with_capacity(1024 * config.read_buffer, file);
+			let stream = ReaderStream::with_capacity(reader, 1024 * config.stream_buffer);
+			Body::wrap_stream(stream)
+		} else {
+			let mut contents = vec![];
+			file.read_to_end(&mut contents).await.unwrap();
+			Body::from(contents)
+		}
+	} else {
+		Body::from(basedir.get_file(path).unwrap().contents())
+	};
+	Ok(Response::builder()
+		.status(StatusCode::OK)
+		.header(
+			header::CONTENT_TYPE,
+			HeaderValue::from_str(mime_type.as_ref()).unwrap(),
+		)
+		.body(body)
+		.unwrap()
+	)
 }
 
 
