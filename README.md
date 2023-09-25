@@ -532,8 +532,7 @@ It is possible to mount volumes into the Docker container, to provide access to
 local files. This can be useful for development, and also for providing
 additional content and static assets. The following volumes are available:
 
-  - `/usr/src/html`    - HTML templates.
-  - `/usr/src/content` - Markdown content and protected static assets.
+  - `/usr/src/content` - Protected static assets.
   - `/usr/src/static`  - Public static assets.
 
 These paths, and the options controlling them, can be overridden using the
@@ -543,7 +542,7 @@ To mount a volume, use the `-v` option when calling the `docker run` command,
 for instance:
 
 ```sh
-docker run -v /path/to/markdown:/usr/src/content:ro terracotta
+docker run -v /path/to/content:/usr/src/content:ro terracotta
 ```
 
 It is advisable to specify the `ro` (read-only) option, as shown above, as there
@@ -591,8 +590,7 @@ Mounting volumes:
 
 ```sh
 docker run \
-  -v /path/to/markdown:/usr/src/content:ro \
-  -v /path/to/templates:/usr/src/html:ro \
+  -v /path/to/content:/usr/src/content:ro \
   -v /path/to/assets:/usr/src/static:ro \
   terracotta
 ```
