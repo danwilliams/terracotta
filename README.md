@@ -17,7 +17,7 @@ Terracotta exists as a crate on [crates.io][Terracotta] to establish presence
 and gain visibility and awareness, and because there are plans to add
 command-line functionality to help with setup. It is not intended to be used as
 a library, and is not published as such. (See the [Usage](#usage) section for
-more information.) It may also be useful to able to run it and see it working
+more information.) It may also be useful to be able to run it and see it working
 before then using it as a foundation for a new project.
 
 Terracotta was created in response to the lack of full examples of how to use
@@ -58,6 +58,7 @@ The main high-level points of note are:
   - Ability to serve static files as protected or public
   - Ability to supplement and override the static assets using local files in
     addition to a pre-compiled binary (configurable)
+  - Streaming of large static files for memory efficiency
   - Single-file deployment — all assets baked in (optional and configurable)
   - CSS foundation using the [Bulma][] CSS framework
   - Icons using [Font Awesome][]
@@ -113,7 +114,7 @@ the defaults and how.
 
 ## Usage
 
-[Coding standards]:          https://github.com/danwilliams/terracotta#coding-standards
+[Coding standards]:          https://github.com/danwilliams/standards-rs
 [Commits to forks]:          https://github.com/orgs/community/discussions/45474
 [Create repo from template]: https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template
 [Rustmark]:                  https://crates.io/crates/rustmark
@@ -128,11 +129,6 @@ rather than an on-going contributing source.
 Note that Terracotta is not designed to be used as a library, and its existence
 on [crates.io][Terracotta] is as a binary. This is to establish presence, but
 also there are plans for command-line tools to be added.
-
-Any images and other files that need to be protected by authentication should be
-placed in the `content` directory. Public images should be placed in
-`static/img`, and will be served from the `/img` URL path, similar to the CSS,
-JS, and WebFont files.
 
 ### Getting started
 
@@ -200,12 +196,20 @@ files, and there would also be various other supporting files too. Rather than
 dictate a layout, it is left as an exercise for the reader to implement their
 preferred approach.
 
+Any images and other files that need to be protected by authentication should be
+placed in the `content` directory. Public images should be placed in
+`static/img`, and will be served from the `/img` URL path, similar to the CSS,
+JS, and WebFont files.
+
+All of the content and static material is included in the compiled binary,
+making it very straightforward to deploy.
+
 ### Coding standards
 
 The code in this repository follows some specific and opinionated [coding
 standards][]. These mostly follow typical community conventions, but notable
 differences are the use of tabs for indentation, the alignment of various terms
-to aid reabability, the use of comment headers to separate sections of code, and
+to aid readability, the use of comment headers to separate sections of code, and
 the usage of Nerd Font symbols in those headers to belay semantic meaning in
 order to apply highlighting.
 
