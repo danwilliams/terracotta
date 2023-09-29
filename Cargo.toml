@@ -27,6 +27,7 @@ include_dir = { version = "0.7.3", features = ["glob"] }
 mime_guess = "2.0.4"
 rand = { version = "0.8.5", features = ["min_const_gen"] }
 ring = "0.16.20"
+rubedo = "0.1.1"
 secrecy = "0.8.0"
 serde = { version = "1.0.188", features = ["derive"] }
 smart-default = "0.7.1"
