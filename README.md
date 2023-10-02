@@ -34,6 +34,11 @@ The main sections in this README are:
   - [Deployment](#deployment)
   - [Attributions](#attributions)
 
+Additional documentation of note includes:
+
+  - [API Integration documentation](docs/integration.md)
+  - [Developer documentation](docs/developer.md)
+
 
 ## Features
 
@@ -184,6 +189,7 @@ the file structure to suit the shape of your own web application.
 
 The basic folder structure is:
 
+  - `docs`: This contains documentation.
   - `html`: This is where all the HTML templates reside, to be processed by
     Tera.
   - `src`: This is where all the Rust code lives.
