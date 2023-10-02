@@ -117,6 +117,7 @@ the defaults and how.
 [Coding standards]:          https://github.com/danwilliams/standards-rs
 [Commits to forks]:          https://github.com/orgs/community/discussions/45474
 [Create repo from template]: https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template
+[Nerd Font]:                 https://www.nerdfonts.com/
 [Rustmark]:                  https://crates.io/crates/rustmark
 
 The Terracotta repository is designed so that it can be used as a template for
@@ -210,7 +211,7 @@ The code in this repository follows some specific and opinionated [coding
 standards][]. These mostly follow typical community conventions, but notable
 differences are the use of tabs for indentation, the alignment of various terms
 to aid readability, the use of comment headers to separate sections of code, and
-the usage of Nerd Font symbols in those headers to belay semantic meaning in
+the usage of [Nerd Font][] symbols in those headers to belay semantic meaning in
 order to apply highlighting.
 
 You may well dislike aspects of the coding style, which is fine — feel free to

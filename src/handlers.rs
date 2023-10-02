@@ -30,6 +30,7 @@ use tokio_util::io::ReaderStream;
 pub enum AssetContext {
 	/// Public files.
 	Public,
+	
 	/// Protected files.
 	Protected,
 }
@@ -54,12 +55,12 @@ pub async fn get_index(State(state): State<Arc<AppState>>) -> Html<String> {
 
 //		get_protected_static_asset												
 /// Serves protected static assets.
-///
+/// 
 /// # Parameters
-///
+/// 
 /// * `state` - The application state.
 /// * `uri`   - The URI of the asset.
-///
+/// 
 pub async fn get_protected_static_asset(
 	State(state): State<Arc<AppState>>,
 	uri:          Uri,
@@ -69,12 +70,12 @@ pub async fn get_protected_static_asset(
 
 //		get_public_static_asset													
 /// Serves public static assets.
-///
+/// 
 /// # Parameters
-///
+/// 
 /// * `state` - The application state.
 /// * `uri`   - The URI of the asset.
-///
+/// 
 pub async fn get_public_static_asset(
 	State(state): State<Arc<AppState>>,
 	uri:          Uri,
@@ -86,7 +87,7 @@ pub async fn get_public_static_asset(
 /// Serves static assets.
 /// 
 /// # Parameters
-///
+/// 
 /// * `state`   - The application state.
 /// * `uri`     - The URI of the asset.
 /// * `context` - The protection context of the asset to serve.
