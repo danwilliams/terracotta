@@ -4,6 +4,7 @@
 
 use crate::handlers;
 use axum::http::Uri;
+use chrono::NaiveDateTime;
 use ring::hmac;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
@@ -133,6 +134,9 @@ pub struct AppState {
 	/// The application configuration.
 	pub Config:   Config,
 	
+	/// The application statistics.
+	pub Stats:    AppStats,
+	
 	/// The application secret.
 	pub Secret:   [u8; 64],
 	
@@ -143,14 +147,25 @@ pub struct AppState {
 	pub Template: Tera,
 }
 
+//		AppStats																
+/// Various application statistics.
+#[derive(SmartDefault)]
+pub struct AppStats {
+	//		Public properties													
+	/// The date and time the application was started.
+	pub started_at: NaiveDateTime,
+}
+
 //		ApiDoc																	
 /// The OpenAPI documentation for the API.
 #[derive(OpenApi)]
 #[openapi(
 	paths(
 		handlers::get_ping,
+		handlers::get_stats,
 	),
 	components(
+		schemas(handlers::StatsResponse),
 	),
 	tags(
 		(name = "health", description = "Health check endpoints"),
