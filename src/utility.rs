@@ -2,6 +2,7 @@
 
 //		Packages
 
+use crate::handlers;
 use axum::http::Uri;
 use ring::hmac;
 use serde::{Deserialize, Serialize};
@@ -147,10 +148,12 @@ pub struct AppState {
 #[derive(OpenApi)]
 #[openapi(
 	paths(
+		handlers::get_ping,
 	),
 	components(
 	),
 	tags(
+		(name = "health", description = "Health check endpoints"),
 	)
 )]
 pub struct ApiDoc;
