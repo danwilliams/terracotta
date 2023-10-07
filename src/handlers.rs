@@ -23,7 +23,7 @@ use axum::{
 use chrono::{NaiveDateTime, Utc};
 use mime_guess::{self};
 use serde::Serialize;
-use std::sync::Arc;
+use std::sync::{Arc, atomic::Ordering};
 use tera::Context;
 use tokio::{
 	fs::File,
@@ -61,6 +61,9 @@ pub struct StatsResponse {
 	
 	/// The amount of time the application has been running.
 	pub uptime:     u64,
+	
+	/// The number of requests that have been handled.
+	pub requests:   u64,
 }
 
 
@@ -201,6 +204,7 @@ pub async fn get_ping() {}
 ///                    8601 format.
 ///   - `uptime`     - The amount of time the application has been running, in
 ///                    seconds.
+///   - `requests`   - The number of requests that have been handled.
 /// 
 /// # Parameters
 /// 
@@ -218,6 +222,7 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 	Json(StatsResponse {
 		started_at: state.Stats.started_at,
 		uptime:     (Utc::now().naive_utc() - state.Stats.started_at).num_seconds() as u64,
+		requests:   state.Stats.requests.load(Ordering::Relaxed) as u64,
 	})
 }
 
