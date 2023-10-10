@@ -5,6 +5,7 @@
 use crate::handlers;
 use axum::http::{StatusCode, Uri};
 use chrono::NaiveDateTime;
+use parking_lot::Mutex;
 use ring::hmac;
 use serde::{Deserialize, Serialize, Serializer};
 use smart_default::SmartDefault;
@@ -12,7 +13,7 @@ use std::{
 	collections::{BTreeMap, HashMap},
 	net::IpAddr,
 	path::PathBuf,
-	sync::{Mutex, atomic::AtomicUsize},
+	sync::atomic::AtomicUsize,
 	time::Instant,
 };
 use tera::Tera;
@@ -166,7 +167,10 @@ pub struct AppStats {
 	/// together inside a [`Mutex`] because it is important to update the count,
 	/// use that exact count to calculate the average, and then store that
 	/// average all in one atomic operation while blocking any other process
-	/// from using the data.
+	/// from using the data. A [`parking_lot::Mutex`] is used instead of a
+	/// [`std::sync::Mutex`] because it is theoretically faster in highly
+	/// contended situations, but the main advantage is that it is infallible,
+	/// and it does not have mutex poisoning.
 	pub responses:  Mutex<AppStatsResponses>,
 }
 
