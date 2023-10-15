@@ -2,7 +2,7 @@
 
 //		Packages
 
-use crate::handlers;
+use crate::health;
 use axum::http::Uri;
 use ring::hmac;
 use serde::{Deserialize, Serialize};
@@ -148,7 +148,7 @@ pub struct AppState {
 #[derive(OpenApi)]
 #[openapi(
 	paths(
-		handlers::get_ping,
+		health::get_ping,
 	),
 	components(
 	),

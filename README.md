@@ -69,6 +69,7 @@ The main high-level points of note are:
   - Icons using [Font Awesome][]
   - Simple authentication using sessions and config-based user list
   - Login page, public and protected routes, logout ability
+  - Health check API endpoints
   - Graceful handling of 404 and 500 HTTP errors
   - Graceful handling of runtime application errors
   - Full OpenAPI documentation
