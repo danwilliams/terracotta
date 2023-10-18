@@ -4,7 +4,7 @@
 
 use crate::{
 	handlers,
-	stats::{AppStats, ResponseMetrics, self},
+	stats::{AppStats, ResponseMetrics, StatsForPeriod, self},
 };
 use axum::http::{Method, Uri};
 use flume::Sender;
@@ -17,6 +17,7 @@ use std::{
 	path::PathBuf,
 };
 use tera::Tera;
+use tokio::sync::broadcast::Sender as Broadcaster;
 use url::form_urlencoded;
 use utoipa::OpenApi;
 
@@ -218,6 +219,12 @@ pub struct AppState {
 	/// of data in memory that has to be dealt with all at once.
 	pub Queue:    Sender<ResponseMetrics>,
 	
+	/// The statistics broadcast channel that period-based statistics are added
+	/// to. This is the receiver side only. Each interested party can subscribe
+	/// to this channel to receive the latest statistics for a given period on
+	/// a real-time basis.
+	pub Broadcast: Broadcaster<StatsForPeriod>,
+	
 	/// The application secret.
 	pub Secret:   [u8; 64],
 	
@@ -260,6 +267,7 @@ impl Serialize for Endpoint {
 		handlers::get_ping,
 		stats::get_stats,
 		stats::get_stats_raw,
+		stats::get_stats_feed,
 	),
 	components(
 		schemas(
