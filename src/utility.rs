@@ -4,10 +4,9 @@
 
 use crate::{
 	handlers,
-	stats::{AppStats, ResponseMetrics, AllStatsForPeriod, self},
+	stats::{AppStateStats, self},
 };
 use axum::http::{Method, Uri};
-use flume::Sender;
 use ring::hmac;
 use serde::{Deserialize, Serialize, Serializer};
 use smart_default::SmartDefault;
@@ -17,7 +16,6 @@ use std::{
 	path::PathBuf,
 };
 use tera::Tera;
-use tokio::sync::broadcast::Sender as Broadcaster;
 use url::form_urlencoded;
 use utoipa::OpenApi;
 
@@ -219,22 +217,7 @@ pub struct AppState {
 	pub Config:   Config,
 	
 	/// The application statistics.
-	pub Stats:    AppStats,
-	
-	/// The statistics queue that response times are added to. This is the
-	/// sender side only. A queue is used so that each request-handling thread's
-	/// stats middleware can send its metrics into the queue instead of updating
-	/// a central, locked data structure. This avoids the need for locking and
-	/// incineration routines, as the stats-handling thread can constantly
-	/// process the queue and there will theoretically never be a large build-up
-	/// of data in memory that has to be dealt with all at once.
-	pub Queue:    Sender<ResponseMetrics>,
-	
-	/// The statistics broadcast channel that period-based statistics are added
-	/// to. This is the receiver side only. Each interested party can subscribe
-	/// to this channel to receive the latest statistics for a given period on
-	/// a real-time basis.
-	pub Broadcast: Broadcaster<AllStatsForPeriod>,
+	pub Stats:    AppStateStats,
 	
 	/// The application secret.
 	pub Secret:   [u8; 64],
