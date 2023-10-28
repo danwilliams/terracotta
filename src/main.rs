@@ -144,6 +144,7 @@ async fn main() {
 			//	Public routes
 			Router::new()
 				.route("/api/ping",          get(get_ping))
+				.route("/api/version",       get(get_version))
 				.route("/api/stats",         get(get_stats))
 				.route("/api/stats/history", get(get_stats_history))
 				.route("/api/stats/feed",    get(get_stats_feed))

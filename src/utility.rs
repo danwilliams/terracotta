@@ -259,12 +259,14 @@ impl Serialize for Endpoint {
 #[openapi(
 	paths(
 		health::get_ping,
+		health::get_version,
 		stats::get_stats,
 		stats::get_stats_history,
 		stats::get_stats_feed,
 	),
 	components(
 		schemas(
+			health::HealthVersionResponse,
 			stats::StatsResponse,
 			stats::StatsResponseForPeriod,
 			stats::StatsHistoryResponse,
