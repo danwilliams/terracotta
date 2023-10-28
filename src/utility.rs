@@ -272,7 +272,7 @@ impl Serialize for Endpoint {
 	),
 	tags(
 		(name = "health", description = "Health check endpoints"),
-	)
+	),
 )]
 pub struct ApiDoc;
 
