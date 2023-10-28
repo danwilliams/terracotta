@@ -6,7 +6,11 @@
 [Figment]:             https://crates.io/crates/figment
 [Font Awesome]:        https://fontawesome.com/
 [Keep a Changelog]:    https://keepachangelog.com/en/1.0.0/
+[OpenAPI]:             https://www.openapis.org/
+[RapiDoc]:             https://mrin9.github.io/RapiDoc/
+[Redoc]:               https://redoc.ly/
 [Semantic Versioning]: https://semver.org/spec/v2.0.0.html
+[Swagger]:             https://swagger.io/
 [Tera]:                https://crates.io/crates/tera
 [Tracing]:             https://crates.io/crates/tracing
 
@@ -14,6 +18,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog][], and this project adheres to
 [Semantic Versioning][].
+
+
+## 0.3.0 (28 October 2023)
+
+### Added
+
+  - Added `health` module
+      - Added `/api/ping` endpoint
+  - Added `stats` module
+      - Added `/api/stats` endpoint with request count, response count, response
+        times, open connections, memory usage, summary data per period, and
+        breakdown per endpoint
+      - Added `/api/stats/history` endpoint with type selector and from/limit
+        constraints
+      - Added `/api/stats/feed` websocket endpoint with type selector
+      - Implemented using a central statistics queue and circular buffers for
+        historical data
+      - Per-second tick clock to keep statistics up-to-date
+      - Configurable buffer sizes and summary periods
+  - Added [OpenAPI][] functionality, including UIs for [Swagger][], [Rapidoc][],
+    and [Redoc][]
+  - Added developer documentation
+  - Added API integration documentation
+
+### Changed
+
+  - Changed memory allocator to `jemalloc`
+  - Improved error logging
 
 
 ## 0.2.0 (25 September 2023)
