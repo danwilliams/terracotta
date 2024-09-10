@@ -6,6 +6,7 @@ use crate::{
 };
 use axum::{
 	Extension,
+	body::Body,
 	extract::State,
 	http::{Request, StatusCode, Uri},
 	middleware::Next,
@@ -52,12 +53,12 @@ pub async fn no_route() -> impl IntoResponse {
 /// * `request` - The request.
 /// * `next`    - The next middleware.
 /// 
-pub async fn graceful_error_layer<B>(
+pub async fn graceful_error_layer(
 	State(state):    State<Arc<AppState>>,
 	Extension(user): Extension<Option<User>>,
 	uri:             Uri,
-	request:         Request<B>,
-	next:            Next<B>,
+	request:         Request<Body>,
+	next:            Next,
 ) -> Response {
 	let response          = next.run(request).await;
 	let (mut parts, body) = response.into_parts();
@@ -118,9 +119,9 @@ pub async fn graceful_error_layer<B>(
 /// * `request` - The request.
 /// * `next`    - The next middleware.
 /// 
-pub async fn final_error_layer<B>(
-	request:  Request<B>,
-	next:     Next<B>,
+pub async fn final_error_layer(
+	request:  Request<Body>,
+	next:     Next,
 ) -> Response {
 	let response = next.run(request).await;
 	match response.status() {

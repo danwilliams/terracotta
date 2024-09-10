@@ -15,6 +15,7 @@ use axum::{
 	Extension,
 	Json,
 	async_trait,
+	body::Body,
 	extract::{FromRequestParts, Query, State},
 	extract::ws::{Message, WebSocketUpgrade, WebSocket},
 	http::{Request, StatusCode, request::Parts},
@@ -516,10 +517,10 @@ impl From<&StatsForPeriod> for StatsResponseForPeriod {
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn stats_layer<B>(
+pub async fn stats_layer(
 	State(appstate): State<Arc<AppState>>,
-	mut request:     Request<B>,
-	next:            Next<B>,
+	mut request:     Request<Body>,
+	next:            Next,
 ) -> Response {
 	//	Create statistics context
 	let stats_cx = StatsContext::default();

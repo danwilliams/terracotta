@@ -35,7 +35,7 @@ use figment::{
 };
 use flume::{self};
 use include_dir::{Dir, include_dir};
-use rand::Rng;
+use rand::random;
 use ring::hmac::{HMAC_SHA512, self};
 use std::{
 	net::SocketAddr,
@@ -44,6 +44,7 @@ use std::{
 };
 use tera::Tera;
 use tikv_jemallocator::Jemalloc;
+use tokio::net::TcpListener;
 use tokio::sync::broadcast;
 use tower_http::catch_panic::CatchPanicLayer;
 use tracing::{Level, Span, info};
@@ -82,6 +83,7 @@ async fn main() {
 		.extract()
 		.expect("Error loading config")
 	;
+	let address = SocketAddr::from((config.host, config.port));
 	let (non_blocking_appender, _guard) = tracing_appender::non_blocking(
 		tracing_appender::rolling::daily(&config.logdir, "general.log")
 	);
@@ -100,7 +102,6 @@ async fn main() {
 		)
 		.init()
 	;
-	let addr          = SocketAddr::from((config.host, config.port));
 	let mut templates = vec![];
 	for file in TEMPLATE_DIR.find("**/*.tera.html").expect("Failed to read glob pattern") {
 		templates.push((
@@ -116,7 +117,7 @@ async fn main() {
 	tera.autoescape_on(vec![".tera.html", ".html"]);
 	let (send, recv)  = flume::unbounded();
 	let (tx, _rx)     = broadcast::channel(10);
-	let secret        = rand::thread_rng().gen::<[u8; 64]>();
+	let secret        = random::<[u8; 64]>();
 	let session_store = SessionMemoryStore::new();
 	let shared_state  = Arc::new(AppState {
 		Config:         config,
@@ -136,6 +137,7 @@ async fn main() {
 		start_stats_processor(recv, Arc::clone(&shared_state)).await;
 	}
 	//	Protected routes
+	#[allow(deprecated)]
 	let app           = Router::new()
 		.route("/",      get(get_index))
 		.route("/*path", get(get_protected_static_asset))
@@ -188,12 +190,10 @@ async fn main() {
 		.layer(CatchPanicLayer::new())
 		.layer(middleware::from_fn(final_error_layer))
 	;
-	info!("Listening on {}", addr);
-	axum::Server::bind(&addr)
-		.serve(app.into_make_service())
-		.await
-		.unwrap()
-	;
+	let listener          = TcpListener::bind(address).await.unwrap();
+	let allocated_address = listener.local_addr().expect("Failed to get local address");
+	info!("Listening on {allocated_address}");
+	axum::serve(listener, app).await.unwrap();
 }
 
 

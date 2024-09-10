@@ -9,6 +9,7 @@ use axum::{
 	Extension,
 	Form,
 	async_trait,
+	body::Body,
 	extract::{FromRequestParts, State},
 	http::{Request, StatusCode, Uri, request::Parts},
 	middleware::Next,
@@ -282,8 +283,8 @@ where State: Send + Sync {
 pub async fn auth_layer<B>(
 	State(appstate):           State<Arc<AppState>>,
 	Extension(session_handle): Extension<SessionHandle>,
-	mut request:               Request<B>,
-	next:                      Next<B>,
+	mut request:               Request<Body>,
+	next:                      Next,
 ) -> Response {
 	let mut auth_cx      = AuthContext::new(session_handle, appstate.Key.clone());
 	let user             = auth_cx.get_user(Arc::clone(&appstate)).await;
@@ -313,12 +314,12 @@ pub async fn auth_layer<B>(
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn protect<B>(
+pub async fn protect(
 	State(appstate): State<Arc<AppState>>,
 	Extension(user): Extension<Option<User>>,
 	uri:             Uri,
-	request:         Request<B>,
-	next:            Next<B>,
+	request:         Request<Body>,
+	next:            Next,
 ) -> Response {
 	match user {
 		Some(_) => {
