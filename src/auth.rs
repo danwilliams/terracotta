@@ -288,8 +288,8 @@ pub async fn auth_layer<B>(
 	let mut auth_cx      = AuthContext::new(session_handle, appstate.Key.clone());
 	let user             = auth_cx.get_user(Arc::clone(&appstate)).await;
 	let mut username     = s!("none");
-	if user.is_some() {
-		username         = user.as_ref().unwrap().username.clone();
+	if let Some(u) = &user {
+		username.clone_from(&u.username);
 	}
 	info!("Current user: {}", username);
 	auth_cx.current_user = user;
