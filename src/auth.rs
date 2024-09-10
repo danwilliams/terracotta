@@ -79,8 +79,8 @@ impl User {
 	/// * `password` - The password to match.
 	/// 
 	pub async fn find(state: Arc<AppState>, username: &String, password: &String) -> Option<Self> {
-		if state.Config.users.contains_key(username) {
-			let pass = state.Config.users.get(username).unwrap();
+		if state.config.users.contains_key(username) {
+			let pass = state.config.users.get(username).unwrap();
 			if pass == password {
 				return Some(Self {
 					username: username.clone(),
@@ -103,8 +103,8 @@ impl User {
 	/// * `username` - The username to search for.
 	/// 
 	pub async fn find_by_id(state: Arc<AppState>, id: &String) -> Option<Self> {
-		if state.Config.users.contains_key(id) {
-			let password = state.Config.users.get(id).unwrap();
+		if state.config.users.contains_key(id) {
+			let password = state.config.users.get(id).unwrap();
 			return Some(Self {
 				username: id.clone(),
 				password: password.clone(),
@@ -313,10 +313,10 @@ pub async fn get_login(
 	}
 	uri             = build_uri(uri.path().to_string(), params);
 	let mut context = Context::new();
-	context.insert("Title",   &state.Config.title);
+	context.insert("Title",   &state.config.title);
 	context.insert("PageURL", &uri.path_and_query().unwrap().to_string());
 	context.insert("Failed",  &failed);
-	Html(state.Template.render("login", &context).unwrap())
+	Html(state.template.render("login", &context).unwrap())
 }
 
 //		post_login																

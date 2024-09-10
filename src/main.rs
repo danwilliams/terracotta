@@ -119,18 +119,18 @@ async fn main() {
 	let session_key   = SessionKey::generate();
 	let session_store = SessionMemoryStore::default();
 	let shared_state  = Arc::new(AppState {
-		Config:         config,
-		Stats:          AppStateStats {
-			Data:       AppStats {
+		config,
+		stats:          AppStateStats {
+			data:       AppStats {
 				started_at: Utc::now().naive_utc(),
 				..Default::default()
 			},
-			Queue:      send,
-			Broadcast:  tx,
+			queue:      send,
+			broadcast:  tx,
 		},
-		Template:       tera,
+		template:       tera,
 	});
-	if shared_state.Config.stats.enabled {
+	if shared_state.config.stats.enabled {
 		start_stats_processor(recv, Arc::clone(&shared_state)).await;
 	}
 	//	Protected routes

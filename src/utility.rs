@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 //		Packages
 
 use crate::{
@@ -209,17 +207,16 @@ pub struct StatsOptions {
 /// This is used to store global state information that is shared between
 /// requests.
 /// 
-#[allow(dead_code)]
 pub struct AppState {
 	//		Public properties													
 	/// The application configuration.
-	pub Config:   Config,
+	pub config:   Config,
 	
 	/// The application statistics.
-	pub Stats:    AppStateStats,
+	pub stats:    AppStateStats,
 	
 	/// The Tera template engine.
-	pub Template: Tera,
+	pub template: Tera,
 }
 
 //		Endpoint																

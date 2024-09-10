@@ -48,9 +48,9 @@ pub enum AssetContext {
 /// 
 pub async fn get_index(State(state): State<Arc<AppState>>) -> Html<String> {
 	let mut context = Context::new();
-	context.insert("Title",   &state.Config.title);
+	context.insert("Title",   &state.config.title);
 	context.insert("Content", "Index");
-	Html(state.Template.render("index", &context).unwrap())
+	Html(state.template.render("index", &context).unwrap())
 }
 
 //		get_protected_static_asset												
@@ -102,13 +102,13 @@ async fn get_static_asset(
 	let (basedir, local_path, behavior) = match context {
 		AssetContext::Public    => (
 			&ASSETS_DIR,
-			state.Config.local_paths.public_assets.join(path),
-			&state.Config.local_loading.public_assets
+			state.config.local_paths.public_assets.join(path),
+			&state.config.local_loading.public_assets
 		),
 		AssetContext::Protected => (
 			&CONTENT_DIR,
-			state.Config.local_paths.protected_assets.join(path),
-			&state.Config.local_loading.protected_assets
+			state.config.local_paths.protected_assets.join(path),
+			&state.config.local_loading.protected_assets
 		),
 	};
 	let is_local = match behavior {
@@ -124,7 +124,7 @@ async fn get_static_asset(
 	}
 	let body = if is_local {
 		let mut file   = File::open(local_path).await.ok().unwrap();
-		let config     =  &state.Config.static_files;
+		let config     =  &state.config.static_files;
 		if file.metadata().await.unwrap().len() as usize > 1024 * config.stream_threshold {
 			let reader = BufReader::with_capacity(1024 * config.read_buffer, file);
 			let stream = ReaderStream::with_capacity(reader, 1024 * config.stream_buffer);

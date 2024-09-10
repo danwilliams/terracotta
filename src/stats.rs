@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 //		Modules
 
 #[cfg(test)]
@@ -97,7 +95,7 @@ impl FromStr for MeasurementType {
 pub struct AppStateStats {
 	//		Public properties													
 	/// The application statistics data.
-	pub Data:      AppStats,
+	pub data:      AppStats,
 	
 	/// The statistics queue that response times are added to. This is the
 	/// sender side only. A queue is used so that each request-handling thread's
@@ -106,13 +104,13 @@ pub struct AppStateStats {
 	/// incineration routines, as the stats-handling thread can constantly
 	/// process the queue and there will theoretically never be a large build-up
 	/// of data in memory that has to be dealt with all at once.
-	pub Queue:     Sender<ResponseMetrics>,
+	pub queue:     Sender<ResponseMetrics>,
 	
 	/// The statistics broadcast channel that period-based statistics are added
 	/// to. This is the receiver side only. Each interested party can subscribe
 	/// to this channel to receive the latest statistics for a given period on
 	/// a real-time basis.
-	pub Broadcast: Broadcaster<AllStatsForPeriod>,
+	pub broadcast: Broadcaster<AllStatsForPeriod>,
 }
 
 //		AppStats																
@@ -302,7 +300,7 @@ pub struct AllStatsForPeriod {
 //		ResponseMetrics															
 /// Metrics for a single response.
 /// 
-/// This is used by the statistics queue in [`AppState.Stats.Queue`].
+/// This is used by the statistics queue in [`AppState.stats.Queue`].
 /// 
 #[derive(SmartDefault)]
 pub struct ResponseMetrics {
@@ -527,7 +525,7 @@ pub async fn stats_layer(
 	request.extensions_mut().insert(stats_cx.clone());
 	
 	//	Check if statistics are enabled
-	if !appstate.Config.stats.enabled {
+	if !appstate.config.stats.enabled {
 		return next.run(request).await;
 	}
 	
@@ -538,23 +536,23 @@ pub async fn stats_layer(
 	};
 	
 	//	Update requests counter
-	appstate.Stats.Data.requests.fetch_add(1, Ordering::Relaxed);
-	appstate.Stats.Data.connections.fetch_add(1, Ordering::Relaxed);
+	appstate.stats.data.requests.fetch_add(1, Ordering::Relaxed);
+	appstate.stats.data.connections.fetch_add(1, Ordering::Relaxed);
 	
 	//	Process request
 	let response = next.run(request).await;
 	
 	//	Add response time to the queue
-	appstate.Stats.Queue.send(ResponseMetrics {
+	appstate.stats.queue.send(ResponseMetrics {
 		endpoint,
 		started_at:  stats_cx.started_at,
 		time_taken:  (Utc::now().naive_utc() - stats_cx.started_at).num_microseconds().unwrap() as u64,
 		status_code: response.status(),
-		connections: appstate.Stats.Data.connections.load(Ordering::Relaxed) as u64,
+		connections: appstate.stats.data.connections.load(Ordering::Relaxed) as u64,
 		memory:	     Malloc::read().unwrap() as u64,
 	}).expect("Failed to send response time");
 	
-	appstate.Stats.Data.connections.fetch_sub(1, Ordering::Relaxed);
+	appstate.stats.data.connections.fetch_sub(1, Ordering::Relaxed);
 	
 	//	Return response
 	response
@@ -564,7 +562,7 @@ pub async fn stats_layer(
 /// Starts the statistics processor.
 /// 
 /// This function starts a thread that will process the statistics queue in
-/// [`AppState.Stats.Queue`]. It will run until the channel is disconnected.
+/// [`AppState.stats.Queue`]. It will run until the channel is disconnected.
 /// 
 /// The processing of the statistics is done in a separate thread so that the
 /// request-handling threads can continue to handle requests without being
@@ -604,10 +602,10 @@ pub async fn start_stats_processor(receiver: Receiver<ResponseMetrics>, appstate
 	//	have enough memory it would fail right away, instead of gradually
 	//	building up to that point which would make it harder to diagnose.
 	{
-		let mut buffers    = appstate.Stats.Data.buffers.write();
-		buffers.responses  .reserve(appstate.Config.stats.timing_buffer_size);
-		buffers.connections.reserve(appstate.Config.stats.connection_buffer_size);
-		buffers.memory     .reserve(appstate.Config.stats.memory_buffer_size);
+		let mut buffers    = appstate.stats.data.buffers.write();
+		buffers.responses  .reserve(appstate.config.stats.timing_buffer_size);
+		buffers.connections.reserve(appstate.config.stats.connection_buffer_size);
+		buffers.memory     .reserve(appstate.config.stats.memory_buffer_size);
 	}
 	
 	//	Wait until the start of the next second, to align with it so that the
@@ -650,7 +648,7 @@ pub async fn start_stats_processor(receiver: Receiver<ResponseMetrics>, appstate
 /// 
 /// * `appstate`       - The application state.
 /// * `metrics`        - The response metrics to process, received from the
-///                      statistics queue in [`AppState.Stats.Queue`]. If
+///                      statistics queue in [`AppState.stats.Queue`]. If
 ///                      [`None`], then no stats will be added or altered, and
 ///                      no counters will be incremented, but the most-recent
 ///                      period will be checked and wrapped up if not already
@@ -705,7 +703,7 @@ fn stats_processor(
 		
 	//		Update statistics													
 		//	Lock source data
-		let mut totals = appstate.Stats.Data.totals.lock();
+		let mut totals = appstate.stats.data.totals.lock();
 		
 		//	Update responses counter
 		*totals.codes.entry(metrics.status_code).or_insert(0) += 1;
@@ -743,12 +741,12 @@ fn stats_processor(
 	//	the circular buffer of seconds.
 	if new_second > current_second {
 		let elapsed     = (new_second - current_second).num_seconds();
-		let mut buffers = appstate.Stats.Data.buffers.write();
+		let mut buffers = appstate.stats.data.buffers.write();
 		let mut message = AllStatsForPeriod::default();
 		//	Timing stats buffer
 		timing_stats = update_buffer(
 			&mut buffers.responses,
-			appstate.Config.stats.timing_buffer_size,
+			appstate.config.stats.timing_buffer_size,
 			timing_stats,
 			current_second,
 			elapsed,
@@ -758,7 +756,7 @@ fn stats_processor(
 		//	Connections stats buffer
 		conn_stats   = update_buffer(
 			&mut buffers.connections,
-			appstate.Config.stats.connection_buffer_size,
+			appstate.config.stats.connection_buffer_size,
 			conn_stats,
 			current_second,
 			elapsed,
@@ -768,16 +766,16 @@ fn stats_processor(
 		//	Memory stats buffer
 		memory_stats = update_buffer(
 			&mut buffers.memory,
-			appstate.Config.stats.memory_buffer_size,
+			appstate.config.stats.memory_buffer_size,
 			memory_stats,
 			current_second,
 			elapsed,
 			&mut message,
 			|stats, message| { message.memory = stats; },
 		);
-		*appstate.Stats.Data.last_second.write() = current_second;
+		*appstate.stats.data.last_second.write() = current_second;
 		current_second = new_second;
-		appstate.Stats.Broadcast.send(message).expect("Failed to broadcast stats");
+		appstate.stats.broadcast.send(message).expect("Failed to broadcast stats");
 	}
 	
 	(timing_stats, conn_stats, memory_stats, current_second)
@@ -861,19 +859,19 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 	
 	//		Preparation															
 	//	Lock source data
-	let buffers      = state.Stats.Data.buffers.read();
+	let buffers      = state.stats.data.buffers.read();
 	
 	//	Create pots for each period and process stats buffers
-	let timing_input = initialize_map(&state.Config.stats_periods, &buffers.responses);
-	let conn_input   = initialize_map(&state.Config.stats_periods, &buffers.connections);
-	let memory_input = initialize_map(&state.Config.stats_periods, &buffers.memory);
+	let timing_input = initialize_map(&state.config.stats_periods, &buffers.responses);
+	let conn_input   = initialize_map(&state.config.stats_periods, &buffers.connections);
+	let memory_input = initialize_map(&state.config.stats_periods, &buffers.memory);
 	
 	//	Unlock source data
 	drop(buffers);
 	
 	//		Process stats														
 	//	Lock source data
-	let totals        = state.Stats.Data.totals.lock();
+	let totals        = state.stats.data.totals.lock();
 	
 	//	Convert the input stats data into the output stats data
 	let timing_output = convert_map(timing_input, &totals.times);
@@ -883,11 +881,11 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 	//		Build response data													
 	let now        = Utc::now().naive_utc();
 	let response   = Json(StatsResponse {
-		started_at:  state.Stats.Data.started_at.with_nanosecond(0).unwrap(),
-		last_second: *state.Stats.Data.last_second.read(),
-		uptime:      (now - state.Stats.Data.started_at).num_seconds() as u64,
-		active:      state.Stats.Data.connections.load(Ordering::Relaxed) as u64,
-		requests:    state.Stats.Data.requests.load(Ordering::Relaxed) as u64,
+		started_at:  state.stats.data.started_at.with_nanosecond(0).unwrap(),
+		last_second: *state.stats.data.last_second.read(),
+		uptime:      (now - state.stats.data.started_at).num_seconds() as u64,
+		active:      state.stats.data.connections.load(Ordering::Relaxed) as u64,
+		requests:    state.stats.data.requests.load(Ordering::Relaxed) as u64,
 		codes:       totals.codes.clone(),
 		times:       timing_output,
 		endpoints:   HashMap::from_iter(
@@ -965,9 +963,9 @@ pub async fn get_stats_history(
 	
 	//		Prepare response data												
 	//	Lock source data
-	let buffers      = state.Stats.Data.buffers.read();
+	let buffers      = state.stats.data.buffers.read();
 	let mut response = StatsHistoryResponse {
-		last_second:   *state.Stats.Data.last_second.read(),
+		last_second:   *state.stats.data.last_second.read(),
 		..Default::default()
 	};
 	//	Convert the statistics buffers
@@ -1055,10 +1053,10 @@ pub async fn ws_stats_feed(
 	//		Preparation															
 	info!("WebSocket connection established");
 	//	Subscribe to the broadcast channel
-	let mut rx        = state.Stats.Broadcast.subscribe();
+	let mut rx        = state.stats.broadcast.subscribe();
 	//	Set up a timer to send pings at regular intervals
-	let mut timer     = interval(Duration::seconds(state.Config.stats.ws_ping_interval as i64).to_std().unwrap());
-	let mut timeout   = interval(Duration::seconds(state.Config.stats.ws_ping_timeout  as i64).to_std().unwrap());
+	let mut timer     = interval(Duration::seconds(state.config.stats.ws_ping_interval as i64).to_std().unwrap());
+	let mut timeout   = interval(Duration::seconds(state.config.stats.ws_ping_timeout  as i64).to_std().unwrap());
 	let mut last_ping = None;
 	let mut last_pong = Instant::now();
 	
@@ -1077,7 +1075,7 @@ pub async fn ws_stats_feed(
 		//	Check for ping timeout (X seconds since the last ping without a pong)
 		_ = timeout.tick() => {
 			if let Some(ping_time) = last_ping {
-				let limit = Duration::seconds(state.Config.stats.ws_ping_timeout as i64).to_std().unwrap();
+				let limit = Duration::seconds(state.config.stats.ws_ping_timeout as i64).to_std().unwrap();
 				if last_pong < ping_time && ping_time.elapsed() > limit {
 					warn!("WebSocket ping timed out");
 					break;

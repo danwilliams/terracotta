@@ -78,23 +78,23 @@ pub async fn graceful_error_layer(
 				}
 			}
 			let mut context = Context::new();
-			context.insert("Title", &state.Config.title);
+			context.insert("Title", &state.config.title);
 			(
 				parts,
-				Html(state.Template.render("404-notfound", &context).unwrap()),
+				Html(state.template.render("404-notfound", &context).unwrap()),
 			).into_response()
 		},
 		//		500: Internal Server Error										
 		StatusCode::INTERNAL_SERVER_ERROR => {
 			error!("Internal server error: {}", UnpackedResponseBody::from(body));
 			let mut context = Context::new();
-			context.insert("Title", &state.Config.title);
+			context.insert("Title", &state.config.title);
 			parts.headers.remove("content-length");
 			parts.headers.remove("content-type");
 			parts.headers.insert("error-handled", "gracefully".parse().unwrap());
 			(
 				parts,
-				Html(state.Template.render("500-error", &context).unwrap()),
+				Html(state.template.render("500-error", &context).unwrap()),
 			).into_response()
 		},
 		//		Everything else													

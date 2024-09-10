@@ -27,9 +27,9 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 	let (sender, _)     = flume::unbounded();
 	let (tx, _)         = broadcast::channel(10);
 	let mut state       = AppState {
-		Config:           Figment::from(Serialized::defaults(Config::default())).extract().unwrap(),
-		Stats:            AppStateStats {
-			Data:                AppStats {
+		config:           Figment::from(Serialized::defaults(Config::default())).extract().unwrap(),
+		stats:            AppStateStats {
+			data:                AppStats {
 				started_at:      start,
 				last_second:     RwLock::new((start + Duration::seconds(95)).with_nanosecond(0).unwrap()),
 				connections:     AtomicUsize::new(5),
@@ -59,12 +59,12 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 				}),
 				..Default::default()
 			},
-			Queue:               sender,
-			Broadcast:           tx,
+			queue:               sender,
+			broadcast:           tx,
 		},
-		Template:         Tera::default(),
+		template:         Tera::default(),
 	};
-	state.Config.stats_periods = hash_map!{
+	state.config.stats_periods = hash_map!{
 		s!("second"):          1,
 		s!("minute"):         60,
 		s!("hour"):        3_600,
@@ -216,7 +216,7 @@ async fn stats_history() {
 	let start        = Utc::now().naive_utc() - Duration::seconds(99);
 	let state        = prepare_state(start);
 	{
-		let mut buffers = state.Stats.Data.buffers.write();
+		let mut buffers = state.stats.data.buffers.write();
 		buffers.responses  .push_front(StatsForPeriod::default());
 		buffers.connections.push_front(StatsForPeriod::default());
 		buffers.memory     .push_front(StatsForPeriod::default());
