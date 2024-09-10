@@ -20,7 +20,7 @@ use axum::{
 	extract::ws::{Message, WebSocketUpgrade, WebSocket},
 	http::{Request, StatusCode, request::Parts},
 	middleware::Next,
-	response::{Response},
+	response::Response,
 };
 use chrono::{Duration, NaiveDateTime, Timelike, Utc};
 use flume::{Receiver, Sender};

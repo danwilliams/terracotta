@@ -3,7 +3,7 @@
 use crate::{
 	ASSETS_DIR,
 	CONTENT_DIR,
-	utility::*,
+	utility::{AppState, LoadingBehavior},
 };
 use axum::{
 	body::Body,

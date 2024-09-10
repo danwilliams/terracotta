@@ -2,7 +2,7 @@
 
 use crate::{
 	auth::{User, get_login},
-	utility::*,
+	utility::AppState,
 };
 use axum::{
 	Extension,
