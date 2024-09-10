@@ -19,8 +19,6 @@ lto = "thin"     # Enable link-time optimisation (fast)
 
 [dependencies]
 axum = { version = "0.7.5", features = ["ws"] }
-axum-sessions = "0.6.1"
-base64 = "0.22.1"
 bytes = "1.7.1"
 chrono = { version = "0.4.38", features = ["std", "alloc", "clock", "serde"] }
 figment = { version = "0.10.19", features = ["toml", "env"] }
@@ -30,10 +28,7 @@ indexmap = { version = "2.5.0", features = ["serde"] }
 itertools = "0.13.0"
 mime_guess = "2.0.5"
 parking_lot = "0.12.3"
-rand = { version = "0.8.5", features = ["min_const_gen"] }
-ring = "0.17.8"
 rubedo = "0.6.2"
-secrecy = "0.8.0"
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = { version = "1.0.128", features = ["preserve_order"] }
 smart-default = "0.7.1"
@@ -43,6 +38,7 @@ tikv-jemallocator = "0.6.0"
 tokio = { version = "1.40.0", features = ["fs", "io-std", "io-util", "macros", "rt-multi-thread"] }
 tokio-util = { version = "0.7.12", features = ["io", "io-util"] }
 tower-http = { version = "0.5.2", features = ["catch-panic", "trace"] }
+tower-sessions = { version = "0.13.0", features = ["signed"] }
 tracing = "0.1.40"
 tracing-appender = "0.2.3"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }

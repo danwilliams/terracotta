@@ -15,22 +15,16 @@ use axum::{
 	middleware::Next,
 	response::{Html, IntoResponse, Redirect, Response},
 };
-use axum_sessions::SessionHandle;
-use base64::engine::{Engine as _, general_purpose::STANDARD as BASE64};
-use ring::hmac;
 use rubedo::sugar::s;
-use secrecy::{ExposeSecret, SecretVec};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tera::Context;
+use tower_sessions::Session;
 use tracing::info;
 
 
 
 //		Constants
-
-/// The key used to store the session's authentication ID.
-const SESSION_AUTH_ID_KEY: &str = "_auth_id";
 
 /// The key used to store the session's user ID.
 const SESSION_USER_ID_KEY: &str = "_user_id";
@@ -120,12 +114,6 @@ impl User {
 		}
 		None
 	}
-	
-	//		get_password_hash													
-	/// Hashes the user's password.
-	pub fn get_password_hash(&self) -> SecretVec<u8> {
-		SecretVec::new(self.password.clone().into())
-	}
 }
 
 //		AuthContext																
@@ -141,11 +129,8 @@ pub struct AuthContext {
 	pub current_user: Option<User>,
 	
 	//		Private properties													
-	/// The session handle.
-	session_handle:   SessionHandle,
-	
-	/// The HMAC key.
-	key:              hmac::Key,
+	/// The active session.
+	session:          Session,
 }
 
 impl AuthContext {
@@ -154,27 +139,14 @@ impl AuthContext {
 	/// 
 	/// # Parameters
 	/// 
-	/// * `session_handle` - The session handle.
-	/// * `key`            - The HMAC key.
+	/// * `session` - The active session.
+	/// * `key`     - The HMAC key.
 	/// 
-	pub fn new(session_handle: SessionHandle, key: hmac::Key) -> Self {
+	pub fn new(session: Session) -> Self {
 		Self {
 			current_user: None,
-			session_handle,
-			key,
+			session,
 		}
-	}
-	
-	//		get_session_auth_id													
-	/// Gets the session's authentication ID.
-	/// 
-	/// # Parameters
-	/// 
-	/// * `password_hash` - The user's password hash.
-	/// 
-	fn get_session_auth_id(&self, password_hash: &[u8]) -> String {
-		let tag = hmac::sign(&self.key, password_hash);
-		BASE64.encode(tag.as_ref())
 	}
 	
 	//		get_user															
@@ -188,22 +160,11 @@ impl AuthContext {
 	/// * `appstate` - The application state.
 	/// 
 	pub async fn get_user(&mut self, appstate: Arc<AppState>) -> Option<User> {
-		let session                 = self.session_handle.read().await;
-		if let Some(user_id)        = session.get::<String>(SESSION_USER_ID_KEY) {
-			if let Some(user)       = User::find_by_id(Arc::clone(&appstate), &user_id).await {
-				let session_auth_id = session
-					.get::<String>(SESSION_AUTH_ID_KEY)
-					.and_then(|auth_id| BASE64.decode(auth_id).ok())
-					.unwrap_or_default()
-				;
-				drop(session);
-				let password_hash   = user.get_password_hash();
-				let data            = password_hash.expose_secret();
-				if hmac::verify(&self.key, data, &session_auth_id).is_ok() {
-					return Some(user);
-				} else {
-					self.logout().await;
-				}
+		if let Ok(Some(user_id)) = self.session.get::<String>(SESSION_USER_ID_KEY).await {
+			if let Some(user)    = User::find_by_id(Arc::clone(&appstate), &user_id).await {
+				return Some(user);
+			} else {
+				self.logout().await;
 			}
 		}
 		None
@@ -220,11 +181,8 @@ impl AuthContext {
 	/// * `user` - The user to log in.
 	/// 
 	pub async fn login(&mut self, user: &User) {
-		let auth_id       = self.get_session_auth_id(user.get_password_hash().expose_secret());
 		let user_id       = &user.username;
-		let mut session   = self.session_handle.write().await;
-		session.insert(SESSION_AUTH_ID_KEY, auth_id).unwrap();
-		session.insert(SESSION_USER_ID_KEY, user_id).unwrap();
+		self.session.insert(SESSION_USER_ID_KEY, user_id).await.unwrap();
 		self.current_user = Some(user.clone());
 	}
 	
@@ -234,8 +192,7 @@ impl AuthContext {
 	/// Logs the current user out by destroying the session.
 	/// 
 	pub async fn logout(&mut self) {
-		let mut session = self.session_handle.write().await;
-		session.destroy();
+		self.session.clear().await;
 	}
 }
 
@@ -275,18 +232,18 @@ where State: Send + Sync {
 /// 
 /// # Parameters
 /// 
-/// * `appstate`       - The application state.
-/// * `session_handle` - The session handle.
-/// * `request`        - The request.
-/// * `next`           - The next middleware.
+/// * `appstate` - The application state.
+/// * `session`  - The session handle.
+/// * `request`  - The request.
+/// * `next`     - The next middleware.
 /// 
-pub async fn auth_layer<B>(
-	State(appstate):           State<Arc<AppState>>,
-	Extension(session_handle): Extension<SessionHandle>,
-	mut request:               Request<Body>,
-	next:                      Next,
+pub async fn auth_layer(
+	State(appstate):    State<Arc<AppState>>,
+	Extension(session): Extension<Session>,
+	mut request:        Request<Body>,
+	next:               Next,
 ) -> Response {
-	let mut auth_cx      = AuthContext::new(session_handle, appstate.Key.clone());
+	let mut auth_cx      = AuthContext::new(session);
 	let user             = auth_cx.get_user(Arc::clone(&appstate)).await;
 	let mut username     = s!("none");
 	if let Some(u) = &user {

@@ -8,20 +8,21 @@ use axum::{
 	response::IntoResponse,
 };
 use rubedo::{
-	http::{ResponseExt, UnpackedResponse, UnpackedResponseBody, UnpackedResponseHeader},
+	http::{ResponseExt, UnpackedResponse, UnpackedResponseBody},
 	sugar::s,
 };
 use serde_json::json;
 
 //		ping																	
+#[expect(clippy::unit_arg, reason = "Needed for the test")]
 #[tokio::test]
 async fn ping() {
 	let unpacked = get_ping().await.into_response().unpack().unwrap();
-	let crafted  = UnpackedResponse {
-		status:    StatusCode::OK,
-		headers:   vec![],
-		body:      UnpackedResponseBody::default(),
-	};
+	let crafted  = UnpackedResponse::new(
+		StatusCode::OK,
+		vec![],
+		UnpackedResponseBody::default(),
+	);
 	assert_eq!(unpacked, crafted);
 }
 
@@ -29,19 +30,16 @@ async fn ping() {
 #[tokio::test]
 async fn version() {
 	let unpacked = get_version().await.into_response().unpack().unwrap();
-	let crafted  = UnpackedResponse {
-		status:    StatusCode::OK,
-		headers:       vec![
+	let crafted  = UnpackedResponse::new(
+		StatusCode::OK,
+		vec![
 			//	Axum automatically adds a content-type header.
-			UnpackedResponseHeader {
-				name:  s!("content-type"),
-				value: s!("application/json"),
-			},
+			(s!("content-type"), s!("application/json")),
 		],
-		body:      UnpackedResponseBody::new(json!({
+		UnpackedResponseBody::new(json!({
 			"version": env!("CARGO_PKG_VERSION"),
 		})),
-	};
+	);
 	assert_eq!(unpacked, crafted);
 }
 

@@ -24,10 +24,6 @@ use axum::{
 	middleware,
 	routing::{get, post},
 };
-use axum_sessions::{
-	SessionLayer,
-	async_session::MemoryStore as SessionMemoryStore,
-};
 use chrono::Utc;
 use figment::{
 	Figment,
@@ -35,8 +31,6 @@ use figment::{
 };
 use flume::{self};
 use include_dir::{Dir, include_dir};
-use rand::random;
-use ring::hmac::{HMAC_SHA512, self};
 use std::{
 	net::SocketAddr,
 	sync::Arc,
@@ -47,6 +41,11 @@ use tikv_jemallocator::Jemalloc;
 use tokio::net::TcpListener;
 use tokio::sync::broadcast;
 use tower_http::catch_panic::CatchPanicLayer;
+use tower_sessions::{
+	MemoryStore as SessionMemoryStore,
+	SessionManagerLayer,
+	cookie::Key as SessionKey,
+};
 use tracing::{Level, Span, info};
 use tracing_appender::{self};
 use tracing_subscriber::{
@@ -117,8 +116,8 @@ async fn main() {
 	tera.autoescape_on(vec![".tera.html", ".html"]);
 	let (send, recv)  = flume::unbounded();
 	let (tx, _rx)     = broadcast::channel(10);
-	let secret        = random::<[u8; 64]>();
-	let session_store = SessionMemoryStore::new();
+	let session_key   = SessionKey::generate();
+	let session_store = SessionMemoryStore::default();
 	let shared_state  = Arc::new(AppState {
 		Config:         config,
 		Stats:          AppStateStats {
@@ -129,15 +128,12 @@ async fn main() {
 			Queue:      send,
 			Broadcast:  tx,
 		},
-		Secret:         secret,
-		Key:            hmac::Key::new(HMAC_SHA512, &secret),
 		Template:       tera,
 	});
 	if shared_state.Config.stats.enabled {
 		start_stats_processor(recv, Arc::clone(&shared_state)).await;
 	}
 	//	Protected routes
-	#[allow(deprecated)]
 	let app           = Router::new()
 		.route("/",      get(get_index))
 		.route("/*path", get(get_protected_static_asset))
@@ -164,7 +160,7 @@ async fn main() {
 		.layer(CatchPanicLayer::new())
 		.layer(middleware::from_fn_with_state(Arc::clone(&shared_state), graceful_error_layer))
 		.layer(middleware::from_fn_with_state(Arc::clone(&shared_state), auth_layer))
-		.layer(SessionLayer::new(session_store, &secret).with_secure(false))
+		.layer(SessionManagerLayer::new(session_store).with_secure(false).with_signed(session_key))
 		.layer(middleware::from_fn_with_state(Arc::clone(&shared_state), stats_layer))
 		.with_state(shared_state)
 		.layer(tower_http::trace::TraceLayer::new_for_http()

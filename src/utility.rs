@@ -7,7 +7,6 @@ use crate::{
 	stats::{AppStateStats, self},
 };
 use axum::http::{Method, Uri};
-use ring::hmac;
 use serde::{Deserialize, Serialize, Serializer};
 use smart_default::SmartDefault;
 use std::{
@@ -218,12 +217,6 @@ pub struct AppState {
 	
 	/// The application statistics.
 	pub Stats:    AppStateStats,
-	
-	/// The application secret.
-	pub Secret:   [u8; 64],
-	
-	/// The HMAC key used to sign and verify sessions.
-	pub Key:      hmac::Key,
 	
 	/// The Tera template engine.
 	pub Template: Tera,
