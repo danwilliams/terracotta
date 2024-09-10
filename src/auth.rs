@@ -305,13 +305,13 @@ pub async fn get_login(
 	State(state): State<Arc<AppState>>,
 	mut uri:      Uri,
 ) -> Html<String> {
-	let mut params  = extract_uri_query_parts(uri.clone());
+	let mut params  = extract_uri_query_parts(&uri);
 	let mut failed  = false;
 	if params.contains_key("failed") {
 		failed      = true;
 		params.remove("failed");
 	}
-	uri             = build_uri(uri.path().to_string(), params);
+	uri             = build_uri(uri.path(), &params);
 	let mut context = Context::new();
 	context.insert("Title",   &state.config.title);
 	context.insert("PageURL", &uri.path_and_query().unwrap().to_string());
@@ -338,7 +338,7 @@ pub async fn post_login(
 	Form(login):  Form<PostLogin>,
 ) -> Redirect {
 	let uri        = login.uri.parse::<Uri>().unwrap();
-	let mut params = extract_uri_query_parts(uri.clone());
+	let mut params = extract_uri_query_parts(&uri);
 	let user       = User::find(Arc::clone(&state), &login.username, &login.password).await;
 	if user.is_some() {
 		info!("Logging in user: {}", user.as_ref().unwrap().username);
@@ -347,7 +347,7 @@ pub async fn post_login(
 		params.insert(s!("failed"), s!(""));
 		info!("Failed login attempt for user: {}", &login.username);
 	}
-	Redirect::to(build_uri(uri.path().to_string(), params).path_and_query().unwrap().to_string().as_str())
+	Redirect::to(build_uri(uri.path(), &params).path_and_query().unwrap().to_string().as_str())
 }
 
 //		get_logout																

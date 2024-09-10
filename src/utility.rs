@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize, Serializer};
 use smart_default::SmartDefault;
 use std::{
 	collections::HashMap,
+	fmt::Display,
 	net::IpAddr,
 	path::PathBuf,
 };
@@ -281,7 +282,7 @@ pub struct ApiDoc;
 /// 
 /// * `uri` - The URI to extract the query parts from.
 /// 
-pub fn extract_uri_query_parts(uri: Uri) -> HashMap<String, String> {
+pub fn extract_uri_query_parts(uri: &Uri) -> HashMap<String, String> {
 	uri
 		.query()
 		.map(|v| {
@@ -300,15 +301,21 @@ pub fn extract_uri_query_parts(uri: Uri) -> HashMap<String, String> {
 /// * `path`   - The path to build the URI from.
 /// * `params` - The query parameters to add to the URI.
 /// 
-pub fn build_uri(path: String, params: HashMap<String, String>) -> Uri {
+pub fn build_uri<S, K, V>(path: S, params: &HashMap<K, V>) -> Uri
+where
+	S: AsRef<str>,
+	K: AsRef<str> + Display,
+	V: AsRef<str> + Display,
+{
 	Uri::builder()
 		.path_and_query(format!("{}?{}",
-			path,
+			path.as_ref(),
 			params
 				.iter()
-				.map(|(k, v)| format!("{}={}", k, v))
+				.map(|(k, v)| format!("{k}={v}"))
 				.collect::<Vec<String>>()
 				.join("&")
+			,
 		))
 		.build()
 		.unwrap()
