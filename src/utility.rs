@@ -9,12 +9,14 @@ use crate::{
 	stats::{AppStateStats, self},
 };
 use axum::http::{Method, Uri};
+use core::{
+	fmt::Display,
+	net::IpAddr,
+};
 use serde::{Deserialize, Serialize, Serializer};
 use smart_default::SmartDefault;
 use std::{
 	collections::HashMap,
-	fmt::Display,
-	net::IpAddr,
 	path::PathBuf,
 };
 use tera::Tera;
@@ -129,7 +131,7 @@ pub struct StaticFiles {
 	//		Public properties													
 	/// The file size at which to start streaming, in KB. Below this size, the
 	/// file will be read into memory and served all at once.
-	#[default = 1000]
+	#[default = 1_000]
 	pub stream_threshold: usize,
 	
 	/// The size of the stream buffer to use when streaming files, in KB.

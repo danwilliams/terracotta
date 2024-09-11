@@ -69,10 +69,10 @@ pub async fn graceful_error_layer(
 	match parts.status {
 		//		404: Not Found													
 		StatusCode::NOT_FOUND             => {
-			parts.headers.remove("content-length");
-			parts.headers.remove("content-type");
+			drop(parts.headers.remove("content-length"));
+			drop(parts.headers.remove("content-type"));
 			if parts.headers.contains_key("protected") {
-				parts.headers.remove("protected");
+				drop(parts.headers.remove("protected"));
 				if user.is_none() {
 					parts.status = StatusCode::UNAUTHORIZED;
 					return (
@@ -93,9 +93,9 @@ pub async fn graceful_error_layer(
 			error!("Internal server error: {}", UnpackedResponseBody::from(body));
 			let mut context = Context::new();
 			context.insert("Title", &state.config.title);
-			parts.headers.remove("content-length");
-			parts.headers.remove("content-type");
-			parts.headers.insert("error-handled", "gracefully".parse().unwrap());
+			drop(parts.headers.remove("content-length"));
+			drop(parts.headers.remove("content-type"));
+			drop(parts.headers.insert("error-handled", "gracefully".parse().unwrap()));
 			(
 				parts,
 				Html(state.template.render("500-error", &context).unwrap()),
@@ -132,14 +132,14 @@ pub async fn final_error_layer(
 		StatusCode::INTERNAL_SERVER_ERROR => {
 			let (mut parts, body) = response.into_parts();
 			if parts.headers.contains_key("error-handled") {
-				parts.headers.remove("error-handled");
+				drop(parts.headers.remove("error-handled"));
 				return (parts, body).into_response();
 			}
-			parts.headers.remove("content-length");
-			parts.headers.remove("content-type");
+			drop(parts.headers.remove("content-length"));
+			drop(parts.headers.remove("content-type"));
 			(
 				parts,
-				Html(r#"<h1>Internal server error</h1>"#),
+				Html(r"<h1>Internal server error</h1>"),
 			).into_response()
 		},
 		_                                 => response,

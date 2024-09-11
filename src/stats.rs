@@ -1,3 +1,5 @@
+#![allow(unused_qualifications, reason = "False positive")]
+
 //! Statistics module.
 
 
@@ -25,6 +27,11 @@ use axum::{
 	response::Response,
 };
 use chrono::{Duration, NaiveDateTime, Timelike, Utc};
+use core::{
+	convert::Infallible,
+	str::FromStr,
+	sync::atomic::{AtomicUsize, Ordering},
+};
 use flume::{Receiver, Sender};
 use indexmap::IndexMap;
 use itertools::Itertools;
@@ -38,8 +45,7 @@ use serde_json::json;
 use smart_default::SmartDefault;
 use std::{
 	collections::{BTreeMap, HashMap, VecDeque},
-	str::FromStr,
-	sync::{Arc, atomic::AtomicUsize, atomic::Ordering},
+	sync::Arc,
 	time::Instant,
 };
 use tikv_jemalloc_ctl::stats::allocated as Malloc;
@@ -49,7 +55,7 @@ use tokio::{
 	sync::broadcast::Sender as Broadcaster,
 	time::{interval, sleep},
 };
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 use utoipa::{IntoParams, ToSchema};
 use velcro::{btree_map, hash_map};
 
@@ -59,7 +65,7 @@ use velcro::{btree_map, hash_map};
 
 //		MeasurementType															
 /// The type of measurement to get statistics for.
-#[derive(Copy, Clone, Deserialize, PartialEq, ToSchema)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, ToSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum MeasurementType {
 	/// Response times.
@@ -78,9 +84,9 @@ impl FromStr for MeasurementType {
 	//		from_str															
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		match s.to_lowercase().as_str() {
-			"times"       => Ok(MeasurementType::Times),
-			"connections" => Ok(MeasurementType::Connections),
-			"memory"      => Ok(MeasurementType::Memory),
+			"times"       => Ok(Self::Times),
+			"connections" => Ok(Self::Connections),
+			"memory"      => Ok(Self::Memory),
 			_             => Err(()),
 		}
 	}
@@ -237,6 +243,7 @@ impl StatsForPeriod {
 	///             set to 1.
 	/// 
 	pub fn initialize(value: u64) -> Self {
+		#[expect(clippy::cast_precision_loss, reason = "Not expected to get anywhere near 52 bits")]
 		Self {
 			average: value as f64,
 			maximum: value,
@@ -267,17 +274,18 @@ impl StatsForPeriod {
 	/// 
 	/// * `stats` - The stats to update with.
 	/// 
-	pub fn update(&mut self, stats: &StatsForPeriod) {
+	pub fn update(&mut self, stats: &Self) {
 		if (stats.minimum < self.minimum && stats.count > 0) || self.count == 0 {
 			self.minimum = stats.minimum;
 		}
 		if stats.maximum > self.maximum {
 			self.maximum = stats.maximum;
 		}
-		self.count      += stats.count;
+		self.count       = self.count.saturating_add(stats.count);
 		if self.count > 0  && stats.count > 0 {
+			#[expect(clippy::cast_precision_loss, reason = "Not expected to get anywhere near 52 bits")]
 			let weight   = stats.count as f64 / self.count as f64;
-			self.average = self.average * (1.0 - weight) + stats.average * weight;
+			self.average = self.average.mul_add(1.0 - weight, stats.average * weight);
 		}
 	}
 }
@@ -385,7 +393,7 @@ pub struct StatsContext {
 #[async_trait]
 impl<State> FromRequestParts<State> for StatsContext
 where State: Send + Sync {
-	type Rejection = std::convert::Infallible;
+	type Rejection = Infallible;
 	
 	//		from_request_parts													
 	/// Creates a statistics context from the request parts.
@@ -395,8 +403,9 @@ where State: Send + Sync {
 	/// * `parts` - The request parts.
 	/// * `state` - The application state.
 	/// 
+	#[expect(clippy::expect_used, reason = "Misconfiguration, so hard quit")]
 	async fn from_request_parts(parts: &mut Parts, state: &State) -> Result<Self, Self::Rejection> {
-		let Extension(stats_cx): Extension<StatsContext> =
+		let Extension(stats_cx): Extension<Self> =
 			Extension::from_request_parts(parts, state)
 				.await
 				.expect("Stats extension/layer missing")
@@ -526,7 +535,7 @@ pub async fn stats_layer(
 ) -> Response {
 	//	Create statistics context
 	let stats_cx = StatsContext::default();
-	request.extensions_mut().insert(stats_cx.clone());
+	_ = request.extensions_mut().insert(stats_cx.clone());
 	
 	//	Check if statistics are enabled
 	if !appstate.config.stats.enabled {
@@ -535,28 +544,30 @@ pub async fn stats_layer(
 	
 	//	Obtain endpoint details
 	let endpoint = Endpoint {
-		path:      request.uri().path().to_string(),
+		path:      request.uri().path().to_owned(),
 		method:    request.method().clone(),
 	};
 	
 	//	Update requests counter
-	appstate.stats.data.requests.fetch_add(1, Ordering::Relaxed);
-	appstate.stats.data.connections.fetch_add(1, Ordering::Relaxed);
+	_ = appstate.stats.data.requests.fetch_add(1, Ordering::Relaxed);
+	_ = appstate.stats.data.connections.fetch_add(1, Ordering::Relaxed);
 	
 	//	Process request
 	let response = next.run(request).await;
 	
 	//	Add response time to the queue
-	appstate.stats.queue.send(ResponseMetrics {
+	#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
+	#[expect(clippy::cast_sign_loss,          reason = "We don't ever want a negative for time taken")]
+	drop(appstate.stats.queue.send(ResponseMetrics {
 		endpoint,
 		started_at:  stats_cx.started_at,
 		time_taken:  (Utc::now().naive_utc() - stats_cx.started_at).num_microseconds().unwrap() as u64,
 		status_code: response.status(),
 		connections: appstate.stats.data.connections.load(Ordering::Relaxed) as u64,
 		memory:	     Malloc::read().unwrap() as u64,
-	}).expect("Failed to send response time");
+	}).inspect_err(|err| error!("Failed to send response time: {err}")));
 	
-	appstate.stats.data.connections.fetch_sub(1, Ordering::Relaxed);
+	_ = appstate.stats.data.connections.fetch_sub(1, Ordering::Relaxed);
 	
 	//	Return response
 	response
@@ -615,31 +626,41 @@ pub async fn start_stats_processor(receiver: Receiver<ResponseMetrics>, appstate
 	//	Wait until the start of the next second, to align with it so that the
 	//	tick interval change happens right after the second change, to wrap up
 	//	the data for the period that has just ended.
+	#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
 	sleep((current_second + Duration::seconds(1) - Utc::now().naive_utc()).to_std().unwrap()).await;
 	
 	//	Queue processing loop
 	let mut timer = interval(Duration::seconds(1).to_std().unwrap());
-	spawn(async move { loop { select!{
-		_ = timer.tick()      => {
+	drop(spawn(async move { loop { select!{
+		_ = timer.tick() => {
 			//	Ensure last period is wrapped up
-			(timing_stats, conn_stats, memory_stats, current_second) = stats_processor(
-				Arc::clone(&appstate), None, timing_stats, conn_stats, memory_stats, current_second
+			stats_processor(
+				&appstate,
+				None,
+				&mut timing_stats,
+				&mut conn_stats,
+				&mut memory_stats,
+				&mut current_second,
 			);
 		}
 		//	Wait for message - this is a blocking call
-		message = receiver.recv_async() => { match message {
-			Ok(response_time) => {
+		message = receiver.recv_async() => {
+			if let Ok(response_time) = message {
 				//	Process response time
-				(timing_stats, conn_stats, memory_stats, current_second) = stats_processor(
-					Arc::clone(&appstate), Some(response_time), timing_stats, conn_stats, memory_stats, current_second
+				stats_processor(
+					&appstate,
+					Some(response_time),
+					&mut timing_stats,
+					&mut conn_stats,
+					&mut memory_stats,
+					&mut current_second,
 				);
-			},
-			Err(_)            => {
-				eprintln!("Channel has been disconnected, exiting thread.");
+			} else {
+				error!("Channel has been disconnected, exiting thread.");
 				break;
-			},
-		}}
-	}}});
+			}
+		}
+	}}}));
 }
 
 //		stats_processor															
@@ -663,38 +684,38 @@ pub async fn start_stats_processor(receiver: Receiver<ResponseMetrics>, appstate
 /// * `current_second` - The current second.
 /// 
 fn stats_processor(
-	appstate:           Arc<AppState>,
-	metrics:            Option<ResponseMetrics>,
-	mut timing_stats:   StatsForPeriod,
-	mut conn_stats:     StatsForPeriod,
-	mut memory_stats:   StatsForPeriod,
-	mut current_second: NaiveDateTime
-) -> (StatsForPeriod, StatsForPeriod, StatsForPeriod, NaiveDateTime) {
+	appstate:       &Arc<AppState>,
+	metrics:        Option<ResponseMetrics>,
+	timing_stats:   &mut StatsForPeriod,
+	conn_stats:     &mut StatsForPeriod,
+	memory_stats:   &mut StatsForPeriod,
+	current_second: &mut NaiveDateTime
+) {
 	//		Helper functions													
 	/// Updates a buffer with new data.
 	fn update_buffer(
 		buffer:             &mut VecDeque<StatsForPeriod>,
 		buffer_size:        usize,
-		mut stats:          StatsForPeriod,
-		current_second:     NaiveDateTime,
+		stats:              &mut StatsForPeriod,
+		current_second:     &NaiveDateTime,
 		elapsed:            i64,
 		message:            &mut AllStatsForPeriod,
-		mut update_message: impl FnMut(StatsForPeriod, &mut AllStatsForPeriod),
-	) -> StatsForPeriod {
+		mut update_message: impl FnMut(&mut StatsForPeriod, &mut AllStatsForPeriod),
+	) {
 		for i in 0..elapsed {
 			if buffer.len() == buffer_size {
-				buffer.pop_back();
+				_ = buffer.pop_back();
 			}
-			stats.started_at = current_second + Duration::seconds(i);
+			stats.started_at = current_second.checked_add_signed(Duration::seconds(i)).unwrap_or(*current_second);
 			buffer.push_front(stats.clone());
 			update_message(stats, message);
-			stats            = StatsForPeriod::default();
+			*stats           = StatsForPeriod::default();
 		}
-		stats
 	}
 	
 	//		Preparation															
 	let new_second: NaiveDateTime;
+	#[expect(clippy::shadow_reuse, reason = "Clear purpose")]
 	if let Some(metrics) = metrics {
 		//	Prepare new stats
 		let new_timing_stats = StatsForPeriod::initialize(metrics.time_taken);
@@ -711,13 +732,13 @@ fn stats_processor(
 		let mut totals = appstate.stats.data.totals.lock();
 		
 		//	Update responses counter
-		*totals.codes.entry(metrics.status_code).or_insert(0) += 1;
+		_ = totals.codes.entry(metrics.status_code).and_modify(|e| *e = e.saturating_add(1)).or_insert(1);
 		
 		//	Update response time stats
 		totals.times.update(&new_timing_stats);
 		
 		//	Update endpoint response time stats
-		totals.endpoints
+		_ = totals.endpoints
 			.entry(metrics.endpoint)
 			.and_modify(|ep_stats| ep_stats.update(&new_timing_stats))
 			.or_insert(new_timing_stats)
@@ -744,46 +765,46 @@ fn stats_processor(
 	//	data (average, min, max) to a fixed-length circular buffer of seconds.
 	//	This way, the last period's data can be calculated by looking through
 	//	the circular buffer of seconds.
-	if new_second > current_second {
-		let elapsed     = (new_second - current_second).num_seconds();
+	if new_second > *current_second {
+		#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
+		let elapsed     = (new_second - *current_second).num_seconds();
 		let mut buffers = appstate.stats.data.buffers.write();
 		let mut message = AllStatsForPeriod::default();
 		//	Timing stats buffer
-		timing_stats = update_buffer(
+		update_buffer(
 			&mut buffers.responses,
 			appstate.config.stats.timing_buffer_size,
 			timing_stats,
 			current_second,
 			elapsed,
 			&mut message,
-			|stats, message| { message.times = stats; },
+			|stats, msg| { msg.times = stats.clone(); },
 		);
 		//	Connections stats buffer
-		conn_stats   = update_buffer(
+		update_buffer(
 			&mut buffers.connections,
 			appstate.config.stats.connection_buffer_size,
 			conn_stats,
 			current_second,
 			elapsed,
 			&mut message,
-			|stats, message| { message.connections = stats; },
+			|stats, msg| { msg.connections = stats.clone(); },
 		);
 		//	Memory stats buffer
-		memory_stats = update_buffer(
+		update_buffer(
 			&mut buffers.memory,
 			appstate.config.stats.memory_buffer_size,
 			memory_stats,
 			current_second,
 			elapsed,
 			&mut message,
-			|stats, message| { message.memory = stats; },
+			|stats, msg| { msg.memory = stats.clone(); },
 		);
-		*appstate.stats.data.last_second.write() = current_second;
-		current_second = new_second;
-		appstate.stats.broadcast.send(message).expect("Failed to broadcast stats");
+		drop(buffers);
+		*appstate.stats.data.last_second.write() = *current_second;
+		*current_second = new_second;
+		drop(appstate.stats.broadcast.send(message).inspect_err(|err| error!("Failed to broadcast stats: {err}")));
 	}
-	
-	(timing_stats, conn_stats, memory_stats, current_second)
 }
 
 //		get_stats																
@@ -836,12 +857,13 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 		let mut output: IndexMap<String, StatsForPeriod> = periods
 			.iter()
 			.sorted_by(|a, b| a.1.cmp(b.1))
-			.map(|(name, _)| (name.clone(), StatsForPeriod { ..Default::default() }))
+			.map(|(name, _)| (name.clone(), StatsForPeriod::default()))
 			.collect()
 		;
 		//	Loop through the circular buffer and calculate the stats
 		for (i, stats) in buffer.iter().enumerate() {
-			for (name, period) in periods.iter() {
+			#[expect(clippy::iter_over_hash_type, reason = "Order doesn't matter here")]
+			for (name, period) in periods {
 				if i < *period {
 					output.get_mut(name).unwrap().update(stats);
 				}
@@ -860,7 +882,7 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 			.map(|(key, value)| (key, StatsResponseForPeriod::from(&value)))
 			.collect()
 		;
-		output.insert(s!("all"), StatsResponseForPeriod::from(all));
+		_ = output.insert(s!("all"), StatsResponseForPeriod::from(all));
 		output
 	}
 	
@@ -887,6 +909,8 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 	
 	//		Build response data													
 	let now        = Utc::now().naive_utc();
+	#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
+	#[expect(clippy::cast_sign_loss,          reason = "We don't ever want a negative for uptime")]
 	let response   = Json(StatsResponse {
 		started_at:  state.stats.data.started_at.with_nanosecond(0).unwrap(),
 		last_second: *state.stats.data.last_second.read(),
@@ -895,11 +919,10 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 		requests:    state.stats.data.requests.load(Ordering::Relaxed) as u64,
 		codes:       totals.codes.clone(),
 		times:       timing_output,
-		endpoints:   HashMap::from_iter(
-			totals.endpoints.clone()
-				.into_iter()
-				.map(|(key, value)| (key, StatsResponseForPeriod::from(&value)))
-		),
+		endpoints:   totals.endpoints.iter()
+			.map(|(key, value)| (key.clone(), StatsResponseForPeriod::from(value)))
+			.collect()
+		,
 		connections: conn_output,
 		memory:      memory_output,
 	});
@@ -958,12 +981,8 @@ pub async fn get_stats_history(
 		from:   Option<NaiveDateTime>,
 		limit:  Option<usize>,
 	) -> Vec<StatsResponseForPeriod> {
-		buffer.iter().take_while(|entry| {
-			match from {
-				Some(from) => entry.started_at >= from,
-				None       => true,
-			}
-		})
+		buffer.iter()
+			.take_while(|entry| from.map_or(true, |time| entry.started_at >= time))
 			.limit(limit)
 			.map(StatsResponseForPeriod::from)
 			.collect()
@@ -1053,6 +1072,7 @@ pub async fn get_stats_feed(
 /// * `ws`    - The websocket stream.
 /// * `scope` - The type of measurement statistics to send.
 /// 
+#[expect(clippy::similar_names, reason = "Clearly different")]
 pub async fn ws_stats_feed(
 	state:  Arc<AppState>,
 	mut ws: WebSocket,
@@ -1063,18 +1083,21 @@ pub async fn ws_stats_feed(
 	//	Subscribe to the broadcast channel
 	let mut rx        = state.stats.broadcast.subscribe();
 	//	Set up a timer to send pings at regular intervals
+	#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
 	let mut timer     = interval(Duration::seconds(state.config.stats.ws_ping_interval as i64).to_std().unwrap());
+	#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
 	let mut timeout   = interval(Duration::seconds(state.config.stats.ws_ping_timeout  as i64).to_std().unwrap());
 	let mut last_ping = None;
 	let mut last_pong = Instant::now();
 	
 	//	Message processing loop
+	#[expect(clippy::pattern_type_mismatch, reason = "Tokio code")]
 	loop { select! {
 		//		Ping															
 		//	Send a ping at regular intervals
 		_ = timer.tick() => {
 			if let Err(err) = ws.send(Message::Ping(Vec::new())).await {
-				warn!("Failed to send ping over WebSocket: {}", err);
+				warn!("Failed to send ping over WebSocket: {err}");
 				break;
 			}
 			last_ping = Some(Instant::now());
@@ -1083,6 +1106,7 @@ pub async fn ws_stats_feed(
 		//	Check for ping timeout (X seconds since the last ping without a pong)
 		_ = timeout.tick() => {
 			if let Some(ping_time) = last_ping {
+				#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
 				let limit = Duration::seconds(state.config.stats.ws_ping_timeout as i64).to_std().unwrap();
 				if last_pong < ping_time && ping_time.elapsed() > limit {
 					warn!("WebSocket ping timed out");
@@ -1096,7 +1120,7 @@ pub async fn ws_stats_feed(
 			match msg {
 				Ok(Message::Ping(ping)) => {
 					if let Err(err) = ws.send(Message::Pong(ping)).await {
-						warn!("Failed to send pong over WebSocket: {}", err);
+						warn!("Failed to send pong over WebSocket: {err}");
 						break;
 					}
 				}
@@ -1114,10 +1138,10 @@ pub async fn ws_stats_feed(
 					warn!("Unexpected WebSocket binary message");
 				}
 				Err(err)                => {
-					warn!("WebSocket error: {}", err);
+					warn!("WebSocket error: {err}");
 					break;
 				}
-				#[allow(unreachable_patterns)]
+				#[expect(unreachable_patterns, reason = "Future-proofing")]
 				_                       => {
 					//	At present there are no other message types, but this is here to catch
 					//	any future additions.
@@ -1147,7 +1171,7 @@ pub async fn ws_stats_feed(
 				},
 			};
 			if let Err(err) = ws.send(Message::Text(response.to_string())).await {
-				warn!("Failed to send data over WebSocket: {}", err);
+				warn!("Failed to send data over WebSocket: {err}");
 				break;
 			}
 		}

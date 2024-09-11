@@ -30,7 +30,7 @@ use tokio_util::io::ReaderStream;
 
 //		AssetContext															
 /// The protection contexts for static assets.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum AssetContext {
 	/// Public files.
 	Public,
@@ -115,7 +115,7 @@ async fn get_static_asset(
 			&state.config.local_loading.protected_assets
 		),
 	};
-	let is_local = match behavior {
+	let is_local = match *behavior {
 		LoadingBehavior::Deny       => false,
 		LoadingBehavior::Supplement => basedir.get_file(path).is_none(),
 		LoadingBehavior::Override   => local_path.exists(),
@@ -129,13 +129,13 @@ async fn get_static_asset(
 	let body = if is_local {
 		let mut file   = File::open(local_path).await.ok().unwrap();
 		let config     =  &state.config.static_files;
-		if file.metadata().await.unwrap().len() as usize > 1024 * config.stream_threshold {
-			let reader = BufReader::with_capacity(1024 * config.read_buffer, file);
-			let stream = ReaderStream::with_capacity(reader, 1024 * config.stream_buffer);
+		if file.metadata().await.unwrap().len() > config.stream_threshold.saturating_mul(1_024) as u64 {
+			let reader = BufReader::with_capacity(config.read_buffer.saturating_mul(1_024), file);
+			let stream = ReaderStream::with_capacity(reader, config.stream_buffer.saturating_mul(1_024));
 			Body::from_stream(stream)
 		} else {
 			let mut contents = vec![];
-			file.read_to_end(&mut contents).await.unwrap();
+			let _count = file.read_to_end(&mut contents).await.unwrap();
 			Body::from(contents)
 		}
 	} else {

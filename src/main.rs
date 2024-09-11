@@ -5,6 +5,41 @@
 
 
 
+//		Global configuration
+
+//	Customisations of the standard linting configuration
+#![allow(unreachable_pub,                 reason = "Not useful in a binary crate")]
+#![allow(clippy::doc_markdown,            reason = "Too many false positives")]
+#![allow(clippy::multiple_crate_versions, reason = "Cannot resolve all these")]
+#![allow(clippy::unwrap_used,             reason = "Somewhat acceptable in a binary crate")]
+
+//	Lints specifically disabled for unit tests
+#![cfg_attr(test, allow(
+	non_snake_case,
+	clippy::arithmetic_side_effects,
+	clippy::cast_lossless,
+	clippy::cast_precision_loss,
+	clippy::cognitive_complexity,
+	clippy::default_numeric_fallback,
+	clippy::exhaustive_enums,
+	clippy::exhaustive_structs,
+	clippy::expect_used,
+	clippy::indexing_slicing,
+	clippy::let_underscore_must_use,
+	clippy::let_underscore_untyped,
+	clippy::missing_assert_message,
+	clippy::missing_panics_doc,
+	clippy::must_use_candidate,
+	clippy::panic,
+	clippy::print_stdout,
+	clippy::too_many_lines,
+	clippy::unwrap_in_result,
+	clippy::unwrap_used,
+	reason = "Not useful in unit tests"
+))]
+
+
+
 //		Modules
 
 mod auth;
@@ -28,10 +63,16 @@ use crate::{
 };
 use axum::{
 	Router,
-	middleware,
+	http::HeaderMap,
+	middleware::{from_fn, from_fn_with_state},
 	routing::{get, post},
 };
+use bytes::Bytes;
 use chrono::Utc;
+use core::{
+	net::SocketAddr,
+	time::Duration,
+};
 use figment::{
 	Figment,
 	providers::{Env, Format, Serialized, Toml},
@@ -39,25 +80,33 @@ use figment::{
 use flume::{self};
 use include_dir::{Dir, include_dir};
 use std::{
-	net::SocketAddr,
+	io::stdout,
 	sync::Arc,
-	time::Duration,
 };
 use tera::Tera;
 use tikv_jemallocator::Jemalloc;
-use tokio::net::TcpListener;
-use tokio::sync::broadcast;
-use tower_http::catch_panic::CatchPanicLayer;
+use tokio::{
+	net::TcpListener,
+	sync::broadcast,
+};
+use tower_http::{
+	LatencyUnit,
+	catch_panic::CatchPanicLayer,
+	classify::ServerErrorsFailureClass,
+	trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer},
+};
 use tower_sessions::{
 	MemoryStore as SessionMemoryStore,
 	SessionManagerLayer,
 	cookie::Key as SessionKey,
 };
-use tracing::{Level, Span, info};
-use tracing_appender::{self};
+use tracing::{Level, Span, info, debug, error};
+use tracing_appender::{self, non_blocking, rolling::daily};
 use tracing_subscriber::{
-	fmt::writer::MakeWriterExt,
+	EnvFilter,
+	fmt::{layer, writer::MakeWriterExt},
 	layer::SubscriberExt,
+	registry,
 	util::SubscriberInitExt,
 };
 use utoipa::OpenApi;
@@ -88,6 +137,7 @@ static CONTENT_DIR:  Dir<'_>  = include_dir!("content");
 //		Functions
 
 //		main																	
+#[expect(clippy::expect_used, reason = "Misconfiguration or inability to start, so hard quit")]
 #[tokio::main]
 async fn main() {
 	let config: Config = Figment::from(Serialized::defaults(Config::default()))
@@ -97,20 +147,20 @@ async fn main() {
 		.expect("Error loading config")
 	;
 	let address = SocketAddr::from((config.host, config.port));
-	let (non_blocking_appender, _guard) = tracing_appender::non_blocking(
-		tracing_appender::rolling::daily(&config.logdir, "general.log")
+	let (non_blocking_appender, _guard) = non_blocking(
+		daily(&config.logdir, "general.log")
 	);
-	tracing_subscriber::registry()
+	registry()
 		.with(
-			tracing_subscriber::EnvFilter::try_from_default_env()
+			EnvFilter::try_from_default_env()
 				.unwrap_or_else(|_| "terracotta=debug,tower_http=debug".into()),
 		)
 		.with(
-			tracing_subscriber::fmt::layer()
-				.with_writer(std::io::stdout.with_max_level(Level::DEBUG))
+			layer()
+				.with_writer(stdout.with_max_level(Level::DEBUG))
 		)
 		.with(
-			tracing_subscriber::fmt::layer()
+			layer()
 				.with_writer(non_blocking_appender.with_max_level(Level::INFO))
 		)
 		.init()
@@ -151,7 +201,7 @@ async fn main() {
 	let app           = Router::new()
 		.route("/",      get(get_index))
 		.route("/*path", get(get_protected_static_asset))
-		.route_layer(middleware::from_fn_with_state(Arc::clone(&shared_state), protect))
+		.route_layer(from_fn_with_state(Arc::clone(&shared_state), protect))
 		.merge(
 			//	Public routes
 			Router::new()
@@ -172,33 +222,33 @@ async fn main() {
 		.merge(RapiDoc::new("/api-docs/openapi.json").path("/api-docs/rapidoc"))
 		.fallback(no_route)
 		.layer(CatchPanicLayer::new())
-		.layer(middleware::from_fn_with_state(Arc::clone(&shared_state), graceful_error_layer))
-		.layer(middleware::from_fn_with_state(Arc::clone(&shared_state), auth_layer))
+		.layer(from_fn_with_state(Arc::clone(&shared_state), graceful_error_layer))
+		.layer(from_fn_with_state(Arc::clone(&shared_state), auth_layer))
 		.layer(SessionManagerLayer::new(session_store).with_secure(false).with_signed(session_key))
-		.layer(middleware::from_fn_with_state(Arc::clone(&shared_state), stats_layer))
+		.layer(from_fn_with_state(Arc::clone(&shared_state), stats_layer))
 		.with_state(shared_state)
-		.layer(tower_http::trace::TraceLayer::new_for_http()
+		.layer(TraceLayer::new_for_http()
 			.on_request(
-				tower_http::trace::DefaultOnRequest::new()
+				DefaultOnRequest::new()
 					.level(Level::INFO)
 			)
 			.on_response(
-				tower_http::trace::DefaultOnResponse::new()
+				DefaultOnResponse::new()
 					.level(Level::INFO)
-					.latency_unit(tower_http::LatencyUnit::Micros)
+					.latency_unit(LatencyUnit::Micros)
 			)
-			.on_body_chunk(|chunk: &bytes::Bytes, _latency: Duration, _span: &Span| {
-				tracing::debug!("Sending {} bytes", chunk.len())
+			.on_body_chunk(|chunk: &Bytes, _latency: Duration, _span: &Span| {
+				debug!("Sending {} bytes", chunk.len());
 			})
-			.on_eos(|_trailers: Option<&axum::http::HeaderMap>, stream_duration: Duration, _span: &Span| {
-				tracing::debug!("Stream closed after {:?}", stream_duration)
+			.on_eos(|_trailers: Option<&HeaderMap>, stream_duration: Duration, _span: &Span| {
+				debug!("Stream closed after {:?}", stream_duration);
 			})
-			.on_failure(|_error: tower_http::classify::ServerErrorsFailureClass, _latency: Duration, _span: &Span| {
-				tracing::error!("Something went wrong")
+			.on_failure(|_error: ServerErrorsFailureClass, _latency: Duration, _span: &Span| {
+				error!("Something went wrong");
 			})
 		)
 		.layer(CatchPanicLayer::new())
-		.layer(middleware::from_fn(final_error_layer))
+		.layer(from_fn(final_error_layer))
 	;
 	let listener          = TcpListener::bind(address).await.unwrap();
 	let allocated_address = listener.local_addr().expect("Failed to get local address");

@@ -1,4 +1,4 @@
-#![allow(non_snake_case)]
+#![allow(non_snake_case, reason = "To enable test function name organisation")]
 
 //		Tests
 
@@ -10,6 +10,7 @@ use axum::{
 	response::IntoResponse,
 };
 use chrono::Duration;
+use core::sync::atomic::AtomicUsize;
 use figment::{Figment, providers::Serialized};
 use flume::{self};
 use parking_lot::Mutex;
@@ -17,7 +18,6 @@ use rubedo::{
 	http::{ResponseExt, UnpackedResponse, UnpackedResponseBody},
 	sugar::s,
 };
-use std::sync::atomic::AtomicUsize;
 use tera::Tera;
 use tokio::sync::broadcast;
 use velcro::hash_map;
@@ -41,7 +41,7 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 						StatusCode::NOT_FOUND:             3,
 						StatusCode::INTERNAL_SERVER_ERROR: 2,
 					},
-					times:       Default::default(),
+					times:       StatsForPeriod::default(),
 					endpoints:   hash_map!{
 						Endpoint {
 							method:     Method::GET,
@@ -54,8 +54,8 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 							count:      10,
 						},
 					},
-					connections: Default::default(),
-					memory:      Default::default(),
+					connections: StatsForPeriod::default(),
+					memory:      StatsForPeriod::default(),
 				}),
 				..Default::default()
 			},
