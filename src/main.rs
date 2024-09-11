@@ -1,3 +1,10 @@
+//! Terracotta
+//! 
+//! Boilerplate webserver application based on Axum.
+//! 
+
+
+
 //		Modules
 
 mod auth;
@@ -62,11 +69,18 @@ use utoipa_swagger_ui::SwaggerUi;
 
 //		Constants
 
+/// The global allocator. This is changed to Jemalloc in order to obtain memory
+/// usage statistics.
 #[global_allocator]
 static GLOBAL:       Jemalloc = Jemalloc;
 
+/// The directory containing the HTML templates.
 static TEMPLATE_DIR: Dir<'_>  = include_dir!("html");
+
+/// The directory containing the static assets.
 static ASSETS_DIR:   Dir<'_>  = include_dir!("static");
+
+/// The directory containing the Markdown content.
 static CONTENT_DIR:  Dir<'_>  = include_dir!("content");
 
 

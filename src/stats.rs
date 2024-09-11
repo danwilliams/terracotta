@@ -1,3 +1,7 @@
+//! Statistics module.
+
+
+
 //		Modules
 
 #[cfg(test)]
@@ -667,6 +671,7 @@ fn stats_processor(
 	mut current_second: NaiveDateTime
 ) -> (StatsForPeriod, StatsForPeriod, StatsForPeriod, NaiveDateTime) {
 	//		Helper functions													
+	/// Updates a buffer with new data.
 	fn update_buffer(
 		buffer:             &mut VecDeque<StatsForPeriod>,
 		buffer_size:        usize,
@@ -823,6 +828,7 @@ fn stats_processor(
 )]
 pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse> {
 	//		Helper functions													
+	/// Initialises a map of stats for each period.
 	fn initialize_map(
 		periods: &HashMap<String, usize>,
 		buffer:  &VecDeque<StatsForPeriod>,
@@ -844,6 +850,7 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 		output
 	}
 	
+	/// Converts a map of stats for each period into response data.
 	fn convert_map(
 		input: IndexMap<String, StatsForPeriod>,
 		all:   &StatsForPeriod
@@ -945,6 +952,7 @@ pub async fn get_stats_history(
 	Query(params): Query<GetStatsHistoryParams>,
 ) -> Json<StatsHistoryResponse> {
 	//		Helper function														
+	/// Processes a buffer of statistics data.
 	fn process_buffer(
 		buffer: &VecDeque<StatsForPeriod>,
 		from:   Option<NaiveDateTime>,

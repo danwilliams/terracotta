@@ -1,4 +1,7 @@
 #![allow(non_snake_case)]
+//! Health check endpoints.
+
+
 
 //		Modules
 

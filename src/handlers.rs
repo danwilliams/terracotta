@@ -1,3 +1,7 @@
+//! Endpoint handlers for the application.
+
+
+
 //		Packages
 
 use crate::{

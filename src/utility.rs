@@ -1,3 +1,7 @@
+//! Utility functions and types for the application.
+
+
+
 //		Packages
 
 use crate::{
