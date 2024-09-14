@@ -52,7 +52,10 @@ mod utility;
 //		Packages
 
 use crate::{
-	handlers::{get_index, get_protected_static_asset, get_public_static_asset},
+	handlers::{
+		get_index,
+		assets::{get_protected_static_asset, get_public_static_asset},
+	},
 	health::{get_ping, get_version},
 	middleware::{
 		auth::{auth_layer, get_logout, post_login, protect},
