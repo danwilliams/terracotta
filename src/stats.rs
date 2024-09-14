@@ -78,6 +78,7 @@ pub enum MeasurementType {
 	Memory,
 }
 
+//󰭅		FromStr																	
 impl FromStr for MeasurementType {
 	type Err = ();
 	
@@ -232,6 +233,7 @@ pub struct StatsForPeriod {
 	pub count:      u64,
 }
 
+//󰭅		StatsForPeriod															
 impl StatsForPeriod {
 	//		initialize															
 	/// Initialises the stats based on a single starting value.
@@ -390,6 +392,7 @@ pub struct StatsContext {
 	pub started_at: NaiveDateTime,
 }
 
+//󰭅		FromRequestParts														
 #[async_trait]
 impl<State> FromRequestParts<State> for StatsContext
 where State: Send + Sync {
@@ -500,6 +503,7 @@ pub struct StatsResponseForPeriod {
 	pub count:   u64,
 }
 
+//󰭅		From &StatsForPeriod													
 impl From<&StatsForPeriod> for StatsResponseForPeriod {
 	//		from																
 	fn from(stats: &StatsForPeriod) -> Self {

@@ -68,6 +68,7 @@ pub struct User {
 	password: String,
 }
 
+//󰭅		User																	
 impl User {
 	//		find																
 	/// Finds a user by username and password.
@@ -134,6 +135,7 @@ pub struct AuthContext {
 	session:          Session,
 }
 
+//󰭅		AuthContext																
 impl AuthContext {
 	//		new																	
 	/// Creates a new authentication context.
@@ -196,6 +198,7 @@ impl AuthContext {
 	}
 }
 
+//󰭅		FromRequestParts														
 #[async_trait]
 impl<State> FromRequestParts<State> for AuthContext
 where State: Send + Sync {

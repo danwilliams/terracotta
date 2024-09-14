@@ -240,6 +240,7 @@ pub struct Endpoint {
 	pub method: Method,
 }
 
+//󰭅		Serialize																
 impl Serialize for Endpoint {
 	//		serialize															
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
