@@ -53,11 +53,12 @@ mod utility;
 use crate::{
 	handlers::{
 		assets::{get_protected_static_asset, get_public_static_asset},
+		auth::{get_logout, post_login},
 		health::{get_ping, get_version},
 		get_index,
 	},
 	middleware::{
-		auth::{auth_layer, get_logout, post_login, protect},
+		auth::{auth_layer, protect},
 		errors::{final_error_layer, graceful_error_layer, no_route},
 		stats::{AppStateStats, AppStats, get_stats, get_stats_feed, get_stats_history, start_stats_processor, stats_layer},
 	},

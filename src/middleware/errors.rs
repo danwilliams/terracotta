@@ -5,7 +5,8 @@
 //		Packages
 
 use crate::{
-	middleware::auth::{User, get_login},
+	middleware::auth::User,
+	handlers::auth::get_login,
 	utility::AppState,
 };
 use axum::{
