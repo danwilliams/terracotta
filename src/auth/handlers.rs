@@ -5,7 +5,7 @@
 //		Packages
 
 use crate::{
-	middleware::auth::{AuthContext, User},
+	auth::middleware::{AuthContext, User},
 	utility::{AppState, build_uri, extract_uri_query_parts},
 };
 use axum::{

@@ -2,15 +2,6 @@
 
 
 
-//		Modules
-
-pub mod assets;
-pub mod auth;
-pub mod health;
-pub mod stats;
-
-
-
 //		Packages
 
 use crate::utility::AppState;

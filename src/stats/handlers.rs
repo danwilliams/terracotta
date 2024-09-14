@@ -7,7 +7,7 @@
 //		Modules
 
 #[cfg(test)]
-#[path = "../tests/handlers/stats.rs"]
+#[path = "../tests/stats/handlers.rs"]
 mod tests;
 
 
@@ -15,7 +15,7 @@ mod tests;
 //		Packages
 
 use crate::{
-	middleware::stats::StatsForPeriod,
+	stats::middleware::StatsForPeriod,
 	utility::{AppState, Endpoint},
 };
 use axum::{

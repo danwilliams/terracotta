@@ -42,9 +42,13 @@
 
 //		Modules
 
+mod assets;
+mod auth;
 mod config;
+mod errors;
 mod handlers;
-mod middleware;
+mod health;
+mod stats;
 mod utility;
 
 
@@ -53,17 +57,17 @@ mod utility;
 
 use crate::{
 	config::Config,
-	handlers::{
-		assets::{get_protected_static_asset, get_public_static_asset},
-		auth::{get_logout, post_login},
-		health::{get_ping, get_version},
-		stats::{get_stats, get_stats_feed, get_stats_history},
-		get_index,
+	handlers::get_index,
+	assets::handlers::{get_protected_static_asset, get_public_static_asset},
+	auth::{
+		handlers::{get_logout, post_login},
+		middleware::{auth_layer, protect},
 	},
-	middleware::{
-		auth::{auth_layer, protect},
-		errors::{final_error_layer, graceful_error_layer, no_route},
-		stats::{AppStateStats, AppStats, start_stats_processor, stats_layer},
+	errors::middleware::{final_error_layer, graceful_error_layer, no_route},
+	health::handlers::{get_ping, get_version},
+	stats::{
+		handlers::{get_stats, get_stats_feed, get_stats_history},
+		middleware::{AppStateStats, AppStats, start_stats_processor, stats_layer},
 	},
 	utility::{ApiDoc, AppState},
 };

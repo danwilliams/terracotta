@@ -143,9 +143,9 @@ pub struct StatsOptions {
 	/// [response time buffer](StatsOptions.timing_buffer_size), the
 	/// [connection count buffer](StatsOptions.connection_buffer_size), and the
 	/// [memory usage buffer](StatsOptions.memory_buffer_size) (default 4.8MB
-	/// per buffer). If disabled, the [statistics processing thread](crate::middleware::stats::start_stats_processor())
+	/// per buffer). If disabled, the [statistics processing thread](crate::stats::middleware::start_stats_processor())
 	/// will not be started, the buffers' capacities will not be reserved, and
-	/// the [statistics middleware](crate::middleware::stats::stats_layer())
+	/// the [statistics middleware](crate::stats::middleware::stats_layer())
 	/// will do nothing. Under usual circumstances the statistics thread should
 	/// easily be able to keep up with the incoming requests, even on a system
 	/// with hundreds of CPU cores.
@@ -158,7 +158,7 @@ pub struct StatsOptions {
 	/// seems like a reasonable default to be useful but not consume too much
 	/// memory. Notably, the statistics output only looks at a maximum of the
 	/// last day's-worth of data, so if a longer period than this is required
-	/// the [`get_stats()`](crate::handlers::stats::get_stats()) code would need
+	/// the [`get_stats()`](crate::stats::handlers::get_stats()) code would need
 	/// to be customised.
 	#[default = 86_400]
 	pub timing_buffer_size:     usize,
@@ -169,7 +169,7 @@ pub struct StatsOptions {
 	/// seems like a reasonable default to be useful but not consume too much
 	/// memory. Notably, the statistics output only looks at a maximum of the
 	/// last day's-worth of data, so if a longer period than this is required
-	/// the [`get_stats()`](crate::handlers::stats::get_stats()) code would need
+	/// the [`get_stats()`](crate::stats::handlers::get_stats()) code would need
 	/// to be customised.
 	#[default = 86_400]
 	pub connection_buffer_size: usize,
@@ -180,7 +180,7 @@ pub struct StatsOptions {
 	/// seems like a reasonable default to be useful but not consume too much
 	/// memory. Notably, the statistics output only looks at a maximum of the
 	/// last day's-worth of data, so if a longer period than this is required
-	/// the [`get_stats()`](crate::handlers::stats::get_stats()) code would need
+	/// the [`get_stats()`](crate::stats::handlers::get_stats()) code would need
 	/// to be customised.
 	#[default = 86_400]
 	pub memory_buffer_size:     usize,

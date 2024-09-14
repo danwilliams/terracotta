@@ -5,7 +5,7 @@
 //		Modules
 
 #[cfg(test)]
-#[path = "../tests/handlers/health.rs"]
+#[path = "../tests/health/handlers.rs"]
 mod tests;
 
 
