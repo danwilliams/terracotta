@@ -5,8 +5,8 @@
 //		Packages
 
 use crate::{
-	handlers::health,
-	middleware::stats::{AppStateStats, self},
+	handlers::{health, stats},
+	middleware::stats::AppStateStats,
 };
 use axum::http::{Method, Uri};
 use core::{
@@ -154,12 +154,12 @@ pub struct StatsOptions {
 	/// [response time buffer](StatsOptions.timing_buffer_size), the
 	/// [connection count buffer](StatsOptions.connection_buffer_size), and the
 	/// [memory usage buffer](StatsOptions.memory_buffer_size) (default 4.8MB
-	/// per buffer). If disabled, the [statistics processing thread](stats::start_stats_processor())
+	/// per buffer). If disabled, the [statistics processing thread](crate::middleware::stats::start_stats_processor())
 	/// will not be started, the buffers' capacities will not be reserved, and
-	/// the [statistics middleware](stats::stats_layer()) will do nothing.
-	/// Under usual circumstances the statistics thread should easily be able to
-	/// keep up with the incoming requests, even on a system with hundreds of
-	/// CPU cores.
+	/// the [statistics middleware](crate::middleware::stats::stats_layer())
+	/// will do nothing. Under usual circumstances the statistics thread should
+	/// easily be able to keep up with the incoming requests, even on a system
+	/// with hundreds of CPU cores.
 	#[default = true]
 	pub enabled:                bool,
 	

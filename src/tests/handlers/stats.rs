@@ -1,9 +1,12 @@
 #![allow(non_snake_case, reason = "To enable test function name organisation")]
 
-//		Tests
+//		Packages
 
 use super::*;
-use crate::utility::Config;
+use crate::{
+	middleware::stats::{AppStateStats, AppStats, AppStatsTotals},
+	utility::Config,
+};
 use assert_json_diff::assert_json_eq;
 use axum::{
 	http::{Method, StatusCode},
@@ -13,7 +16,7 @@ use chrono::Duration;
 use core::sync::atomic::AtomicUsize;
 use figment::{Figment, providers::Serialized};
 use flume::{self};
-use parking_lot::Mutex;
+use parking_lot::{Mutex, RwLock};
 use rubedo::{
 	http::{ResponseExt, UnpackedResponse, UnpackedResponseBody},
 	sugar::s,
@@ -21,6 +24,10 @@ use rubedo::{
 use tera::Tera;
 use tokio::sync::broadcast;
 use velcro::hash_map;
+
+
+
+//		Functions
 
 //		prepare_state															
 fn prepare_state(start: NaiveDateTime) -> AppState {
@@ -72,6 +79,10 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 	};
 	state
 }
+
+
+
+//		Tests
 
 //		stats																	
 #[tokio::test]
