@@ -42,11 +42,9 @@
 
 //		Modules
 
-mod auth;
-mod errors;
 mod handlers;
 mod health;
-mod stats;
+mod middleware;
 mod utility;
 
 
@@ -54,11 +52,13 @@ mod utility;
 //		Packages
 
 use crate::{
-	auth::{auth_layer, get_logout, post_login, protect},
-	errors::{final_error_layer, graceful_error_layer, no_route},
 	handlers::{get_index, get_protected_static_asset, get_public_static_asset},
 	health::{get_ping, get_version},
-	stats::{AppStateStats, AppStats, get_stats, get_stats_feed, get_stats_history, start_stats_processor, stats_layer},
+	middleware::{
+		auth::{auth_layer, get_logout, post_login, protect},
+		errors::{final_error_layer, graceful_error_layer, no_route},
+		stats::{AppStateStats, AppStats, get_stats, get_stats_feed, get_stats_history, start_stats_processor, stats_layer},
+	},
 	utility::{ApiDoc, AppState, Config},
 };
 use axum::{

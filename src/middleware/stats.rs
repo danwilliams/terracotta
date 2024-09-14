@@ -7,7 +7,7 @@
 //		Modules
 
 #[cfg(test)]
-#[path = "tests/stats.rs"]
+#[path = "../tests/middleware/stats.rs"]
 mod tests;
 
 

@@ -6,7 +6,7 @@
 
 use crate::{
 	health,
-	stats::{AppStateStats, self},
+	middleware::stats::{AppStateStats, self},
 };
 use axum::http::{Method, Uri};
 use core::{
