@@ -4,8 +4,8 @@
 
 use super::*;
 use crate::{
+	config::Config,
 	middleware::stats::{AppStateStats, AppStats, AppStatsTotals},
-	utility::Config,
 };
 use assert_json_diff::assert_json_eq;
 use axum::{

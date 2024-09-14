@@ -42,6 +42,7 @@
 
 //		Modules
 
+mod config;
 mod handlers;
 mod middleware;
 mod utility;
@@ -51,6 +52,7 @@ mod utility;
 //		Packages
 
 use crate::{
+	config::Config,
 	handlers::{
 		assets::{get_protected_static_asset, get_public_static_asset},
 		auth::{get_logout, post_login},
@@ -63,7 +65,7 @@ use crate::{
 		errors::{final_error_layer, graceful_error_layer, no_route},
 		stats::{AppStateStats, AppStats, start_stats_processor, stats_layer},
 	},
-	utility::{ApiDoc, AppState, Config},
+	utility::{ApiDoc, AppState},
 };
 use axum::{
 	Router,
