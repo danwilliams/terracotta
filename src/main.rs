@@ -43,7 +43,6 @@
 //		Modules
 
 mod handlers;
-mod health;
 mod middleware;
 mod utility;
 
@@ -53,10 +52,10 @@ mod utility;
 
 use crate::{
 	handlers::{
-		get_index,
 		assets::{get_protected_static_asset, get_public_static_asset},
+		health::{get_ping, get_version},
+		get_index,
 	},
-	health::{get_ping, get_version},
 	middleware::{
 		auth::{auth_layer, get_logout, post_login, protect},
 		errors::{final_error_layer, graceful_error_layer, no_route},

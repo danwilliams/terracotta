@@ -5,7 +5,7 @@
 //		Packages
 
 use crate::{
-	health,
+	handlers::health,
 	middleware::stats::{AppStateStats, self},
 };
 use axum::http::{Method, Uri};
