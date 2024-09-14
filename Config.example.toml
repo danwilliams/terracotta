@@ -3,15 +3,15 @@ port   = 8000
 logdir = "log"
 title  = "Terracotta"
 
-[local_loading]
+[assets.local_loading]
 protected_assets = "Override"
 public_assets    = "Override"
 
-[local_paths]
+[assets.local_paths]
 protected_assets = "content"
 public_assets    = "static"
 
-[static_files]
+[assets.static_files]
 stream_threshold = 1000
 stream_buffer    = 256
 read_buffer      = 128

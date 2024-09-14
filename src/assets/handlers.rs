@@ -7,7 +7,7 @@
 use crate::{
 	ASSETS_DIR,
 	CONTENT_DIR,
-	config::LoadingBehavior,
+	assets::config::LoadingBehavior,
 	utility::AppState,
 };
 use axum::{
@@ -92,13 +92,13 @@ async fn get_static_asset(
 	let (basedir, local_path, behavior) = match context {
 		AssetContext::Public    => (
 			&ASSETS_DIR,
-			state.config.local_paths.public_assets.join(path),
-			&state.config.local_loading.public_assets
+			state.config.assets.local_paths.public_assets.join(path),
+			&state.config.assets.local_loading.public_assets
 		),
 		AssetContext::Protected => (
 			&CONTENT_DIR,
-			state.config.local_paths.protected_assets.join(path),
-			&state.config.local_loading.protected_assets
+			state.config.assets.local_paths.protected_assets.join(path),
+			&state.config.assets.local_loading.protected_assets
 		),
 	};
 	let is_local = match *behavior {
@@ -114,7 +114,7 @@ async fn get_static_asset(
 	}
 	let body = if is_local {
 		let mut file   = File::open(local_path).await.ok().unwrap();
-		let config     =  &state.config.static_files;
+		let config     =  &state.config.assets.static_files;
 		if file.metadata().await.unwrap().len() > config.stream_threshold.saturating_mul(1_024) as u64 {
 			let reader = BufReader::with_capacity(config.read_buffer.saturating_mul(1_024), file);
 			let stream = ReaderStream::with_capacity(reader, config.stream_buffer.saturating_mul(1_024));
