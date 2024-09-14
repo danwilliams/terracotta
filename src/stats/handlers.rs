@@ -315,9 +315,9 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 	let buffers      = state.stats.data.buffers.read();
 	
 	//	Create pots for each period and process stats buffers
-	let timing_input = initialize_map(&state.config.stats_periods, &buffers.responses);
-	let conn_input   = initialize_map(&state.config.stats_periods, &buffers.connections);
-	let memory_input = initialize_map(&state.config.stats_periods, &buffers.memory);
+	let timing_input = initialize_map(&state.config.stats.periods, &buffers.responses);
+	let conn_input   = initialize_map(&state.config.stats.periods, &buffers.connections);
+	let memory_input = initialize_map(&state.config.stats.periods, &buffers.memory);
 	
 	//	Unlock source data
 	drop(buffers);

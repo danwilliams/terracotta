@@ -71,7 +71,7 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 		},
 		template:         Tera::default(),
 	};
-	state.config.stats_periods = hash_map!{
+	state.config.stats.periods = hash_map!{
 		s!("second"):          1,
 		s!("minute"):         60,
 		s!("hour"):        3_600,
