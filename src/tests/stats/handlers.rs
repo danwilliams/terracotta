@@ -5,7 +5,7 @@
 use super::*;
 use crate::{
 	config::Config,
-	stats::middleware::{AppStateStats, AppStats, AppStatsTotals},
+	stats::worker::{AppStateStats, AppStats, AppStatsTotals},
 };
 use assert_json_diff::assert_json_eq;
 use axum::{

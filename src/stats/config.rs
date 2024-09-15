@@ -23,7 +23,7 @@ pub struct StatsConfig {
 	/// [response time buffer](StatsOptions.timing_buffer_size), the
 	/// [connection count buffer](StatsOptions.connection_buffer_size), and the
 	/// [memory usage buffer](StatsOptions.memory_buffer_size) (default 4.8MB
-	/// per buffer). If disabled, the [statistics processing thread](crate::stats::middleware::start_stats_processor())
+	/// per buffer). If disabled, the [statistics processing thread](crate::stats::worker::start_stats_processor())
 	/// will not be started, the buffers' capacities will not be reserved, and
 	/// the [statistics middleware](crate::stats::middleware::stats_layer())
 	/// will do nothing. Under usual circumstances the statistics thread should

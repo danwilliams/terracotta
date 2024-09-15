@@ -67,7 +67,8 @@ use crate::{
 	health::handlers::{get_ping, get_version},
 	stats::{
 		handlers::{get_stats, get_stats_feed, get_stats_history},
-		middleware::{AppStateStats, AppStats, start_stats_processor, stats_layer},
+		middleware::stats_layer,
+		worker::{AppStateStats, AppStats, start_stats_processor},
 	},
 	utility::{ApiDoc, AppState},
 };

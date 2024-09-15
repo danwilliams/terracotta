@@ -15,7 +15,7 @@ mod tests;
 //		Packages
 
 use crate::{
-	stats::middleware::StatsForPeriod,
+	stats::worker::StatsForPeriod,
 	utility::{AppState, Endpoint},
 };
 use axum::{

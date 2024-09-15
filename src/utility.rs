@@ -8,7 +8,7 @@ use crate::{
 	config::Config,
 	health::handlers as health,
 	stats::handlers  as stats,
-	stats::middleware::AppStateStats,
+	stats::worker::AppStateStats,
 };
 use axum::http::{Method, Uri};
 use core::fmt::Display;
