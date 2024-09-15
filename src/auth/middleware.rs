@@ -4,9 +4,9 @@
 
 //		Packages
 
-use crate::{
-	auth::handlers::get_login,
-	utility::AppState,
+use crate::auth::{
+	handlers::get_login,
+	state::AuthStateProvider,
 };
 use axum::{
 	Extension,
@@ -65,9 +65,13 @@ impl User {
 	/// * `username` - The username to search for.
 	/// * `password` - The password to match.
 	/// 
-	pub fn find(state: &Arc<AppState>, username: &String, password: &String) -> Option<Self> {
-		if state.config.users.contains_key(username) {
-			let pass = state.config.users.get(username)?;
+	pub fn find<S: AuthStateProvider>(
+		state:    &Arc<S>,
+		username: &String,
+		password: &String,
+	) -> Option<Self> {
+		if state.users().contains_key(username) {
+			let pass = state.users().get(username)?;
 			if pass == password {
 				return Some(Self {
 					username: username.clone(),
@@ -89,9 +93,12 @@ impl User {
 	/// * `state`    - The application state.
 	/// * `username` - The username to search for.
 	/// 
-	pub fn find_by_id(state: &Arc<AppState>, id: &String) -> Option<Self> {
-		if state.config.users.contains_key(id) {
-			let password = state.config.users.get(id)?;
+	pub fn find_by_id<S: AuthStateProvider>(
+		state: &Arc<S>,
+		id:    &String,
+	) -> Option<Self> {
+		if state.users().contains_key(id) {
+			let password = state.users().get(id)?;
 			return Some(Self {
 				username: id.clone(),
 				password: password.clone(),
@@ -145,7 +152,7 @@ impl AuthContext {
 	/// 
 	/// * `appstate` - The application state.
 	/// 
-	pub async fn get_user(&self, appstate: &Arc<AppState>) -> Option<User> {
+	pub async fn get_user<S: AuthStateProvider>(&self, appstate: &Arc<S>) -> Option<User> {
 		if let Ok(Some(user_id)) = self.session.get::<String>(SESSION_USER_ID_KEY).await {
 			if let Some(user)    = User::find_by_id(appstate, &user_id) {
 				return Some(user);
@@ -224,8 +231,8 @@ where State: Send + Sync {
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn auth_layer(
-	State(appstate):    State<Arc<AppState>>,
+pub async fn auth_layer<S: AuthStateProvider>(
+	State(appstate):    State<Arc<S>>,
 	Extension(session): Extension<Session>,
 	mut request:        Request<Body>,
 	next:               Next,
@@ -258,8 +265,8 @@ pub async fn auth_layer(
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn protect(
-	State(appstate): State<Arc<AppState>>,
+pub async fn protect<S: AuthStateProvider>(
+	State(appstate): State<Arc<S>>,
 	Extension(user): Extension<Option<User>>,
 	uri:             Uri,
 	request:         Request<Body>,

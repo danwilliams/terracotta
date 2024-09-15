@@ -9,7 +9,7 @@ use crate::{
 		handlers::get_login,
 		middleware::User,
 	},
-	utility::AppState,
+	utility::AppStateProvider,
 };
 use axum::{
 	Extension,
@@ -60,8 +60,8 @@ pub async fn no_route() -> impl IntoResponse {
 /// * `request` - The request.
 /// * `next`    - The next middleware.
 /// 
-pub async fn graceful_error_layer(
-	State(state):    State<Arc<AppState>>,
+pub async fn graceful_error_layer<S: AppStateProvider>(
+	State(state):    State<Arc<S>>,
 	Extension(user): Extension<Option<User>>,
 	uri:             Uri,
 	request:         Request<Body>,
@@ -85,23 +85,23 @@ pub async fn graceful_error_layer(
 				}
 			}
 			let mut context = Context::new();
-			context.insert("Title", &state.config.title);
+			context.insert("Title", &state.title());
 			(
 				parts,
-				Html(state.template.render("404-notfound", &context).unwrap()),
+				Html(state.render("404-notfound", &context).unwrap()),
 			).into_response()
 		},
 		//		500: Internal Server Error										
 		StatusCode::INTERNAL_SERVER_ERROR => {
 			error!("Internal server error: {}", UnpackedResponseBody::from(body));
 			let mut context = Context::new();
-			context.insert("Title", &state.config.title);
+			context.insert("Title", &state.title());
 			drop(parts.headers.remove("content-length"));
 			drop(parts.headers.remove("content-type"));
 			drop(parts.headers.insert("error-handled", "gracefully".parse().unwrap()));
 			(
 				parts,
-				Html(state.template.render("500-error", &context).unwrap()),
+				Html(state.render("500-error", &context).unwrap()),
 			).into_response()
 		},
 		//		Everything else													

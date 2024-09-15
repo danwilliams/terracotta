@@ -5,8 +5,11 @@
 //		Packages
 
 use crate::{
-	auth::middleware::{AuthContext, User},
-	utility::{AppState, build_uri, extract_uri_query_parts},
+	auth::{
+		middleware::{AuthContext, User},
+		state::AuthStateProvider,
+	},
+	utility::{AppStateProvider, build_uri, extract_uri_query_parts},
 };
 use axum::{
 	Form,
@@ -56,8 +59,8 @@ pub struct PostLogin {
 /// * `state` - The application state.
 /// * `uri`   - The request URI.
 /// 
-pub async fn get_login(
-	State(state): State<Arc<AppState>>,
+pub async fn get_login<S: AppStateProvider>(
+	State(state): State<Arc<S>>,
 	mut uri:      Uri,
 ) -> Html<String> {
 	let mut params  = extract_uri_query_parts(&uri);
@@ -68,10 +71,10 @@ pub async fn get_login(
 	}
 	uri             = build_uri(uri.path(), &params);
 	let mut context = Context::new();
-	context.insert("Title",   &state.config.title);
+	context.insert("Title",   &state.title());
 	context.insert("PageURL", &uri.path_and_query().unwrap().to_string());
 	context.insert("Failed",  &failed);
-	Html(state.template.render("login", &context).unwrap())
+	Html(state.render("login", &context).unwrap())
 }
 
 //		post_login																
@@ -87,8 +90,8 @@ pub async fn get_login(
 /// * `auth`  - The authentication context.
 /// * `login` - The login form.
 /// 
-pub async fn post_login(
-	State(state): State<Arc<AppState>>,
+pub async fn post_login<S: AuthStateProvider>(
+	State(state): State<Arc<S>>,
 	mut auth:     AuthContext,
 	Form(login):  Form<PostLogin>,
 ) -> Redirect {

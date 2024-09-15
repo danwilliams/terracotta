@@ -9,6 +9,7 @@ use crate::{
 		config::AssetsConfig,
 		state::AssetsStateProvider,
 	},
+	auth::state::AuthStateProvider,
 	config::Config,
 	health::handlers as health,
 	stats::{
@@ -21,7 +22,7 @@ use crate::{
 use axum::http::Uri;
 use core::fmt::Display;
 use std::collections::HashMap;
-use tera::Tera;
+use tera::{Context, Error as TemplateError, Tera};
 use url::form_urlencoded;
 use utoipa::OpenApi;
 
@@ -47,11 +48,32 @@ pub struct AppState {
 	pub template: Tera,
 }
 
+//󰭅		AppStateProvider														
+impl AppStateProvider for AppState {
+	//		render																
+	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, TemplateError> {
+		self.template.render(template.as_ref(), context)
+	}
+	
+	//		title																
+	fn title(&self) -> &String {
+		&self.config.title
+	}
+}
+
 //󰭅		AssetsStateProvider														
 impl AssetsStateProvider for AppState {
 	//		assets_config														
 	fn assets_config(&self) -> &AssetsConfig {
 		&self.config.assets
+	}
+}
+
+//󰭅		AuthStateProvider														
+impl AuthStateProvider for AppState {
+	//		users																
+	fn users(&self) -> &HashMap<String, String> {
+		&self.config.users
 	}
 }
 
@@ -92,6 +114,32 @@ impl StatsStateProvider for AppState {
 	),
 )]
 pub struct ApiDoc;
+
+
+
+//		Traits
+
+//§		AppStateProvider														
+/// A trait for providing the application state for general functionality.
+pub trait AppStateProvider: Send + Sync + 'static {
+	//		render																
+	/// Renders a template.
+	/// 
+	/// # Parameters
+	/// 
+	/// * `template` - The template to render.
+	/// * `context`  - The context to render the template with.
+	/// 
+	/// # Errors
+	/// 
+	/// If the template cannot be rendered, an error is returned.
+	/// 
+	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, TemplateError>;
+	
+	//		title																
+	/// Gets the application title.
+	fn title(&self) -> &String;
+}
 
 
 
