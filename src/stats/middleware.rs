@@ -5,8 +5,10 @@
 //		Packages
 
 use crate::{
-	stats::worker::{Endpoint, ResponseMetrics},
-	utility::AppState,
+	stats::{
+		state::StatsStateProvider,
+		worker::{Endpoint, ResponseMetrics},
+	},
 };
 use axum::{
 	Extension,
@@ -85,8 +87,8 @@ where State: Send + Sync {
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn stats_layer(
-	State(appstate): State<Arc<AppState>>,
+pub async fn stats_layer<S: StatsStateProvider>(
+	State(appstate): State<Arc<S>>,
 	mut request:     Request<Body>,
 	next:            Next,
 ) -> Response {
@@ -95,7 +97,7 @@ pub async fn stats_layer(
 	_ = request.extensions_mut().insert(stats_cx.clone());
 	
 	//	Check if statistics are enabled
-	if !appstate.config.stats.enabled {
+	if !appstate.stats_config().enabled {
 		return next.run(request).await;
 	}
 	
@@ -106,8 +108,8 @@ pub async fn stats_layer(
 	};
 	
 	//	Update requests counter
-	_ = appstate.stats.data.requests.fetch_add(1, Ordering::Relaxed);
-	_ = appstate.stats.data.connections.fetch_add(1, Ordering::Relaxed);
+	_ = appstate.stats_state().data.requests.fetch_add(1, Ordering::Relaxed);
+	_ = appstate.stats_state().data.connections.fetch_add(1, Ordering::Relaxed);
 	
 	//	Process request
 	let response = next.run(request).await;
@@ -115,16 +117,16 @@ pub async fn stats_layer(
 	//	Add response time to the queue
 	#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
 	#[expect(clippy::cast_sign_loss,          reason = "We don't ever want a negative for time taken")]
-	drop(appstate.stats.queue.send(ResponseMetrics {
+	drop(appstate.stats_state().queue.send(ResponseMetrics {
 		endpoint,
 		started_at:  stats_cx.started_at,
 		time_taken:  (Utc::now().naive_utc() - stats_cx.started_at).num_microseconds().unwrap() as u64,
 		status_code: response.status(),
-		connections: appstate.stats.data.connections.load(Ordering::Relaxed) as u64,
+		connections: appstate.stats_state().data.connections.load(Ordering::Relaxed) as u64,
 		memory:	     Malloc::read().unwrap() as u64,
 	}).inspect_err(|err| error!("Failed to send response time: {err}")));
 	
-	_ = appstate.stats.data.connections.fetch_sub(1, Ordering::Relaxed);
+	_ = appstate.stats_state().data.connections.fetch_sub(1, Ordering::Relaxed);
 	
 	//	Return response
 	response

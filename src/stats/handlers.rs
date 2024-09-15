@@ -14,9 +14,9 @@ mod tests;
 
 //		Packages
 
-use crate::{
-	stats::worker::{Endpoint, StatsForPeriod},
-	utility::AppState,
+use crate::stats::{
+	state::StatsStateProvider,
+	worker::{Endpoint, StatsForPeriod},
 };
 use axum::{
 	Json,
@@ -271,7 +271,9 @@ impl From<&StatsForPeriod> for StatsResponseForPeriod {
 		(status = 200, description = "Application statistics overview", body = StatsResponse),
 	)
 )]
-pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse> {
+pub async fn get_stats<S: StatsStateProvider>(
+	State(state): State<Arc<S>>,
+) -> Json<StatsResponse> {
 	//		Helper functions													
 	/// Initialises a map of stats for each period.
 	fn initialize_map(
@@ -312,19 +314,19 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 	
 	//		Preparation															
 	//	Lock source data
-	let buffers      = state.stats.data.buffers.read();
+	let buffers      = state.stats_state().data.buffers.read();
 	
 	//	Create pots for each period and process stats buffers
-	let timing_input = initialize_map(&state.config.stats.periods, &buffers.responses);
-	let conn_input   = initialize_map(&state.config.stats.periods, &buffers.connections);
-	let memory_input = initialize_map(&state.config.stats.periods, &buffers.memory);
+	let timing_input = initialize_map(&state.stats_config().periods, &buffers.responses);
+	let conn_input   = initialize_map(&state.stats_config().periods, &buffers.connections);
+	let memory_input = initialize_map(&state.stats_config().periods, &buffers.memory);
 	
 	//	Unlock source data
 	drop(buffers);
 	
 	//		Process stats														
 	//	Lock source data
-	let totals        = state.stats.data.totals.lock();
+	let totals        = state.stats_state().data.totals.lock();
 	
 	//	Convert the input stats data into the output stats data
 	let timing_output = convert_map(timing_input, &totals.times);
@@ -336,11 +338,11 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 	#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
 	#[expect(clippy::cast_sign_loss,          reason = "We don't ever want a negative for uptime")]
 	let response   = Json(StatsResponse {
-		started_at:  state.stats.data.started_at.with_nanosecond(0).unwrap(),
-		last_second: *state.stats.data.last_second.read(),
-		uptime:      (now - state.stats.data.started_at).num_seconds() as u64,
-		active:      state.stats.data.connections.load(Ordering::Relaxed) as u64,
-		requests:    state.stats.data.requests.load(Ordering::Relaxed) as u64,
+		started_at:  state.stats_state().data.started_at.with_nanosecond(0).unwrap(),
+		last_second: *state.stats_state().data.last_second.read(),
+		uptime:      (now - state.stats_state().data.started_at).num_seconds() as u64,
+		active:      state.stats_state().data.connections.load(Ordering::Relaxed) as u64,
+		requests:    state.stats_state().data.requests.load(Ordering::Relaxed) as u64,
 		codes:       totals.codes.clone(),
 		times:       timing_output,
 		endpoints:   totals.endpoints.iter()
@@ -394,8 +396,8 @@ pub async fn get_stats(State(state): State<Arc<AppState>>) -> Json<StatsResponse
 		(status = 200, description = "Historical application statistics interval data", body = StatsHistoryResponse),
 	)
 )]
-pub async fn get_stats_history(
-	State(state):  State<Arc<AppState>>,
+pub async fn get_stats_history<S: StatsStateProvider>(
+	State(state):  State<Arc<S>>,
 	Query(params): Query<GetStatsHistoryParams>,
 ) -> Json<StatsHistoryResponse> {
 	//		Helper function														
@@ -414,9 +416,9 @@ pub async fn get_stats_history(
 	
 	//		Prepare response data												
 	//	Lock source data
-	let buffers      = state.stats.data.buffers.read();
+	let buffers      = state.stats_state().data.buffers.read();
 	let mut response = StatsHistoryResponse {
-		last_second:   *state.stats.data.last_second.read(),
+		last_second:   *state.stats_state().data.last_second.read(),
 		..Default::default()
 	};
 	//	Convert the statistics buffers
@@ -467,8 +469,8 @@ pub async fn get_stats_history(
 		(status = 200, description = "Application statistics event feed"),
 	),
 )]
-pub async fn get_stats_feed(
-	State(state):  State<Arc<AppState>>,
+pub async fn get_stats_feed<S: StatsStateProvider>(
+	State(state):  State<Arc<S>>,
 	Query(params): Query<GetStatsFeedParams>,
 	ws_req:        WebSocketUpgrade,
 ) -> Response {
@@ -497,20 +499,20 @@ pub async fn get_stats_feed(
 /// * `scope` - The type of measurement statistics to send.
 /// 
 #[expect(clippy::similar_names, reason = "Clearly different")]
-pub async fn ws_stats_feed(
-	state:  Arc<AppState>,
+pub async fn ws_stats_feed<S: StatsStateProvider>(
+	state:  Arc<S>,
 	mut ws: WebSocket,
 	scope:  Option<MeasurementType>,
 ) {
 	//		Preparation															
 	info!("WebSocket connection established");
 	//	Subscribe to the broadcast channel
-	let mut rx        = state.stats.broadcast.subscribe();
+	let mut rx        = state.stats_state().broadcast.subscribe();
 	//	Set up a timer to send pings at regular intervals
 	#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
-	let mut timer     = interval(Duration::seconds(state.config.stats.ws_ping_interval as i64).to_std().unwrap());
+	let mut timer     = interval(Duration::seconds(state.stats_config().ws_ping_interval as i64).to_std().unwrap());
 	#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
-	let mut timeout   = interval(Duration::seconds(state.config.stats.ws_ping_timeout  as i64).to_std().unwrap());
+	let mut timeout   = interval(Duration::seconds(state.stats_config().ws_ping_timeout  as i64).to_std().unwrap());
 	let mut last_ping = None;
 	let mut last_pong = Instant::now();
 	
@@ -531,7 +533,7 @@ pub async fn ws_stats_feed(
 		_ = timeout.tick() => {
 			if let Some(ping_time) = last_ping {
 				#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
-				let limit = Duration::seconds(state.config.stats.ws_ping_timeout as i64).to_std().unwrap();
+				let limit = Duration::seconds(state.stats_config().ws_ping_timeout as i64).to_std().unwrap();
 				if last_pong < ping_time && ping_time.elapsed() > limit {
 					warn!("WebSocket ping timed out");
 					break;

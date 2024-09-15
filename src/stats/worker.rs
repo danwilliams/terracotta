@@ -4,7 +4,7 @@
 
 //		Packages
 
-use crate::utility::AppState;
+use crate::stats::state::StatsStateProvider;
 use axum::http::{Method, StatusCode};
 use chrono::{Duration, NaiveDateTime, Timelike, Utc};
 use core::sync::atomic::AtomicUsize;
@@ -330,7 +330,10 @@ pub struct ResponseMetrics {
 /// * `receiver` - The receiving end of the queue.
 /// * `appstate` - The application state.
 /// 
-pub async fn start_stats_processor(receiver: Receiver<ResponseMetrics>, appstate: Arc<AppState>) {
+pub async fn start_stats_processor<S: StatsStateProvider>(
+	receiver: Receiver<ResponseMetrics>,
+	appstate: Arc<S>,
+) {
 	//	Fixed time period of the current second
 	let mut current_second = Utc::now().naive_utc().with_nanosecond(0).unwrap();
 	//	Cumulative stats for the current second
@@ -346,10 +349,10 @@ pub async fn start_stats_processor(receiver: Receiver<ResponseMetrics>, appstate
 	//	have enough memory it would fail right away, instead of gradually
 	//	building up to that point which would make it harder to diagnose.
 	{
-		let mut buffers    = appstate.stats.data.buffers.write();
-		buffers.responses  .reserve(appstate.config.stats.timing_buffer_size);
-		buffers.connections.reserve(appstate.config.stats.connection_buffer_size);
-		buffers.memory     .reserve(appstate.config.stats.memory_buffer_size);
+		let mut buffers    = appstate.stats_state().data.buffers.write();
+		buffers.responses  .reserve(appstate.stats_config().timing_buffer_size);
+		buffers.connections.reserve(appstate.stats_config().connection_buffer_size);
+		buffers.memory     .reserve(appstate.stats_config().memory_buffer_size);
 	}
 	
 	//	Wait until the start of the next second, to align with it so that the
@@ -412,8 +415,8 @@ pub async fn start_stats_processor(receiver: Receiver<ResponseMetrics>, appstate
 /// * `memory_stats`   - The cumulative memory stats for the current second.
 /// * `current_second` - The current second.
 /// 
-fn stats_processor(
-	appstate:       &Arc<AppState>,
+fn stats_processor<S: StatsStateProvider>(
+	appstate:       &Arc<S>,
 	metrics:        Option<ResponseMetrics>,
 	timing_stats:   &mut StatsForPeriod,
 	conn_stats:     &mut StatsForPeriod,
@@ -458,7 +461,7 @@ fn stats_processor(
 		
 	//		Update statistics													
 		//	Lock source data
-		let mut totals = appstate.stats.data.totals.lock();
+		let mut totals = appstate.stats_state().data.totals.lock();
 		
 		//	Update responses counter
 		_ = totals.codes.entry(metrics.status_code).and_modify(|e| *e = e.saturating_add(1)).or_insert(1);
@@ -497,12 +500,12 @@ fn stats_processor(
 	if new_second > *current_second {
 		#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
 		let elapsed     = (new_second - *current_second).num_seconds();
-		let mut buffers = appstate.stats.data.buffers.write();
+		let mut buffers = appstate.stats_state().data.buffers.write();
 		let mut message = AllStatsForPeriod::default();
 		//	Timing stats buffer
 		update_buffer(
 			&mut buffers.responses,
-			appstate.config.stats.timing_buffer_size,
+			appstate.stats_config().timing_buffer_size,
 			timing_stats,
 			current_second,
 			elapsed,
@@ -512,7 +515,7 @@ fn stats_processor(
 		//	Connections stats buffer
 		update_buffer(
 			&mut buffers.connections,
-			appstate.config.stats.connection_buffer_size,
+			appstate.stats_config().connection_buffer_size,
 			conn_stats,
 			current_second,
 			elapsed,
@@ -522,7 +525,7 @@ fn stats_processor(
 		//	Memory stats buffer
 		update_buffer(
 			&mut buffers.memory,
-			appstate.config.stats.memory_buffer_size,
+			appstate.stats_config().memory_buffer_size,
 			memory_stats,
 			current_second,
 			elapsed,
@@ -530,9 +533,9 @@ fn stats_processor(
 			|stats, msg| { msg.memory = stats.clone(); },
 		);
 		drop(buffers);
-		*appstate.stats.data.last_second.write() = *current_second;
+		*appstate.stats_state().data.last_second.write() = *current_second;
 		*current_second = new_second;
-		drop(appstate.stats.broadcast.send(message).inspect_err(|err| error!("Failed to broadcast stats: {err}")));
+		drop(appstate.stats_state().broadcast.send(message).inspect_err(|err| error!("Failed to broadcast stats: {err}")));
 	}
 }
 

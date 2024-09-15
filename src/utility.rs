@@ -5,10 +5,18 @@
 //		Packages
 
 use crate::{
+	assets::{
+		config::AssetsConfig,
+		state::AssetsStateProvider,
+	},
 	config::Config,
 	health::handlers as health,
-	stats::handlers  as stats,
-	stats::worker::AppStateStats,
+	stats::{
+		config::StatsConfig,
+		handlers as stats,
+		state::StatsStateProvider,
+		worker::AppStateStats,
+	},
 };
 use axum::http::Uri;
 use core::fmt::Display;
@@ -37,6 +45,27 @@ pub struct AppState {
 	
 	/// The Tera template engine.
 	pub template: Tera,
+}
+
+//󰭅		AssetsStateProvider														
+impl AssetsStateProvider for AppState {
+	//		assets_config														
+	fn assets_config(&self) -> &AssetsConfig {
+		&self.config.assets
+	}
+}
+
+//󰭅		StatsStateProvider														
+impl StatsStateProvider for AppState {
+	//		stats_config														
+	fn stats_config(&self) -> &StatsConfig {
+		&self.config.stats
+	}
+	
+	//		stats_state															
+	fn stats_state(&self) -> &AppStateStats {
+		&self.stats
+	}
 }
 
 //		ApiDoc																	
