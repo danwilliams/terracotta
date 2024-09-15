@@ -10,10 +10,8 @@ use crate::{
 	stats::handlers  as stats,
 	stats::worker::AppStateStats,
 };
-use axum::http::{Method, Uri};
+use axum::http::Uri;
 use core::fmt::Display;
-use serde::{Serialize, Serializer};
-use smart_default::SmartDefault;
 use std::collections::HashMap;
 use tera::Tera;
 use url::form_urlencoded;
@@ -39,31 +37,6 @@ pub struct AppState {
 	
 	/// The Tera template engine.
 	pub template: Tera,
-}
-
-//		Endpoint																
-/// A formalised definition of an endpoint for identification.
-#[derive(Clone, Eq, Hash, PartialEq, SmartDefault)]
-pub struct Endpoint {
-	//		Public properties													
-	/// The path of the endpoint, minus any query parameters. As this is just
-	/// the path, it does not contain scheme or authority (host), and hence is
-	/// not a full URI.
-	pub path:   String,
-	
-	/// The HTTP verb of the endpoint.
-	pub method: Method,
-}
-
-//󰭅		Serialize																
-impl Serialize for Endpoint {
-	//		serialize															
-	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-	where
-		S: Serializer,
-	{
-		serializer.serialize_str(&format!("{} {}", self.method, self.path))
-	}
 }
 
 //		ApiDoc																	

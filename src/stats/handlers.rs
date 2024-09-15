@@ -15,8 +15,8 @@ mod tests;
 //		Packages
 
 use crate::{
-	stats::worker::StatsForPeriod,
-	utility::{AppState, Endpoint},
+	stats::worker::{Endpoint, StatsForPeriod},
+	utility::AppState,
 };
 use axum::{
 	Json,

@@ -4,13 +4,13 @@
 
 //		Packages
 
-use crate::utility::{AppState, Endpoint};
-use axum::http::StatusCode;
+use crate::utility::AppState;
+use axum::http::{Method, StatusCode};
 use chrono::{Duration, NaiveDateTime, Timelike, Utc};
 use core::sync::atomic::AtomicUsize;
 use flume::{Receiver, Sender};
 use parking_lot::{Mutex, RwLock};
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 use smart_default::SmartDefault;
 use std::{
 	collections::{HashMap, VecDeque},
@@ -142,6 +142,31 @@ pub struct AppStatsBuffers {
 	/// A circular buffer of memory usage stats per second for the configured
 	/// period.
 	pub memory:      VecDeque<StatsForPeriod>,
+}
+
+//		Endpoint																
+/// A formalised definition of an endpoint for identification.
+#[derive(Clone, Eq, Hash, PartialEq, SmartDefault)]
+pub struct Endpoint {
+	//		Public properties													
+	/// The path of the endpoint, minus any query parameters. As this is just
+	/// the path, it does not contain scheme or authority (host), and hence is
+	/// not a full URI.
+	pub path:   String,
+	
+	/// The HTTP verb of the endpoint.
+	pub method: Method,
+}
+
+//󰭅		Serialize																
+impl Serialize for Endpoint {
+	//		serialize															
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		serializer.serialize_str(&format!("{} {}", self.method, self.path))
+	}
 }
 
 //		StatsForPeriod															

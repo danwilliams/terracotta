@@ -5,8 +5,8 @@
 //		Packages
 
 use crate::{
-	stats::worker::ResponseMetrics,
-	utility::{AppState, Endpoint},
+	stats::worker::{Endpoint, ResponseMetrics},
+	utility::AppState,
 };
 use axum::{
 	Extension,
