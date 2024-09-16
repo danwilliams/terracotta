@@ -62,7 +62,8 @@ use crate::{
 	assets::handlers::{get_protected_static_asset, get_public_static_asset},
 	auth::{
 		handlers::{get_logout, post_login},
-		middleware::{auth_layer, protect},
+		middleware::auth_layer,
+		routing::RouterExt,
 	},
 	errors::middleware::{final_error_layer, graceful_error_layer, no_route},
 	health::handlers::{get_ping, get_version},
@@ -151,26 +152,24 @@ async fn main() {
 	if shared_state.config.stats.enabled {
 		start_stats_processor(recv, Arc::clone(&shared_state)).await;
 	}
-	//	Protected routes
 	let app           = Router::new()
-		.route("/",      get(get_index))
-		.route("/*path", get(get_protected_static_asset))
-		.route_layer(from_fn_with_state(Arc::clone(&shared_state), protect))
-		.merge(
-			//	Public routes
-			Router::new()
-				.route("/api/ping",          get(get_ping))
-				.route("/api/version",       get(get_version))
-				.route("/api/stats",         get(get_stats))
-				.route("/api/stats/history", get(get_stats_history))
-				.route("/api/stats/feed",    get(get_stats_feed))
-				.route("/login",             post(post_login))
-				.route("/logout",            get(get_logout))
-				.route("/css/*path",         get(get_public_static_asset))
-				.route("/img/*path",         get(get_public_static_asset))
-				.route("/js/*path",          get(get_public_static_asset))
-				.route("/webfonts/*path",    get(get_public_static_asset))
-		)
+		.protected_routes(vec![
+			("/",      get(get_index)),
+			("/*path", get(get_protected_static_asset)),
+		], Arc::clone(&shared_state))
+		.public_routes(vec![
+			("/api/ping",          get(get_ping)),
+			("/api/version",       get(get_version)),
+			("/api/stats",         get(get_stats)),
+			("/api/stats/history", get(get_stats_history)),
+			("/api/stats/feed",    get(get_stats_feed)),
+			("/login",             post(post_login)),
+			("/logout",            get(get_logout)),
+			("/css/*path",         get(get_public_static_asset)),
+			("/img/*path",         get(get_public_static_asset)),
+			("/js/*path",          get(get_public_static_asset)),
+			("/webfonts/*path",    get(get_public_static_asset)),
+		])
 		.merge(SwaggerUi::new("/api-docs/swagger").url("/api-docs/openapi.json", ApiDoc::openapi()))
 		.merge(Redoc::with_url("/api-docs/redoc", ApiDoc::openapi()))
 		.merge(RapiDoc::new("/api-docs/openapi.json").path("/api-docs/rapidoc"))
