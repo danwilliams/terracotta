@@ -62,7 +62,6 @@ use crate::{
 	assets::handlers::{get_protected_static_asset, get_public_static_asset},
 	auth::{
 		handlers::{get_logout, post_login},
-		middleware::auth_layer,
 		routing::RouterExt as AuthRouterExt,
 	},
 	errors::middleware::{final_error_layer, graceful_error_layer, no_route},
@@ -88,11 +87,6 @@ use tokio::{
 	sync::RwLock,
 };
 use tower_http::catch_panic::CatchPanicLayer;
-use tower_sessions::{
-	MemoryStore as SessionMemoryStore,
-	SessionManagerLayer,
-	cookie::Key as SessionKey,
-};
 use tracing::info;
 use utoipa::OpenApi;
 
@@ -116,8 +110,6 @@ async fn main() {
 	let config        = load_config();
 	let address       = SocketAddr::from((config.host, config.port));
 	let _guard        = setup_logging(&config.logdir);
-	let session_key   = SessionKey::generate();
-	let session_store = SessionMemoryStore::default();
 	let shared_state  = Arc::new(AppState {
 		assets_dir:     Arc::new(include_dir!("static")),
 		config,
@@ -148,8 +140,7 @@ async fn main() {
 		.fallback(no_route)
 		.layer(CatchPanicLayer::new())
 		.layer(from_fn_with_state(Arc::clone(&shared_state), graceful_error_layer))
-		.layer(from_fn_with_state(Arc::clone(&shared_state), auth_layer))
-		.layer(SessionManagerLayer::new(session_store).with_secure(false).with_signed(session_key))
+		.add_authentication(Arc::clone(&shared_state))
 		.layer(from_fn_with_state(Arc::clone(&shared_state), stats_layer))
 		.with_state(shared_state)
 		.add_http_logging()
