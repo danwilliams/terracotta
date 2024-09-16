@@ -17,6 +17,7 @@ use chrono::Duration;
 use core::sync::atomic::AtomicUsize;
 use figment::{Figment, providers::Serialized};
 use flume::{self};
+use include_dir::include_dir;
 use parking_lot::{Mutex, RwLock};
 use rubedo::{
 	http::{ResponseExt, UnpackedResponse, UnpackedResponseBody},
@@ -35,7 +36,9 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 	let (sender, _)     = flume::unbounded();
 	let (tx, _)         = broadcast::channel(10);
 	let mut state       = AppState {
+		assets_dir:       Arc::new(include_dir!("static")),
 		config:           Figment::from(Serialized::defaults(Config::default())).extract().unwrap(),
+		content_dir:      Arc::new(include_dir!("content")),
 		stats:            AppStateStats {
 			data:                AppStats {
 				started_at:      start,

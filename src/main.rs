@@ -137,12 +137,6 @@ static GLOBAL:       Jemalloc = Jemalloc;
 /// The directory containing the HTML templates.
 static TEMPLATE_DIR: Dir<'_>  = include_dir!("html");
 
-/// The directory containing the static assets.
-static ASSETS_DIR:   Dir<'_>  = include_dir!("static");
-
-/// The directory containing the Markdown content.
-static CONTENT_DIR:  Dir<'_>  = include_dir!("content");
-
 
 
 //		Functions
@@ -194,7 +188,9 @@ async fn main() {
 	let session_key   = SessionKey::generate();
 	let session_store = SessionMemoryStore::default();
 	let shared_state  = Arc::new(AppState {
+		assets_dir:     Arc::new(include_dir!("static")),
 		config,
+		content_dir:    Arc::new(include_dir!("content")),
 		stats:          AppStateStats {
 			data:       AppStats {
 				started_at: Utc::now().naive_utc(),

@@ -19,7 +19,11 @@ use crate::{
 		worker::AppStateStats,
 	},
 };
-use std::collections::HashMap;
+use include_dir::Dir;
+use std::{
+	collections::HashMap,
+	sync::Arc,
+};
 use tera::{Context, Error as TemplateError, Tera};
 use utoipa::OpenApi;
 
@@ -35,14 +39,20 @@ use utoipa::OpenApi;
 /// 
 pub struct AppState {
 	//		Public properties													
+	/// The directory containing the static assets.
+	pub assets_dir:  Arc<Dir<'static>>,
+	
 	/// The application configuration.
-	pub config:   Config,
+	pub config:      Config,
+	
+	/// The directory containing the Markdown content.
+	pub content_dir: Arc<Dir<'static>>,
 	
 	/// The application statistics.
-	pub stats:    AppStateStats,
+	pub stats:       AppStateStats,
 	
 	/// The Tera template engine.
-	pub template: Tera,
+	pub template:    Tera,
 }
 
 //󰭅		AppStateProvider														
@@ -63,6 +73,16 @@ impl AssetsStateProvider for AppState {
 	//		assets_config														
 	fn assets_config(&self) -> &AssetsConfig {
 		&self.config.assets
+	}
+	
+	//		assets_dir															
+	fn assets_dir(&self) -> Arc<Dir<'static>> {
+		Arc::clone(&self.assets_dir)
+	}
+	
+	//		content_dir															
+	fn content_dir(&self) -> Arc<Dir<'static>> {
+		Arc::clone(&self.content_dir)
 	}
 }
 

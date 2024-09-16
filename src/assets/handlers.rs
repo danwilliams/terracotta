@@ -5,8 +5,6 @@
 //		Packages
 
 use crate::{
-	ASSETS_DIR,
-	CONTENT_DIR,
 	assets::{
 		config::LoadingBehavior,
 		state::AssetsStateProvider,
@@ -93,12 +91,12 @@ async fn get_static_asset<S: AssetsStateProvider>(
 	let mime_type = mime_guess::from_path(path).first_or_text_plain();
 	let (basedir, local_path, behavior) = match context {
 		AssetContext::Public    => (
-			&ASSETS_DIR,
+			state.assets_dir(),
 			state.assets_config().local_paths.public_assets.join(path),
 			&state.assets_config().local_loading.public_assets
 		),
 		AssetContext::Protected => (
-			&CONTENT_DIR,
+			state.content_dir(),
 			state.assets_config().local_paths.protected_assets.join(path),
 			&state.assets_config().local_loading.protected_assets
 		),
