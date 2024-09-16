@@ -64,7 +64,10 @@ use crate::{
 		handlers::{get_logout, post_login},
 		routing::RouterExt as AuthRouterExt,
 	},
-	errors::middleware::{final_error_layer, graceful_error_layer, no_route},
+	errors::{
+		middleware::no_route,
+		routing::RouterExt as ErrorsRouterExt,
+	},
 	health::handlers::{get_ping, get_version},
 	stats::{
 		handlers::{get_stats, get_stats_feed, get_stats_history},
@@ -75,7 +78,7 @@ use crate::{
 };
 use axum::{
 	Router,
-	middleware::{from_fn, from_fn_with_state},
+	middleware::from_fn_with_state,
 	routing::{get, post},
 };
 use ::core::net::SocketAddr;
@@ -86,7 +89,6 @@ use tokio::{
 	net::TcpListener,
 	sync::RwLock,
 };
-use tower_http::catch_panic::CatchPanicLayer;
 use tracing::info;
 use utoipa::OpenApi;
 
@@ -138,14 +140,12 @@ async fn main() {
 		])
 		.add_openapi("/api-docs", ApiDoc::openapi())
 		.fallback(no_route)
-		.layer(CatchPanicLayer::new())
-		.layer(from_fn_with_state(Arc::clone(&shared_state), graceful_error_layer))
+		.add_error_template(Arc::clone(&shared_state))
 		.add_authentication(Arc::clone(&shared_state))
 		.layer(from_fn_with_state(Arc::clone(&shared_state), stats_layer))
 		.with_state(shared_state)
 		.add_http_logging()
-		.layer(CatchPanicLayer::new())
-		.layer(from_fn(final_error_layer))
+		.add_error_catcher()
 	;
 	let listener          = TcpListener::bind(address).await.unwrap();
 	let allocated_address = listener.local_addr().expect("Failed to get local address");
