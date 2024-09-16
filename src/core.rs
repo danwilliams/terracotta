@@ -4,13 +4,73 @@
 
 //		Packages
 
+use crate::config::Config;
+use figment::{
+	Figment,
+	providers::{Env, Format, Serialized, Toml},
+};
 use include_dir::Dir;
-use std::sync::Arc;
+use std::{
+	io::stdout,
+	sync::Arc,
+};
 use tera::Tera;
+use tracing::Level;
+use tracing_appender::{self, non_blocking, non_blocking::WorkerGuard, rolling::daily};
+use tracing_subscriber::{
+	EnvFilter,
+	fmt::{layer, writer::MakeWriterExt},
+	layer::SubscriberExt,
+	registry,
+	util::SubscriberInitExt,
+};
 
 
 
 //		Functions
+
+//		load_config																
+/// Loads the application configuration.
+#[expect(clippy::expect_used, reason = "Misconfiguration or inability to start, so hard quit")]
+pub fn load_config() -> Config {
+	Figment::from(Serialized::defaults(Config::default()))
+		.merge(Toml::file("Config.toml"))
+		.merge(Env::raw())
+		.extract()
+		.expect("Error loading config")
+}
+
+//		setup_logging															
+/// Sets up logging for the application.
+/// 
+/// This function sets up logging to the terminal and to a file in the specified
+/// directory.
+/// 
+/// # Parameters
+/// 
+/// * `logdir` - The directory to write the log files to.
+/// 
+pub fn setup_logging<S: AsRef<str>>(logdir: S) -> WorkerGuard {
+	let (non_blocking_appender, guard) = non_blocking(
+		daily(logdir.as_ref(), "general.log")
+	);
+	registry()
+		.with(
+			EnvFilter::try_from_default_env()
+				.unwrap_or_else(|_| "terracotta=debug,tower_http=debug".into()),
+		)
+		.with(
+			layer()
+				.with_writer(stdout.with_max_level(Level::DEBUG))
+		)
+		.with(
+			layer()
+				.with_writer(non_blocking_appender.with_max_level(Level::INFO))
+		)
+		.init()
+	;
+	guard
+}
 
 //		setup_tera																
 /// Sets up the Tera template engine.

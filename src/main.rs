@@ -57,8 +57,7 @@ mod utility;
 //		Packages
 
 use crate::{
-	config::Config,
-	core::setup_tera,
+	core::{load_config, setup_logging, setup_tera},
 	handlers::get_index,
 	assets::handlers::{get_protected_static_asset, get_public_static_asset},
 	auth::{
@@ -86,16 +85,9 @@ use ::core::{
 	net::SocketAddr,
 	time::Duration,
 };
-use figment::{
-	Figment,
-	providers::{Env, Format, Serialized, Toml},
-};
 use flume::{self};
 use include_dir::include_dir;
-use std::{
-	io::stdout,
-	sync::Arc,
-};
+use std::sync::Arc;
 use tikv_jemallocator::Jemalloc;
 use tokio::{
 	net::TcpListener,
@@ -113,14 +105,6 @@ use tower_sessions::{
 	cookie::Key as SessionKey,
 };
 use tracing::{Level, Span, info, debug, error};
-use tracing_appender::{self, non_blocking, rolling::daily};
-use tracing_subscriber::{
-	EnvFilter,
-	fmt::{layer, writer::MakeWriterExt},
-	layer::SubscriberExt,
-	registry,
-	util::SubscriberInitExt,
-};
 use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
 use utoipa_redoc::{Redoc, Servable};
@@ -143,31 +127,9 @@ static GLOBAL: Jemalloc = Jemalloc;
 #[expect(clippy::expect_used, reason = "Misconfiguration or inability to start, so hard quit")]
 #[tokio::main]
 async fn main() {
-	let config: Config = Figment::from(Serialized::defaults(Config::default()))
-		.merge(Toml::file("Config.toml"))
-		.merge(Env::raw())
-		.extract()
-		.expect("Error loading config")
-	;
-	let address = SocketAddr::from((config.host, config.port));
-	let (non_blocking_appender, _guard) = non_blocking(
-		daily(&config.logdir, "general.log")
-	);
-	registry()
-		.with(
-			EnvFilter::try_from_default_env()
-				.unwrap_or_else(|_| "terracotta=debug,tower_http=debug".into()),
-		)
-		.with(
-			layer()
-				.with_writer(stdout.with_max_level(Level::DEBUG))
-		)
-		.with(
-			layer()
-				.with_writer(non_blocking_appender.with_max_level(Level::INFO))
-		)
-		.init()
-	;
+	let config        = load_config();
+	let address       = SocketAddr::from((config.host, config.port));
+	let _guard        = setup_logging(&config.logdir);
 	let (send, recv)  = flume::unbounded();
 	let (tx, _rx)     = broadcast::channel(10);
 	let session_key   = SessionKey::generate();
