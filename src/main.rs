@@ -71,14 +71,13 @@ use crate::{
 	health::handlers::{get_ping, get_version},
 	stats::{
 		handlers::{get_stats, get_stats_feed, get_stats_history},
-		middleware::stats_layer,
+		routing::RouterExt as StatsRouterExt,
 		worker::{AppStateStats, start_stats_processor},
 	},
 	utility::{ApiDoc, AppState},
 };
 use axum::{
 	Router,
-	middleware::from_fn_with_state,
 	routing::{get, post},
 };
 use ::core::net::SocketAddr;
@@ -142,7 +141,7 @@ async fn main() {
 		.fallback(no_route)
 		.add_error_template(Arc::clone(&shared_state))
 		.add_authentication(Arc::clone(&shared_state))
-		.layer(from_fn_with_state(Arc::clone(&shared_state), stats_layer))
+		.add_stats_gathering(Arc::clone(&shared_state))
 		.with_state(shared_state)
 		.add_http_logging()
 		.add_error_catcher()
