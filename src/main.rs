@@ -45,6 +45,7 @@
 mod assets;
 mod auth;
 mod config;
+mod core;
 mod errors;
 mod handlers;
 mod health;
@@ -57,6 +58,7 @@ mod utility;
 
 use crate::{
 	config::Config,
+	core::setup_tera,
 	handlers::get_index,
 	assets::handlers::{get_protected_static_asset, get_public_static_asset},
 	auth::{
@@ -80,7 +82,7 @@ use axum::{
 };
 use bytes::Bytes;
 use chrono::Utc;
-use core::{
+use ::core::{
 	net::SocketAddr,
 	time::Duration,
 };
@@ -89,12 +91,11 @@ use figment::{
 	providers::{Env, Format, Serialized, Toml},
 };
 use flume::{self};
-use include_dir::{Dir, include_dir};
+use include_dir::include_dir;
 use std::{
 	io::stdout,
 	sync::Arc,
 };
-use tera::Tera;
 use tikv_jemallocator::Jemalloc;
 use tokio::{
 	net::TcpListener,
@@ -132,10 +133,7 @@ use utoipa_swagger_ui::SwaggerUi;
 /// The global allocator. This is changed to Jemalloc in order to obtain memory
 /// usage statistics.
 #[global_allocator]
-static GLOBAL:       Jemalloc = Jemalloc;
-
-/// The directory containing the HTML templates.
-static TEMPLATE_DIR: Dir<'_>  = include_dir!("html");
+static GLOBAL: Jemalloc = Jemalloc;
 
 
 
@@ -170,19 +168,6 @@ async fn main() {
 		)
 		.init()
 	;
-	let mut templates = vec![];
-	for file in TEMPLATE_DIR.find("**/*.tera.html").expect("Failed to read glob pattern") {
-		templates.push((
-			file.path().file_name().unwrap()
-				.to_str().unwrap()
-				.strip_suffix(".tera.html").unwrap()
-				.to_owned(),
-			TEMPLATE_DIR.get_file(file.path()).unwrap().contents_utf8().unwrap(),
-		));
-	}
-	let mut tera      = Tera::default();
-	tera.add_raw_templates(templates).expect("Error parsing templates");
-	tera.autoescape_on(vec![".tera.html", ".html"]);
 	let (send, recv)  = flume::unbounded();
 	let (tx, _rx)     = broadcast::channel(10);
 	let session_key   = SessionKey::generate();
@@ -199,7 +184,7 @@ async fn main() {
 			queue:      send,
 			broadcast:  tx,
 		},
-		template:       tera,
+		template:       setup_tera(&Arc::new(include_dir!("html"))),
 	});
 	if shared_state.config.stats.enabled {
 		start_stats_processor(recv, Arc::clone(&shared_state)).await;
