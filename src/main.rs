@@ -57,13 +57,13 @@ mod utility;
 //		Packages
 
 use crate::{
-	core::{load_config, setup_logging, setup_tera},
+	core::{RouterExt, load_config, setup_logging, setup_tera},
 	handlers::get_index,
 	assets::handlers::{get_protected_static_asset, get_public_static_asset},
 	auth::{
 		handlers::{get_logout, post_login},
 		middleware::auth_layer,
-		routing::RouterExt,
+		routing::RouterExt as AuthRouterExt,
 	},
 	errors::middleware::{final_error_layer, graceful_error_layer, no_route},
 	health::handlers::{get_ping, get_version},
@@ -76,16 +76,11 @@ use crate::{
 };
 use axum::{
 	Router,
-	http::HeaderMap,
 	middleware::{from_fn, from_fn_with_state},
 	routing::{get, post},
 };
-use bytes::Bytes;
 use chrono::Utc;
-use ::core::{
-	net::SocketAddr,
-	time::Duration,
-};
+use ::core::net::SocketAddr;
 use flume::{self};
 use include_dir::include_dir;
 use std::sync::Arc;
@@ -94,18 +89,13 @@ use tokio::{
 	net::TcpListener,
 	sync::broadcast,
 };
-use tower_http::{
-	LatencyUnit,
-	catch_panic::CatchPanicLayer,
-	classify::ServerErrorsFailureClass,
-	trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer},
-};
+use tower_http::catch_panic::CatchPanicLayer;
 use tower_sessions::{
 	MemoryStore as SessionMemoryStore,
 	SessionManagerLayer,
 	cookie::Key as SessionKey,
 };
-use tracing::{Level, Span, info, debug, error};
+use tracing::info;
 use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
 use utoipa_redoc::{Redoc, Servable};
@@ -180,26 +170,7 @@ async fn main() {
 		.layer(SessionManagerLayer::new(session_store).with_secure(false).with_signed(session_key))
 		.layer(from_fn_with_state(Arc::clone(&shared_state), stats_layer))
 		.with_state(shared_state)
-		.layer(TraceLayer::new_for_http()
-			.on_request(
-				DefaultOnRequest::new()
-					.level(Level::INFO)
-			)
-			.on_response(
-				DefaultOnResponse::new()
-					.level(Level::INFO)
-					.latency_unit(LatencyUnit::Micros)
-			)
-			.on_body_chunk(|chunk: &Bytes, _latency: Duration, _span: &Span| {
-				debug!("Sending {} bytes", chunk.len());
-			})
-			.on_eos(|_trailers: Option<&HeaderMap>, stream_duration: Duration, _span: &Span| {
-				debug!("Stream closed after {:?}", stream_duration);
-			})
-			.on_failure(|_error: ServerErrorsFailureClass, _latency: Duration, _span: &Span| {
-				error!("Something went wrong");
-			})
-		)
+		.add_http_logging()
 		.layer(CatchPanicLayer::new())
 		.layer(from_fn(final_error_layer))
 	;

@@ -5,6 +5,12 @@
 //		Packages
 
 use crate::config::Config;
+use axum::{
+	Router,
+	http::HeaderMap,
+};
+use bytes::Bytes;
+use ::core::time::Duration;
 use figment::{
 	Figment,
 	providers::{Env, Format, Serialized, Toml},
@@ -15,7 +21,12 @@ use std::{
 	sync::Arc,
 };
 use tera::Tera;
-use tracing::Level;
+use tower_http::{
+	LatencyUnit,
+	classify::ServerErrorsFailureClass,
+	trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer},
+};
+use tracing::{Level, Span, debug, error};
 use tracing_appender::{self, non_blocking, non_blocking::WorkerGuard, rolling::daily};
 use tracing_subscriber::{
 	EnvFilter,
@@ -24,6 +35,45 @@ use tracing_subscriber::{
 	registry,
 	util::SubscriberInitExt,
 };
+
+
+
+//		Traits
+
+//§		RouterExt																
+/// Extension methods for the Axum [`Router`].
+pub trait RouterExt<S: Clone + Send + Sync + 'static> {
+	//		add_http_logging													
+	/// Adds logging of HTTP requests and responses to the router.
+	fn add_http_logging(self) -> Self;
+}
+
+//󰭅		RouterExt																
+impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
+	//		add_http_logging													
+	fn add_http_logging(self) -> Self {
+		self.layer(TraceLayer::new_for_http()
+			.on_request(
+				DefaultOnRequest::new()
+					.level(Level::INFO)
+			)
+			.on_response(
+				DefaultOnResponse::new()
+					.level(Level::INFO)
+					.latency_unit(LatencyUnit::Micros)
+			)
+			.on_body_chunk(|chunk: &Bytes, _latency: Duration, _span: &Span| {
+				debug!("Sending {} bytes", chunk.len());
+			})
+			.on_eos(|_trailers: Option<&HeaderMap>, stream_duration: Duration, _span: &Span| {
+				debug!("Stream closed after {:?}", stream_duration);
+			})
+			.on_failure(|_error: ServerErrorsFailureClass, _latency: Duration, _span: &Span| {
+				error!("Something went wrong");
+			})
+		)
+	}
+}
 
 
 
