@@ -70,7 +70,7 @@ use crate::{
 	stats::{
 		handlers::{get_stats, get_stats_feed, get_stats_history},
 		middleware::stats_layer,
-		worker::{AppStateStats, AppStats, start_stats_processor},
+		worker::{AppStateStats, start_stats_processor},
 	},
 	utility::{ApiDoc, AppState},
 };
@@ -79,15 +79,13 @@ use axum::{
 	middleware::{from_fn, from_fn_with_state},
 	routing::{get, post},
 };
-use chrono::Utc;
 use ::core::net::SocketAddr;
-use flume::{self};
 use include_dir::include_dir;
 use std::sync::Arc;
 use tikv_jemallocator::Jemalloc;
 use tokio::{
 	net::TcpListener,
-	sync::broadcast,
+	sync::RwLock,
 };
 use tower_http::catch_panic::CatchPanicLayer;
 use tower_sessions::{
@@ -118,27 +116,16 @@ async fn main() {
 	let config        = load_config();
 	let address       = SocketAddr::from((config.host, config.port));
 	let _guard        = setup_logging(&config.logdir);
-	let (send, recv)  = flume::unbounded();
-	let (tx, _rx)     = broadcast::channel(10);
 	let session_key   = SessionKey::generate();
 	let session_store = SessionMemoryStore::default();
 	let shared_state  = Arc::new(AppState {
 		assets_dir:     Arc::new(include_dir!("static")),
 		config,
 		content_dir:    Arc::new(include_dir!("content")),
-		stats:          AppStateStats {
-			data:       AppStats {
-				started_at: Utc::now().naive_utc(),
-				..Default::default()
-			},
-			queue:      send,
-			broadcast:  tx,
-		},
+		stats:          RwLock::new(AppStateStats::default()),
 		template:       setup_tera(&Arc::new(include_dir!("html"))),
 	});
-	if shared_state.config.stats.enabled {
-		start_stats_processor(recv, Arc::clone(&shared_state)).await;
-	}
+	let _rx           = start_stats_processor(Arc::clone(&shared_state)).await;
 	let app           = Router::new()
 		.protected_routes(vec![
 			("/",      get(get_index)),

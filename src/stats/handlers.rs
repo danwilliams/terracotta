@@ -314,7 +314,8 @@ pub async fn get_stats<S: StatsStateProvider>(
 	
 	//		Preparation															
 	//	Lock source data
-	let buffers      = state.stats_state().data.buffers.read();
+	let stats_state  = state.stats_state().read().await;
+	let buffers      = stats_state.data.buffers.read();
 	
 	//	Create pots for each period and process stats buffers
 	let timing_input = initialize_map(&state.stats_config().periods, &buffers.responses);
@@ -326,7 +327,7 @@ pub async fn get_stats<S: StatsStateProvider>(
 	
 	//		Process stats														
 	//	Lock source data
-	let totals        = state.stats_state().data.totals.lock();
+	let totals        = stats_state.data.totals.lock();
 	
 	//	Convert the input stats data into the output stats data
 	let timing_output = convert_map(timing_input, &totals.times);
@@ -338,11 +339,11 @@ pub async fn get_stats<S: StatsStateProvider>(
 	#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
 	#[expect(clippy::cast_sign_loss,          reason = "We don't ever want a negative for uptime")]
 	let response   = Json(StatsResponse {
-		started_at:  state.stats_state().data.started_at.with_nanosecond(0).unwrap(),
-		last_second: *state.stats_state().data.last_second.read(),
-		uptime:      (now - state.stats_state().data.started_at).num_seconds() as u64,
-		active:      state.stats_state().data.connections.load(Ordering::Relaxed) as u64,
-		requests:    state.stats_state().data.requests.load(Ordering::Relaxed) as u64,
+		started_at:  stats_state.data.started_at.with_nanosecond(0).unwrap(),
+		last_second: *stats_state.data.last_second.read(),
+		uptime:      (now - stats_state.data.started_at).num_seconds() as u64,
+		active:      stats_state.data.connections.load(Ordering::Relaxed) as u64,
+		requests:    stats_state.data.requests.load(Ordering::Relaxed) as u64,
 		codes:       totals.codes.clone(),
 		times:       timing_output,
 		endpoints:   totals.endpoints.iter()
@@ -354,6 +355,7 @@ pub async fn get_stats<S: StatsStateProvider>(
 	});
 	//	Unlock source data
 	drop(totals);
+	drop(stats_state);
 	
 	//		Response															
 	response
@@ -416,9 +418,10 @@ pub async fn get_stats_history<S: StatsStateProvider>(
 	
 	//		Prepare response data												
 	//	Lock source data
-	let buffers      = state.stats_state().data.buffers.read();
+	let stats_state  = state.stats_state().read().await;
+	let buffers      = stats_state.data.buffers.read();
 	let mut response = StatsHistoryResponse {
-		last_second:   *state.stats_state().data.last_second.read(),
+		last_second:   *stats_state.data.last_second.read(),
 		..Default::default()
 	};
 	//	Convert the statistics buffers
@@ -440,6 +443,7 @@ pub async fn get_stats_history<S: StatsStateProvider>(
 	}
 	//	Unlock source data
 	drop(buffers);
+	drop(stats_state);
 	Json(response)
 }
 
@@ -507,7 +511,13 @@ pub async fn ws_stats_feed<S: StatsStateProvider>(
 	//		Preparation															
 	info!("WebSocket connection established");
 	//	Subscribe to the broadcast channel
-	let mut rx        = state.stats_state().broadcast.subscribe();
+	#[expect(clippy::significant_drop_in_scrutinee, reason = "Short-lived")]
+	let mut rx        = if let Some(ref broadcast) = state.stats_state().read().await.broadcast {
+		broadcast.subscribe()
+	} else {
+		warn!("Broadcast channel not available");
+		return;
+	};
 	//	Set up a timer to send pings at regular intervals
 	#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
 	let mut timer     = interval(Duration::seconds(state.stats_config().ws_ping_interval as i64).to_std().unwrap());

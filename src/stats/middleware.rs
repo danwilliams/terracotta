@@ -108,25 +108,29 @@ pub async fn stats_layer<S: StatsStateProvider>(
 	};
 	
 	//	Update requests counter
-	_ = appstate.stats_state().data.requests.fetch_add(1, Ordering::Relaxed);
-	_ = appstate.stats_state().data.connections.fetch_add(1, Ordering::Relaxed);
+	let stats_state = appstate.stats_state().read().await;
+	_ = stats_state.data.requests.fetch_add(1, Ordering::Relaxed);
+	_ = stats_state.data.connections.fetch_add(1, Ordering::Relaxed);
 	
 	//	Process request
 	let response = next.run(request).await;
 	
 	//	Add response time to the queue
-	#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
-	#[expect(clippy::cast_sign_loss,          reason = "We don't ever want a negative for time taken")]
-	drop(appstate.stats_state().queue.send(ResponseMetrics {
-		endpoint,
-		started_at:  stats_cx.started_at,
-		time_taken:  (Utc::now().naive_utc() - stats_cx.started_at).num_microseconds().unwrap() as u64,
-		status_code: response.status(),
-		connections: appstate.stats_state().data.connections.load(Ordering::Relaxed) as u64,
-		memory:	     Malloc::read().unwrap() as u64,
-	}).inspect_err(|err| error!("Failed to send response time: {err}")));
+	if let Some(ref queue) = stats_state.queue {
+		#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
+		#[expect(clippy::cast_sign_loss,          reason = "We don't ever want a negative for time taken")]
+		drop(queue.send(ResponseMetrics {
+			endpoint,
+			started_at:  stats_cx.started_at,
+			time_taken:  (Utc::now().naive_utc() - stats_cx.started_at).num_microseconds().unwrap() as u64,
+			status_code: response.status(),
+			connections: stats_state.data.connections.load(Ordering::Relaxed) as u64,
+			memory:	     Malloc::read().unwrap() as u64,
+		}).inspect_err(|err| error!("Failed to send response time: {err}")));
+	}
 	
-	_ = appstate.stats_state().data.connections.fetch_sub(1, Ordering::Relaxed);
+	_ = stats_state.data.connections.fetch_sub(1, Ordering::Relaxed);
+	drop(stats_state);
 	
 	//	Return response
 	response

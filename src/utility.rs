@@ -25,6 +25,7 @@ use std::{
 	sync::Arc,
 };
 use tera::{Context, Error as TemplateError, Tera};
+use tokio::sync::RwLock;
 use utoipa::OpenApi;
 
 
@@ -49,7 +50,7 @@ pub struct AppState {
 	pub content_dir: Arc<Dir<'static>>,
 	
 	/// The application statistics.
-	pub stats:       AppStateStats,
+	pub stats:       RwLock<AppStateStats>,
 	
 	/// The Tera template engine.
 	pub template:    Tera,
@@ -102,7 +103,7 @@ impl StatsStateProvider for AppState {
 	}
 	
 	//		stats_state															
-	fn stats_state(&self) -> &AppStateStats {
+	fn stats_state(&self) -> &RwLock<AppStateStats> {
 		&self.stats
 	}
 }

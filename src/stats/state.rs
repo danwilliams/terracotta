@@ -8,6 +8,7 @@ use crate::stats::{
 	config::StatsConfig,
 	worker::AppStateStats,
 };
+use tokio::sync::RwLock;
 
 
 
@@ -22,7 +23,14 @@ pub trait StatsStateProvider: Send + Sync + 'static {
 	
 	//		stats_state															
 	/// Gets the statistics state.
-	fn stats_state(&self) -> &AppStateStats;
+	/// 
+	/// Notably, this is behind a read-write lock, so that the broadcaster and
+	/// queue can be set when the stats processor starts. From that point on,
+	/// all stats-processing access is read-only, which means no delay in
+	/// obtaining a lock, and all the internal locks are kept in place in order
+	/// to allow specific access.
+	/// 
+	fn stats_state(&self) -> &RwLock<AppStateStats>;
 }
 
 

@@ -16,7 +16,6 @@ use axum::{
 use chrono::Duration;
 use core::sync::atomic::AtomicUsize;
 use figment::{Figment, providers::Serialized};
-use flume::{self};
 use include_dir::include_dir;
 use parking_lot::{Mutex, RwLock};
 use rubedo::{
@@ -24,7 +23,7 @@ use rubedo::{
 	sugar::s,
 };
 use tera::Tera;
-use tokio::sync::broadcast;
+use tokio::sync::RwLock as AsyncRwLock;
 use velcro::hash_map;
 
 
@@ -33,13 +32,11 @@ use velcro::hash_map;
 
 //		prepare_state															
 fn prepare_state(start: NaiveDateTime) -> AppState {
-	let (sender, _)     = flume::unbounded();
-	let (tx, _)         = broadcast::channel(10);
 	let mut state       = AppState {
 		assets_dir:       Arc::new(include_dir!("static")),
 		config:           Figment::from(Serialized::defaults(Config::default())).extract().unwrap(),
 		content_dir:      Arc::new(include_dir!("content")),
-		stats:            AppStateStats {
+		stats:            AsyncRwLock::new(AppStateStats {
 			data:                AppStats {
 				started_at:      start,
 				last_second:     RwLock::new((start + Duration::seconds(95)).with_nanosecond(0).unwrap()),
@@ -70,9 +67,9 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 				}),
 				..Default::default()
 			},
-			queue:               sender,
-			broadcast:           tx,
-		},
+			queue:               None,
+			broadcast:           None,
+		}),
 		template:         Tera::default(),
 	};
 	state.config.stats.periods = hash_map!{
@@ -231,10 +228,13 @@ async fn stats_history() {
 	let start        = Utc::now().naive_utc() - Duration::seconds(99);
 	let state        = prepare_state(start);
 	{
-		let mut buffers = state.stats.data.buffers.write();
+		let stats_state = state.stats.read().await;
+		let mut buffers = stats_state.data.buffers.write();
 		buffers.responses  .push_front(StatsForPeriod::default());
 		buffers.connections.push_front(StatsForPeriod::default());
 		buffers.memory     .push_front(StatsForPeriod::default());
+		drop(buffers);
+		drop(stats_state);
 	}
 	let params       = GetStatsHistoryParams::default();
 	let unpacked     = get_stats_history(State(Arc::new(state)), Query(params)).await.into_response().unpack().unwrap();

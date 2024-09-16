@@ -8,7 +8,7 @@ use crate::stats::state::StatsStateProvider;
 use axum::http::{Method, StatusCode};
 use chrono::{Duration, NaiveDateTime, Timelike, Utc};
 use core::sync::atomic::AtomicUsize;
-use flume::{Receiver, Sender};
+use flume::Sender;
 use parking_lot::{Mutex, RwLock};
 use serde::{Serialize, Serializer};
 use smart_default::SmartDefault;
@@ -19,7 +19,7 @@ use std::{
 use tokio::{
 	select,
 	spawn,
-	sync::broadcast::Sender as Broadcaster,
+	sync::broadcast::{Receiver as Listener, Sender as Broadcaster, self},
 	time::{interval, sleep},
 };
 use tracing::error;
@@ -36,6 +36,7 @@ use velcro::hash_map;
 /// This is used to store global state information that is shared between
 /// requests, specific to what is used for statistics purposes.
 /// 
+#[derive(SmartDefault)]
 pub struct AppStateStats {
 	//		Public properties													
 	/// The application statistics data.
@@ -48,13 +49,13 @@ pub struct AppStateStats {
 	/// incineration routines, as the stats-handling thread can constantly
 	/// process the queue and there will theoretically never be a large build-up
 	/// of data in memory that has to be dealt with all at once.
-	pub queue:     Sender<ResponseMetrics>,
+	pub queue:     Option<Sender<ResponseMetrics>>,
 	
 	/// The statistics broadcast channel that period-based statistics are added
 	/// to. This is the receiver side only. Each interested party can subscribe
 	/// to this channel to receive the latest statistics for a given period on
 	/// a real-time basis.
-	pub broadcast: Broadcaster<AllStatsForPeriod>,
+	pub broadcast: Option<Broadcaster<AllStatsForPeriod>>,
 }
 
 //		AppStats																
@@ -63,6 +64,7 @@ pub struct AppStateStats {
 pub struct AppStats {
 	//		Public properties													
 	/// The date and time the application was started.
+	#[default(Utc::now().naive_utc())]
 	pub started_at:  NaiveDateTime,
 	
 	/// The latest second period that has been completed.
@@ -330,10 +332,15 @@ pub struct ResponseMetrics {
 /// * `receiver` - The receiving end of the queue.
 /// * `appstate` - The application state.
 /// 
-pub async fn start_stats_processor<S: StatsStateProvider>(
-	receiver: Receiver<ResponseMetrics>,
-	appstate: Arc<S>,
-) {
+pub async fn start_stats_processor<S: StatsStateProvider>(appstate: Arc<S>) -> Option<Listener<AllStatsForPeriod>> {
+	if !appstate.stats_config().enabled {
+		return None;
+	}
+	let (sender, receiver) = flume::unbounded();
+	let (tx, rx)           = broadcast::channel(10);
+	let mut stats_state    = appstate.stats_state().write().await;
+	stats_state.queue      = Some(sender);
+	stats_state.broadcast  = Some(tx);
 	//	Fixed time period of the current second
 	let mut current_second = Utc::now().naive_utc().with_nanosecond(0).unwrap();
 	//	Cumulative stats for the current second
@@ -349,11 +356,12 @@ pub async fn start_stats_processor<S: StatsStateProvider>(
 	//	have enough memory it would fail right away, instead of gradually
 	//	building up to that point which would make it harder to diagnose.
 	{
-		let mut buffers    = appstate.stats_state().data.buffers.write();
+		let mut buffers    = stats_state.data.buffers.write();
 		buffers.responses  .reserve(appstate.stats_config().timing_buffer_size);
 		buffers.connections.reserve(appstate.stats_config().connection_buffer_size);
 		buffers.memory     .reserve(appstate.stats_config().memory_buffer_size);
 	}
+	drop(stats_state);
 	
 	//	Wait until the start of the next second, to align with it so that the
 	//	tick interval change happens right after the second change, to wrap up
@@ -373,7 +381,7 @@ pub async fn start_stats_processor<S: StatsStateProvider>(
 				&mut conn_stats,
 				&mut memory_stats,
 				&mut current_second,
-			);
+			).await;
 		}
 		//	Wait for message - this is a blocking call
 		message = receiver.recv_async() => {
@@ -386,13 +394,15 @@ pub async fn start_stats_processor<S: StatsStateProvider>(
 					&mut conn_stats,
 					&mut memory_stats,
 					&mut current_second,
-				);
+				).await;
 			} else {
 				error!("Channel has been disconnected, exiting thread.");
 				break;
 			}
 		}
 	}}}));
+	
+	Some(rx)
 }
 
 //		stats_processor															
@@ -415,7 +425,7 @@ pub async fn start_stats_processor<S: StatsStateProvider>(
 /// * `memory_stats`   - The cumulative memory stats for the current second.
 /// * `current_second` - The current second.
 /// 
-fn stats_processor<S: StatsStateProvider>(
+async fn stats_processor<S: StatsStateProvider>(
 	appstate:       &Arc<S>,
 	metrics:        Option<ResponseMetrics>,
 	timing_stats:   &mut StatsForPeriod,
@@ -461,7 +471,8 @@ fn stats_processor<S: StatsStateProvider>(
 		
 	//		Update statistics													
 		//	Lock source data
-		let mut totals = appstate.stats_state().data.totals.lock();
+		let stats_state = appstate.stats_state().read().await;
+		let mut totals = stats_state.data.totals.lock();
 		
 		//	Update responses counter
 		_ = totals.codes.entry(metrics.status_code).and_modify(|e| *e = e.saturating_add(1)).or_insert(1);
@@ -484,6 +495,7 @@ fn stats_processor<S: StatsStateProvider>(
 		
 		//	Unlock source data
 		drop(totals);
+		drop(stats_state);
 		
 	//		Check time period													
 		new_second = metrics.started_at.with_nanosecond(0).unwrap();
@@ -500,7 +512,8 @@ fn stats_processor<S: StatsStateProvider>(
 	if new_second > *current_second {
 		#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
 		let elapsed     = (new_second - *current_second).num_seconds();
-		let mut buffers = appstate.stats_state().data.buffers.write();
+		let stats_state = appstate.stats_state().read().await;
+		let mut buffers = stats_state.data.buffers.write();
 		let mut message = AllStatsForPeriod::default();
 		//	Timing stats buffer
 		update_buffer(
@@ -533,9 +546,12 @@ fn stats_processor<S: StatsStateProvider>(
 			|stats, msg| { msg.memory = stats.clone(); },
 		);
 		drop(buffers);
-		*appstate.stats_state().data.last_second.write() = *current_second;
+		*stats_state.data.last_second.write() = *current_second;
 		*current_second = new_second;
-		drop(appstate.stats_state().broadcast.send(message).inspect_err(|err| error!("Failed to broadcast stats: {err}")));
+		if let Some(ref broadcast) = stats_state.broadcast {
+			drop(broadcast.send(message).inspect_err(|err| error!("Failed to broadcast stats: {err}")));
+		}
+		drop(stats_state);
 	}
 }
 
