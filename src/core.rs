@@ -35,6 +35,10 @@ use tracing_subscriber::{
 	registry,
 	util::SubscriberInitExt,
 };
+use utoipa::openapi::OpenApi;
+use utoipa_rapidoc::RapiDoc;
+use utoipa_redoc::{Redoc, Servable};
+use utoipa_swagger_ui::SwaggerUi;
 
 
 
@@ -46,6 +50,18 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 	//		add_http_logging													
 	/// Adds logging of HTTP requests and responses to the router.
 	fn add_http_logging(self) -> Self;
+	
+	//		add_openapi															
+	/// Adds OpenAPI functionality using Utoipa.
+	/// 
+	/// # Parameters
+	/// 
+	/// * `prefix`  - The prefix to use for the OpenAPI documentation endpoints,
+	///               e.g. `/api-docs`. If this is an empty string, no prefix
+	///               will be used.
+	/// * `openapi` - The OpenAPI specification to use.
+	/// 
+	fn add_openapi<P: AsRef<str>>(self, prefix: P, openapi: OpenApi) -> Self;
 }
 
 //󰭅		RouterExt																
@@ -72,6 +88,18 @@ impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
 				error!("Something went wrong");
 			})
 		)
+	}
+	
+	//		add_openapi															
+	fn add_openapi<P: AsRef<str>>(self, prefix: P, openapi: OpenApi) -> Self {
+		self
+			.merge(RapiDoc::new(format!("{}/openapi.json", prefix.as_ref()))
+				.path(format!("{}/rapidoc", prefix.as_ref()))
+			)
+			.merge(Redoc::with_url(format!("{}/redoc", prefix.as_ref()), openapi.clone()))
+			.merge(SwaggerUi::new(format!("{}/swagger", prefix.as_ref()))
+				.url(format!("{}/openapi.json", prefix.as_ref()), openapi)
+			)
 	}
 }
 

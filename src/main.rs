@@ -97,9 +97,6 @@ use tower_sessions::{
 };
 use tracing::info;
 use utoipa::OpenApi;
-use utoipa_rapidoc::RapiDoc;
-use utoipa_redoc::{Redoc, Servable};
-use utoipa_swagger_ui::SwaggerUi;
 
 
 
@@ -160,9 +157,7 @@ async fn main() {
 			("/js/*path",          get(get_public_static_asset)),
 			("/webfonts/*path",    get(get_public_static_asset)),
 		])
-		.merge(SwaggerUi::new("/api-docs/swagger").url("/api-docs/openapi.json", ApiDoc::openapi()))
-		.merge(Redoc::with_url("/api-docs/redoc", ApiDoc::openapi()))
-		.merge(RapiDoc::new("/api-docs/openapi.json").path("/api-docs/rapidoc"))
+		.add_openapi("/api-docs", ApiDoc::openapi())
 		.fallback(no_route)
 		.layer(CatchPanicLayer::new())
 		.layer(from_fn_with_state(Arc::clone(&shared_state), graceful_error_layer))
