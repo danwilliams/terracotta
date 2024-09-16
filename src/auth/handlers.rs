@@ -8,8 +8,9 @@ use crate::{
 	auth::{
 		middleware::{AuthContext, User},
 		state::AuthStateProvider,
+		utility::{build_uri, extract_uri_query_parts},
 	},
-	utility::{AppStateProvider, build_uri, extract_uri_query_parts},
+	utility::AppStateProvider,
 };
 use axum::{
 	Form,
