@@ -1,0 +1,38 @@
+//! Utility functions for statistics processing.
+
+
+
+//		Packages
+
+use axum::http::StatusCode;
+use serde::{Serialize, Serializer};
+use std::collections::{BTreeMap, HashMap};
+
+
+
+//		Functions
+
+//		serialize_status_codes													
+/// Returns a list of serialised status code entries and their values.
+/// 
+/// This function is used by [`serde`] to serialise a list of status codes and
+/// their associated values. It returns the list sorted by status code.
+/// 
+/// # Parameters
+/// 
+/// * `status_codes` - The status codes to serialise, as keys, against values.
+/// * `serializer`   - The serialiser to use.
+/// 
+pub fn serialize_status_codes<S>(status_codes: &HashMap<StatusCode, u64>, serializer: S) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	let codes: BTreeMap<String, u64> = status_codes
+		.iter()
+		.map(|(key, value)| (key.to_string(), *value))
+		.collect()
+	;
+	codes.serialize(serializer)
+}
+
+

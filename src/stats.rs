@@ -10,5 +10,6 @@ pub mod middleware;
 pub mod routing;
 pub mod state;
 pub mod worker;
+pub mod utility;
 
 

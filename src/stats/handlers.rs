@@ -17,6 +17,7 @@ mod tests;
 use crate::stats::{
 	state::StatsStateProvider,
 	worker::{Endpoint, StatsForPeriod},
+	utility::serialize_status_codes,
 };
 use axum::{
 	Json,
@@ -36,10 +37,10 @@ use rubedo::{
 	std::IteratorExt,
 	sugar::s,
 };
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{
-	collections::{BTreeMap, HashMap, VecDeque},
+	collections::{HashMap, VecDeque},
 	sync::Arc,
 	time::Instant,
 };
@@ -612,29 +613,6 @@ pub async fn ws_stats_feed<S: StatsStateProvider>(
 			}
 		}
 	}}
-}
-
-//		serialize_status_codes													
-/// Returns a list of serialised status code entries and their values.
-/// 
-/// This function is used by [`serde`] to serialise a list of status codes and
-/// their associated values. It returns the list sorted by status code.
-/// 
-/// # Parameters
-/// 
-/// * `status_codes` - The status codes to serialise, as keys, against values.
-/// * `serializer`   - The serialiser to use.
-/// 
-pub fn serialize_status_codes<S>(status_codes: &HashMap<StatusCode, u64>, serializer: S) -> Result<S::Ok, S::Error>
-where
-	S: Serializer,
-{
-	let codes: BTreeMap<String, u64> = status_codes
-		.iter()
-		.map(|(key, value)| (key.to_string(), *value))
-		.collect()
-	;
-	codes.serialize(serializer)
 }
 
 
