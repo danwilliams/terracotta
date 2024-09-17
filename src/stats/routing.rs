@@ -5,8 +5,8 @@
 //		Packages
 
 use crate::{
+	state::AppState,
 	stats::middleware::stats_layer,
-	utility::AppState,
 };
 use axum::{
 	Router,

@@ -9,7 +9,7 @@ use crate::{
 		handlers::get_login,
 		middleware::User,
 	},
-	utility::AppStateProvider,
+	state::AppStateProvider,
 };
 use axum::{
 	Extension,

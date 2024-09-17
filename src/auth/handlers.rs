@@ -10,7 +10,7 @@ use crate::{
 		state::AuthStateProvider,
 		utility::{build_uri, extract_uri_query_parts},
 	},
-	utility::AppStateProvider,
+	state::AppStateProvider,
 };
 use axum::{
 	Form,

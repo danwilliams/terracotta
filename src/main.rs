@@ -49,6 +49,7 @@ mod core;
 mod errors;
 mod handlers;
 mod health;
+mod state;
 mod stats;
 mod utility;
 
@@ -75,7 +76,8 @@ use crate::{
 		state::AppStateStats,
 		worker::start_stats_processor,
 	},
-	utility::{ApiDoc, AppState},
+	state::AppState,
+	utility::ApiDoc,
 };
 use axum::{
 	Router,

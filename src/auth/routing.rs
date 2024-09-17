@@ -6,7 +6,7 @@
 
 use crate::{
 	auth::middleware::{auth_layer, protect},
-	utility::AppState,
+	state::AppState,
 };
 use axum::{
 	Router,

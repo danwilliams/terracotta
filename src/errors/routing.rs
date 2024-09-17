@@ -6,7 +6,7 @@
 
 use crate::{
 	errors::middleware::{final_error_layer, graceful_error_layer},
-	utility::AppState,
+	state::AppState,
 };
 use axum::{
 	Router,
