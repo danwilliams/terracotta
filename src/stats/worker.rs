@@ -28,7 +28,7 @@ use utoipa::ToSchema;
 
 //		Endpoint																
 /// A formalised definition of an endpoint for identification.
-#[derive(Clone, Eq, Hash, PartialEq, SmartDefault)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SmartDefault)]
 pub struct Endpoint {
 	//		Public properties													
 	/// The path of the endpoint, minus any query parameters. As this is just
@@ -53,7 +53,7 @@ impl Serialize for Endpoint {
 
 //		StatsForPeriod															
 /// Average, maximum, minimum, and count of values for a period of time.
-#[derive(Clone, Debug, Serialize, SmartDefault)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, SmartDefault)]
 pub struct StatsForPeriod {
 	//		Public properties													
 	/// The date and time the period started.
@@ -135,7 +135,7 @@ impl StatsForPeriod {
 //		AllStatsForPeriod														
 /// Average, maximum, minimum, and count of values for a period of time, for all
 /// areas being measured.
-#[derive(Clone, Debug, Default, Serialize, ToSchema)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize, ToSchema)]
 pub struct AllStatsForPeriod {
 	//		Public properties													
 	/// The average, maximum, and minimum response times in microseconds, plus
@@ -156,7 +156,7 @@ pub struct AllStatsForPeriod {
 /// 
 /// This is used by the statistics queue in [`AppState.stats.Queue`].
 /// 
-#[derive(SmartDefault)]
+#[derive(Clone, Debug, Eq, PartialEq, SmartDefault)]
 pub struct ResponseMetrics {
 	//		Public properties													
 	/// The endpoint that was requested.
@@ -330,7 +330,7 @@ async fn stats_processor<S: StatsStateProvider>(
 				_ = buffer.pop_back();
 			}
 			stats.started_at = current_second.checked_add_signed(Duration::seconds(i)).unwrap_or(*current_second);
-			buffer.push_front(stats.clone());
+			buffer.push_front(*stats);
 			update_message(stats, message);
 			*stats           = StatsForPeriod::default();
 		}
@@ -404,7 +404,7 @@ async fn stats_processor<S: StatsStateProvider>(
 			current_second,
 			elapsed,
 			&mut message,
-			|stats, msg| { msg.times = stats.clone(); },
+			|stats, msg| { msg.times = *stats; },
 		);
 		//	Connections stats buffer
 		update_buffer(
@@ -414,7 +414,7 @@ async fn stats_processor<S: StatsStateProvider>(
 			current_second,
 			elapsed,
 			&mut message,
-			|stats, msg| { msg.connections = stats.clone(); },
+			|stats, msg| { msg.connections = *stats; },
 		);
 		//	Memory stats buffer
 		update_buffer(
@@ -424,7 +424,7 @@ async fn stats_processor<S: StatsStateProvider>(
 			current_second,
 			elapsed,
 			&mut message,
-			|stats, msg| { msg.memory = stats.clone(); },
+			|stats, msg| { msg.memory = *stats; },
 		);
 		drop(buffers);
 		*stats_state.data.last_second.write() = *current_second;

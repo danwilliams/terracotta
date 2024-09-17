@@ -41,7 +41,7 @@ const SESSION_USER_ID_KEY: &str = "_user_id";
 /// This struct contains the user fields used for authentication, and methods
 /// for retrieving user data.
 /// 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct User {
 	//		Private properties													
 	/// The username.
@@ -114,7 +114,7 @@ impl User {
 /// This struct contains the current user and session data, to persist the
 /// context of an authentication session.
 /// 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AuthContext {
 	//		Public properties													
 	/// The current user.

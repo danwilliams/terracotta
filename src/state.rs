@@ -34,6 +34,7 @@ use tokio::sync::RwLock;
 /// This is used to store global state information that is shared between
 /// requests.
 /// 
+#[derive(Debug)]
 pub struct AppState {
 	//		Public properties													
 	/// The directory containing the static assets.

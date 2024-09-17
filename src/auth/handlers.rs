@@ -31,7 +31,7 @@ use tracing::info;
 /// 
 /// This is consumed by the [`post_login()`] handler.
 /// 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct PostLogin {
 	//		Private properties													
 	/// The username.

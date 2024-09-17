@@ -31,8 +31,8 @@ pub enum LoadingBehavior {
 //		Structs
 
 //		AssetsConfig															
-#[derive(Deserialize, Serialize, SmartDefault)]
 /// The configuration options for gathering and processing statistics.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
 pub struct AssetsConfig {
 	//		Public properties													
 	/// The loading behaviour for local, non-baked-in resources. This allows
@@ -48,7 +48,7 @@ pub struct AssetsConfig {
 
 //		LocalLoading															
 /// The loading behaviour for local, non-baked-in resources.
-#[derive(Deserialize, Serialize, SmartDefault)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
 pub struct LocalLoading {
 	//		Public properties													
 	/// The loading behaviour for protected static assets.
@@ -62,7 +62,7 @@ pub struct LocalLoading {
 
 //		LocalPaths																
 /// The local paths for non-baked-in resources.
-#[derive(Deserialize, Serialize, SmartDefault)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
 pub struct LocalPaths {
 	//		Public properties													
 	/// The path to the protected static assets.
@@ -75,7 +75,7 @@ pub struct LocalPaths {
 }
 
 //		StaticFiles																
-#[derive(Deserialize, Serialize, SmartDefault)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
 /// The configuration options for serving static files.
 pub struct StaticFiles {
 	//		Public properties													

@@ -13,7 +13,7 @@ use std::collections::HashMap;
 //		Structs
 
 //		StatsConfig																
-#[derive(Deserialize, Serialize, SmartDefault)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
 /// The configuration options for gathering and processing statistics.
 pub struct StatsConfig {
 	//		Public properties													

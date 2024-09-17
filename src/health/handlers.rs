@@ -22,7 +22,7 @@ use utoipa::ToSchema;
 
 //		HealthVersionResponse													
 /// The current version information returned by the `/api/version` endpoint.
-#[derive(Default, Serialize, ToSchema)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, ToSchema)]
 pub struct HealthVersionResponse {
 	//		Public properties													
 	/// The current version of the application.

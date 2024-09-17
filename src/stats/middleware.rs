@@ -36,7 +36,7 @@ use tracing::error;
 /// 
 /// This struct contains statistics information specific to the current request.
 /// 
-#[derive(Clone, SmartDefault)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, SmartDefault)]
 pub struct StatsContext {
 	//		Public properties													
 	/// The date and time the request processing started.
@@ -92,7 +92,7 @@ pub async fn stats_layer<S: StatsStateProvider>(
 ) -> Response {
 	//	Create statistics context
 	let stats_cx = StatsContext::default();
-	_ = request.extensions_mut().insert(stats_cx.clone());
+	_ = request.extensions_mut().insert(stats_cx);
 	
 	//	Check if statistics are enabled
 	if !appstate.stats_config().enabled {

@@ -19,7 +19,7 @@ use std::collections::HashMap;
 
 //		Config																	
 /// The main configuration options for the application.
-#[derive(Deserialize, Serialize, SmartDefault)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
 pub struct Config {
 	//		Public properties													
 	/// The host to listen on.

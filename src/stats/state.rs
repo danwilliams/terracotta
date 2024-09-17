@@ -33,7 +33,7 @@ use velcro::hash_map;
 /// This is used to store global state information that is shared between
 /// requests, specific to what is used for statistics purposes.
 /// 
-#[derive(SmartDefault)]
+#[derive(Debug, SmartDefault)]
 pub struct AppStateStats {
 	//		Public properties													
 	/// The application statistics data.
@@ -57,7 +57,7 @@ pub struct AppStateStats {
 
 //		AppStats																
 /// Various application statistics.
-#[derive(SmartDefault)]
+#[derive(Debug, SmartDefault)]
 pub struct AppStats {
 	//		Public properties													
 	/// The date and time the application was started.
@@ -97,7 +97,7 @@ pub struct AppStats {
 
 //		AppStatsTotals															
 /// The all-time application statistics totals for each area sampled.
-#[derive(SmartDefault)]
+#[derive(Clone, Debug, PartialEq, SmartDefault)]
 pub struct AppStatsTotals {
 	//		Public properties													
 	/// The number of responses that have been handled, by status code.
@@ -127,7 +127,7 @@ pub struct AppStatsTotals {
 
 //		AppStatsBuffers															
 /// Buffers for storing application statistics data.
-#[derive(SmartDefault)]
+#[derive(Clone, Debug, PartialEq, SmartDefault)]
 pub struct AppStatsBuffers {
 	//		Public properties													
 	/// A circular buffer of response time stats per second for the configured

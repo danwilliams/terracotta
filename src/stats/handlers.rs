@@ -92,7 +92,7 @@ impl FromStr for MeasurementType {
 
 //		GetStatsHistoryParams													
 /// The parameters for the [`get_stats_history()`] handler.
-#[derive(Clone, Default, Deserialize, IntoParams)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, IntoParams, PartialEq)]
 pub struct GetStatsHistoryParams {
 	//		Public properties													
 	/// The buffer to get the statistics for. The buffer items are returned in
@@ -122,7 +122,7 @@ pub struct GetStatsHistoryParams {
 
 //		GetStatsFeedParams														
 /// The parameters for the [`get_stats_feed()`] handler.
-#[derive(Clone, Default, Deserialize, IntoParams)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, IntoParams, PartialEq)]
 pub struct GetStatsFeedParams {
 	//		Public properties													
 	/// The type of measurement to subscribe to statistics for.
@@ -131,7 +131,7 @@ pub struct GetStatsFeedParams {
 
 //		StatsResponse															
 /// The application statistics returned by the `/api/stats` endpoint.
-#[derive(Serialize, ToSchema)]
+#[derive(Clone, Debug, PartialEq, Serialize, ToSchema)]
 pub struct StatsResponse {
 	//		Public properties													
 	/// The date and time the application was started.
@@ -175,7 +175,7 @@ pub struct StatsResponse {
 
 //		StatsHistoryResponse													
 /// The application statistics returned by the `/api/stats/history` endpoint.
-#[derive(Default, Serialize, ToSchema)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize, ToSchema)]
 pub struct StatsHistoryResponse {
 	//		Public properties													
 	/// The latest second period that has been completed.
@@ -199,7 +199,7 @@ pub struct StatsHistoryResponse {
 
 //		StatsResponseForPeriod													
 /// Average, maximum, minimum, and count of values for a period of time.
-#[derive(Serialize, ToSchema)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, ToSchema)]
 pub struct StatsResponseForPeriod {
 	//		Public properties													
 	/// Average value.
