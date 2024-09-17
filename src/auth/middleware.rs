@@ -245,8 +245,7 @@ pub async fn auth_layer<S: AuthStateProvider>(
 	}
 	info!("Current user: {username}");
 	auth_cx.current_user = user;
-	drop(request.extensions_mut().insert(auth_cx.clone()));
-	drop(request.extensions_mut().insert(auth_cx.current_user));
+	drop(request.extensions_mut().insert(auth_cx));
 	next.run(request).await
 }
 
@@ -260,24 +259,20 @@ pub async fn auth_layer<S: AuthStateProvider>(
 /// # Parameters
 /// 
 /// * `appstate` - The application state.
-/// * `user`     - The current user.
+/// * `auth_cx`  - The authentication context.
 /// * `uri`      - The request URI.
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
 pub async fn protect<S: AuthStateProvider>(
-	State(appstate): State<Arc<S>>,
-	Extension(user): Extension<Option<User>>,
-	uri:             Uri,
-	request:         Request<Body>,
-	next:            Next,
+	State(appstate):    State<Arc<S>>,
+	Extension(auth_cx): Extension<AuthContext>,
+	uri:                Uri,
+	request:            Request<Body>,
+	next:               Next,
 ) -> Response {
-	match user {
-		Some(_) => {
-			//	let user = user.clone();
-			//	request.extensions_mut().insert(user);
-			next.run(request).await
-		},
+	match auth_cx.current_user {
+		Some(_) => next.run(request).await,
 		_       => {
 			(
 				StatusCode::UNAUTHORIZED,

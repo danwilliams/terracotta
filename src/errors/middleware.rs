@@ -7,7 +7,7 @@
 use crate::{
 	auth::{
 		handlers::get_login,
-		middleware::User,
+		middleware::AuthContext,
 	},
 	state::AppStateProvider,
 };
@@ -55,17 +55,17 @@ pub async fn no_route() -> impl IntoResponse {
 /// # Parameters
 /// 
 /// * `state`   - The application state.
-/// * `user`    - The user, if any.
+/// * `auth_cx` - The authentication context.
 /// * `uri`     - The URI of the request.
 /// * `request` - The request.
 /// * `next`    - The next middleware.
 /// 
 pub async fn graceful_error_layer<S: AppStateProvider>(
-	State(state):    State<Arc<S>>,
-	Extension(user): Extension<Option<User>>,
-	uri:             Uri,
-	request:         Request<Body>,
-	next:            Next,
+	State(state):       State<Arc<S>>,
+	Extension(auth_cx): Extension<AuthContext>,
+	uri:                Uri,
+	request:            Request<Body>,
+	next:               Next,
 ) -> Response {
 	let response          = next.run(request).await;
 	let (mut parts, body) = response.into_parts();
@@ -76,7 +76,7 @@ pub async fn graceful_error_layer<S: AppStateProvider>(
 			drop(parts.headers.remove("content-type"));
 			if parts.headers.contains_key("protected") {
 				drop(parts.headers.remove("protected"));
-				if user.is_none() {
+				if auth_cx.current_user.is_none() {
 					parts.status = StatusCode::UNAUTHORIZED;
 					return (
 						parts,
