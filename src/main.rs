@@ -118,12 +118,12 @@ async fn main() {
 		stats:          RwLock::new(AppStateStats::default()),
 		template:       setup_tera(&Arc::new(include_dir!("html"))),
 	});
-	let _rx           = start_stats_processor(Arc::clone(&shared_state)).await;
+	let _rx           = start_stats_processor(&shared_state).await;
 	let app           = Router::new()
 		.protected_routes(vec![
 			("/",      get(get_index)),
 			("/*path", get(get_protected_static_asset)),
-		], Arc::clone(&shared_state))
+		], &shared_state)
 		.public_routes(vec![
 			("/api/ping",          get(get_ping)),
 			("/api/version",       get(get_version)),
@@ -139,9 +139,9 @@ async fn main() {
 		])
 		.add_openapi("/api-docs", ApiDoc::openapi())
 		.fallback(no_route)
-		.add_error_template(Arc::clone(&shared_state))
-		.add_authentication(Arc::clone(&shared_state))
-		.add_stats_gathering(Arc::clone(&shared_state))
+		.add_error_template(&shared_state)
+		.add_authentication(&shared_state)
+		.add_stats_gathering(&shared_state)
 		.with_state(shared_state)
 		.add_http_logging()
 		.add_error_catcher()

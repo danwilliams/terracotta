@@ -33,7 +33,7 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 	/// 
 	/// * `shared_state` - The shared application state.
 	/// 
-	fn add_error_template(self, shared_state: Arc<AppState>) -> Self;
+	fn add_error_template(self, shared_state: &Arc<AppState>) -> Self;
 }
 
 //󰭅		RouterExt																
@@ -46,10 +46,10 @@ impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
 	}
 	
 	//		add_error_template													
-	fn add_error_template(self, shared_state: Arc<AppState>) -> Self {
+	fn add_error_template(self, shared_state: &Arc<AppState>) -> Self {
 		self
 			.layer(CatchPanicLayer::new())
-			.layer(from_fn_with_state(Arc::clone(&shared_state), graceful_error_layer))
+			.layer(from_fn_with_state(Arc::clone(shared_state), graceful_error_layer))
 	}
 }
 

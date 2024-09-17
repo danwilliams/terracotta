@@ -329,13 +329,14 @@ pub struct ResponseMetrics {
 /// 
 /// # Parameters
 /// 
-/// * `receiver` - The receiving end of the queue.
-/// * `appstate` - The application state.
+/// * `receiver`     - The receiving end of the queue.
+/// * `shared_state` - The shared application state.
 /// 
-pub async fn start_stats_processor<S: StatsStateProvider>(appstate: Arc<S>) -> Option<Listener<AllStatsForPeriod>> {
-	if !appstate.stats_config().enabled {
+pub async fn start_stats_processor<S: StatsStateProvider>(shared_state: &Arc<S>) -> Option<Listener<AllStatsForPeriod>> {
+	if !shared_state.stats_config().enabled {
 		return None;
 	}
+	let appstate           = Arc::clone(shared_state);
 	let (sender, receiver) = flume::unbounded();
 	let (tx, rx)           = broadcast::channel(10);
 	let mut stats_state    = appstate.stats_state().write().await;
