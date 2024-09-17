@@ -15,8 +15,7 @@ use crate::{
 	stats::{
 		config::StatsConfig,
 		handlers as stats,
-		state::StatsStateProvider,
-		worker::AppStateStats,
+		state::{AppStateStats, StatsStateProvider},
 	},
 };
 use include_dir::Dir;

@@ -72,7 +72,8 @@ use crate::{
 	stats::{
 		handlers::{get_stats, get_stats_feed, get_stats_history},
 		routing::RouterExt as StatsRouterExt,
-		worker::{AppStateStats, start_stats_processor},
+		state::AppStateStats,
+		worker::start_stats_processor,
 	},
 	utility::{ApiDoc, AppState},
 };
