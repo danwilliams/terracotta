@@ -4,7 +4,7 @@
 
 //		Packages
 
-use crate::assets::config::AssetsConfig;
+use super::config::AssetsConfig;
 use include_dir::Dir;
 use std::sync::Arc;
 

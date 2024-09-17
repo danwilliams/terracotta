@@ -3,10 +3,10 @@
 //		Packages
 
 use super::*;
+use super::super::state::{AppStateStats, AppStats, AppStatsTotals};
 use crate::{
 	config::Config,
 	state::AppState,
-	stats::state::{AppStateStats, AppStats, AppStatsTotals},
 };
 use assert_json_diff::assert_json_eq;
 use axum::{

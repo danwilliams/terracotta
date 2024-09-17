@@ -4,14 +4,12 @@
 
 //		Packages
 
-use crate::{
-	auth::{
-		middleware::{AuthContext, User},
-		state::AuthStateProvider,
-		utility::{build_uri, extract_uri_query_parts},
-	},
-	state::AppStateProvider,
+use super::{
+	middleware::{AuthContext, User},
+	state::AuthStateProvider,
+	utility::{build_uri, extract_uri_query_parts},
 };
+use crate::state::AppStateProvider;
 use axum::{
 	Form,
 	extract::State,

@@ -4,7 +4,7 @@
 
 //		Packages
 
-use crate::stats::{
+use super::{
 	middleware::stats_layer,
 	state::StatsStateProvider,
 };

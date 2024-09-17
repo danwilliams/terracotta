@@ -14,7 +14,7 @@ mod tests;
 
 //		Packages
 
-use crate::stats::{
+use super::{
 	state::StatsStateProvider,
 	worker::{Endpoint, StatsForPeriod},
 	utility::serialize_status_codes,

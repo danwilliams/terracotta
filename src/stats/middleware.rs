@@ -4,11 +4,9 @@
 
 //		Packages
 
-use crate::{
-	stats::{
-		state::StatsStateProvider,
-		worker::{Endpoint, ResponseMetrics},
-	},
+use super::{
+	state::StatsStateProvider,
+	worker::{Endpoint, ResponseMetrics},
 };
 use axum::{
 	Extension,

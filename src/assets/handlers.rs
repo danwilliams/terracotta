@@ -4,11 +4,9 @@
 
 //		Packages
 
-use crate::{
-	assets::{
-		config::LoadingBehavior,
-		state::AssetsStateProvider,
-	},
+use super::{
+	config::LoadingBehavior,
+	state::AssetsStateProvider,
 };
 use axum::{
 	body::Body,

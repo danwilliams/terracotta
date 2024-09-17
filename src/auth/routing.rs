@@ -4,7 +4,7 @@
 
 //		Packages
 
-use crate::auth::{
+use super::{
 	middleware::{auth_layer, protect},
 	state::AuthStateProvider,
 };

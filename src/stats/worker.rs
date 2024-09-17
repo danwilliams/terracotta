@@ -4,7 +4,7 @@
 
 //		Packages
 
-use crate::stats::state::StatsStateProvider;
+use super::state::StatsStateProvider;
 use axum::http::{Method, StatusCode};
 use chrono::{Duration, NaiveDateTime, Timelike, Utc};
 use serde::{Serialize, Serializer};

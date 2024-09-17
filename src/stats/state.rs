@@ -4,7 +4,7 @@
 
 //		Packages
 
-use crate::stats::{
+use super::{
 	config::StatsConfig,
 	worker::{AllStatsForPeriod, Endpoint, ResponseMetrics, StatsForPeriod},
 };
