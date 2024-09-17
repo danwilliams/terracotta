@@ -49,6 +49,7 @@ mod core;
 mod errors;
 mod handlers;
 mod health;
+mod routes;
 mod state;
 mod stats;
 mod utility;
@@ -59,19 +60,13 @@ mod utility;
 
 use crate::{
 	core::{RouterExt, load_config, setup_logging, setup_tera},
-	handlers::get_index,
-	assets::handlers::{get_protected_static_asset, get_public_static_asset},
-	auth::{
-		handlers::{get_logout, post_login},
-		routing::RouterExt as AuthRouterExt,
-	},
+	auth::routing::RouterExt as AuthRouterExt,
 	errors::{
 		middleware::no_route,
 		routing::RouterExt as ErrorsRouterExt,
 	},
-	health::handlers::{get_ping, get_version},
+	routes::{protected, public},
 	stats::{
-		handlers::{get_stats, get_stats_feed, get_stats_history},
 		routing::RouterExt as StatsRouterExt,
 		state::AppStateStats,
 		worker::start_stats_processor,
@@ -79,10 +74,7 @@ use crate::{
 	state::AppState,
 	utility::ApiDoc,
 };
-use axum::{
-	Router,
-	routing::{get, post},
-};
+use axum::Router;
 use ::core::net::SocketAddr;
 use include_dir::include_dir;
 use std::sync::Arc;
@@ -123,23 +115,8 @@ async fn main() {
 	});
 	let _rx           = start_stats_processor(&shared_state).await;
 	let app           = Router::new()
-		.protected_routes(vec![
-			("/",      get(get_index)),
-			("/*path", get(get_protected_static_asset)),
-		], &shared_state)
-		.public_routes(vec![
-			("/api/ping",          get(get_ping)),
-			("/api/version",       get(get_version)),
-			("/api/stats",         get(get_stats)),
-			("/api/stats/history", get(get_stats_history)),
-			("/api/stats/feed",    get(get_stats_feed)),
-			("/login",             post(post_login)),
-			("/logout",            get(get_logout)),
-			("/css/*path",         get(get_public_static_asset)),
-			("/img/*path",         get(get_public_static_asset)),
-			("/js/*path",          get(get_public_static_asset)),
-			("/webfonts/*path",    get(get_public_static_asset)),
-		])
+		.protected_routes(protected(), &shared_state)
+		.public_routes(public())
 		.add_openapi("/api-docs", ApiDoc::openapi())
 		.fallback(no_route)
 		.add_error_template(&shared_state)

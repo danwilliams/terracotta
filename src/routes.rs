@@ -1,0 +1,49 @@
+//! Routes for the application.
+
+
+
+//		Packages
+
+use crate::{
+	handlers::get_index,
+	assets::handlers::{get_protected_static_asset, get_public_static_asset},
+	auth::handlers::{get_logout, post_login},
+	health::handlers::{get_ping, get_version},
+	state::AppState,
+	stats::handlers::{get_stats, get_stats_feed, get_stats_history},
+};
+use axum::routing::{MethodRouter, get, post};
+use std::sync::Arc;
+
+
+
+//		Functions
+
+//		protected																
+/// Returns a list of protected routes.
+pub fn protected() -> Vec<(&'static str, MethodRouter<Arc<AppState>>)> {
+	vec![
+		("/",      get(get_index)),
+		("/*path", get(get_protected_static_asset)),
+	]
+}
+
+//		public																	
+/// Returns a list of public routes.
+pub fn public() -> Vec<(&'static str, MethodRouter<Arc<AppState>>)> {
+	vec![
+		("/api/ping",          get(get_ping)),
+		("/api/version",       get(get_version)),
+		("/api/stats",         get(get_stats)),
+		("/api/stats/history", get(get_stats_history)),
+		("/api/stats/feed",    get(get_stats_feed)),
+		("/login",             post(post_login)),
+		("/logout",            get(get_logout)),
+		("/css/*path",         get(get_public_static_asset)),
+		("/img/*path",         get(get_public_static_asset)),
+		("/js/*path",          get(get_public_static_asset)),
+		("/webfonts/*path",    get(get_public_static_asset)),
+	]
+}
+
+
