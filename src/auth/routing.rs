@@ -4,9 +4,9 @@
 
 //		Packages
 
-use crate::{
-	auth::middleware::{auth_layer, protect},
-	state::AppState,
+use crate::auth::{
+	middleware::{auth_layer, protect},
+	state::AuthStateProvider,
 };
 use axum::{
 	Router,
@@ -34,7 +34,7 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 	/// 
 	/// * `shared_state` - The shared application state.
 	/// 
-	fn add_authentication(self, shared_state: &Arc<AppState>) -> Self;
+	fn add_authentication<P: AuthStateProvider>(self, shared_state: &Arc<P>) -> Self;
 	
 	//		protected_routes													
 	/// Adds protected routes to the router.
@@ -51,7 +51,7 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 	/// 
 	/// * [`public_routes()`](#method.public_routes)
 	/// 
-	fn protected_routes(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<AppState>) -> Self;
+	fn protected_routes<P: AuthStateProvider>(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<P>) -> Self;
 	
 	//		public_routes														
 	/// Adds public routes to the router.
@@ -75,7 +75,7 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 #[expect(clippy::similar_names, reason = "Not too similar")]
 impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
 	//		add_authentication													
-	fn add_authentication(self, shared_state: &Arc<AppState>) -> Self {
+	fn add_authentication<P: AuthStateProvider>(self, shared_state: &Arc<P>) -> Self {
 		let session_key   = SessionKey::generate();
 		let session_store = SessionMemoryStore::default();
 		self
@@ -84,7 +84,7 @@ impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
 	}
 	
 	//		protected_routes													
-	fn protected_routes(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<AppState>) -> Self {
+	fn protected_routes<P: AuthStateProvider>(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<P>) -> Self {
 		let mut router = self;
 		for (path, method_router) in routes {
 			router = router.route(path, method_router);

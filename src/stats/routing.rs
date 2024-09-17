@@ -4,9 +4,9 @@
 
 //		Packages
 
-use crate::{
-	state::AppState,
-	stats::middleware::stats_layer,
+use crate::stats::{
+	middleware::stats_layer,
+	state::StatsStateProvider,
 };
 use axum::{
 	Router,
@@ -28,13 +28,13 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 	/// 
 	/// * `shared_state` - The shared application state.
 	/// 
-	fn add_stats_gathering(self, shared_state: &Arc<AppState>) -> Self;
+	fn add_stats_gathering<P: StatsStateProvider>(self, shared_state: &Arc<P>) -> Self;
 }
 
 //󰭅		RouterExt																
 impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
 	//		add_stats_gathering													
-	fn add_stats_gathering(self, shared_state: &Arc<AppState>) -> Self {
+	fn add_stats_gathering<P: StatsStateProvider>(self, shared_state: &Arc<P>) -> Self {
 		self.layer(from_fn_with_state(Arc::clone(shared_state), stats_layer))
 	}
 }
