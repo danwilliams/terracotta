@@ -58,7 +58,7 @@ use velcro::btree_map;
 
 //		MeasurementType															
 /// The type of measurement to get statistics for.
-#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, ToSchema)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, ToSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum MeasurementType {
 	/// Response times.

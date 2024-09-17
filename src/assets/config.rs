@@ -14,7 +14,7 @@ use std::path::PathBuf;
 
 //		LoadingBehavior															
 /// The possible options for loading local, non-baked-in resources.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum LoadingBehavior {
 	/// Deny loading of local resources.
 	Deny,
