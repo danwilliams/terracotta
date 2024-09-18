@@ -6,6 +6,7 @@
 
 use super::{
 	config::LoadingBehavior,
+	errors::AssetsError,
 	state::StateProvider,
 };
 use axum::{
@@ -84,7 +85,7 @@ async fn get_static_asset<SP: StateProvider>(
 	state:   Arc<SP>,
 	uri:     Uri,
 	context: AssetContext
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, AssetsError> {
 	let path      = uri.path().trim_start_matches('/');
 	let mime_type = mime_guess::from_path(path).first_or_text_plain();
 	let (basedir, local_path, behavior) = match context {
@@ -104,36 +105,44 @@ async fn get_static_asset<SP: StateProvider>(
 		LoadingBehavior::Supplement => basedir.get_file(path).is_none(),
 		LoadingBehavior::Override   => local_path.exists(),
 	};
-	if !(
-			( is_local && local_path.exists())
-		||	(!is_local && basedir.get_file(path).is_some())
-	) {
-		return Err((StatusCode::NOT_FOUND, ""));
-	}
 	let body = if is_local {
-		let mut file   = File::open(local_path).await.ok().unwrap();
-		let config     =  &state.config().static_files;
-		if file.metadata().await.unwrap().len() > config.stream_threshold.saturating_mul(1_024) as u64 {
+		if !local_path.exists() {
+			return Err(AssetsError::LocalFileNotFound(local_path));
+		}
+		let mut file = File::open(&local_path).await
+			.map_err(|err| AssetsError::FailedToOpenLocalFile(local_path.clone(), err))?
+		;
+		let metadata = file.metadata().await
+			.map_err(|err| AssetsError::FailedToGetLocalFileMetadata(local_path.clone(), err))?
+		;
+		let config   = &state.config().static_files;
+		if metadata.len() > config.stream_threshold.saturating_mul(1_024) as u64 {
 			let reader = BufReader::with_capacity(config.read_buffer.saturating_mul(1_024), file);
 			let stream = ReaderStream::with_capacity(reader, config.stream_buffer.saturating_mul(1_024));
 			Body::from_stream(stream)
 		} else {
 			let mut contents = vec![];
-			let _count = file.read_to_end(&mut contents).await.unwrap();
+			let _count = file.read_to_end(&mut contents).await
+				.map_err(|err| AssetsError::FailedToReadLocalFile(local_path, err))?
+			;
 			Body::from(contents)
 		}
 	} else {
-		Body::from(basedir.get_file(path).unwrap().contents())
+		Body::from(
+			basedir.get_file(path)
+				.ok_or_else(|| AssetsError::PackagedFileNotFound(path.to_owned()))?
+				.contents()
+		)
 	};
-	Ok(Response::builder()
+	Response::builder()
 		.status(StatusCode::OK)
 		.header(
 			header::CONTENT_TYPE,
-			HeaderValue::from_str(mime_type.as_ref()).unwrap(),
+			HeaderValue::from_str(mime_type.as_ref())
+				.map_err(|_err| AssetsError::InvalidMimeTypeHeader(mime_type))?
 		)
 		.body(body)
-		.unwrap()
-	)
+		.map_err(AssetsError::FailedToBuildResponseBody)
 }
 
 
