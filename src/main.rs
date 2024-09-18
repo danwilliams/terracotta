@@ -68,7 +68,7 @@ use crate::{
 	routes::{protected, public},
 	stats::{
 		routing::RouterExt as StatsRouterExt,
-		state::AppStateStats,
+		state::State as StatsState,
 		worker::start_stats_processor,
 	},
 	state::AppState,
@@ -110,7 +110,7 @@ async fn main() {
 		assets_dir:     Arc::new(include_dir!("static")),
 		config,
 		content_dir:    Arc::new(include_dir!("content")),
-		stats:          RwLock::new(AppStateStats::default()),
+		stats:          RwLock::new(StatsState::default()),
 		template:       setup_tera(&Arc::new(include_dir!("html"))),
 	});
 	start_stats_processor(&shared_state).await;

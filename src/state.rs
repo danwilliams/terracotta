@@ -13,7 +13,7 @@ use crate::{
 	config::Config,
 	stats::{
 		config::StatsConfig,
-		state::{AppStateStats, StateProvider as StatsStateProvider},
+		state::{State as StatsState, StateProvider as StatsStateProvider},
 	},
 };
 use include_dir::Dir;
@@ -47,7 +47,7 @@ pub struct AppState {
 	pub content_dir: Arc<Dir<'static>>,
 	
 	/// The application statistics.
-	pub stats:       RwLock<AppStateStats>,
+	pub stats:       RwLock<StatsState>,
 	
 	/// The Tera template engine.
 	pub template:    Tera,
@@ -100,7 +100,7 @@ impl StatsStateProvider for AppState {
 	}
 	
 	//		stats_state															
-	fn stats_state(&self) -> &RwLock<AppStateStats> {
+	fn stats_state(&self) -> &RwLock<StatsState> {
 		&self.stats
 	}
 }

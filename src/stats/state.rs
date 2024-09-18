@@ -27,17 +27,17 @@ use velcro::hash_map;
 
 //		Structs
 
-//		AppStateStats															
+//		State																
 /// Statistics-related central constructs to be stored in application state.
 /// 
 /// This is used to store global state information that is shared between
 /// requests, specific to what is used for statistics purposes.
 /// 
 #[derive(Debug, SmartDefault)]
-pub struct AppStateStats {
+pub struct State {
 	//		Public properties													
 	/// The application statistics data.
-	pub data:        AppStats,
+	pub data:        Stats,
 	
 	/// The statistics queue that response times are added to. This is the
 	/// sender side only. A queue is used so that each request-handling thread's
@@ -59,10 +59,10 @@ pub struct AppStateStats {
 	pub listener:    Option<Listener<AllStatsForPeriod>>,
 }
 
-//		AppStats																
+//		Stats																	
 /// Various application statistics.
 #[derive(Debug, SmartDefault)]
-pub struct AppStats {
+pub struct Stats {
 	//		Public properties													
 	/// The date and time the application was started.
 	#[default(Utc::now().naive_utc())]
@@ -88,7 +88,7 @@ pub struct AppStats {
 	/// a [`std::sync::Mutex`] because it is theoretically faster in highly
 	/// contended situations, but the main advantage is that it is infallible,
 	/// and it does not have mutex poisoning.
-	pub totals:      Mutex<AppStatsTotals>,
+	pub totals:      Mutex<StatsTotals>,
 	
 	/// Circular buffers of average, maximum, minimum, and count per second for
 	/// each area sampled, for the individually-configured periods. The buffers
@@ -96,13 +96,13 @@ pub struct AppStats {
 	/// maximum of once per second. A [`parking_lot::RwLock`] is used instead of
 	/// a [`std::sync::RwLock`] because it is theoretically faster in highly
 	/// contended situations.
-	pub buffers:     RwLock<AppStatsBuffers>,
+	pub buffers:     RwLock<StatsBuffers>,
 }
 
-//		AppStatsTotals															
+//		StatsTotals																
 /// The all-time application statistics totals for each area sampled.
 #[derive(Clone, Debug, PartialEq, SmartDefault)]
-pub struct AppStatsTotals {
+pub struct StatsTotals {
 	//		Public properties													
 	/// The number of responses that have been handled, by status code.
 	#[default(hash_map!{
@@ -129,10 +129,10 @@ pub struct AppStatsTotals {
 	pub memory:      StatsForPeriod,
 }
 
-//		AppStatsBuffers															
+//		StatsBuffers															
 /// Buffers for storing application statistics data.
 #[derive(Clone, Debug, PartialEq, SmartDefault)]
-pub struct AppStatsBuffers {
+pub struct StatsBuffers {
 	//		Public properties													
 	/// A circular buffer of response time stats per second for the configured
 	/// period.
@@ -167,7 +167,7 @@ pub trait StateProvider: Send + Sync + 'static {
 	/// obtaining a lock, and all the internal locks are kept in place in order
 	/// to allow specific access.
 	/// 
-	fn stats_state(&self) -> &AsyncRwLock<AppStateStats>;
+	fn stats_state(&self) -> &AsyncRwLock<State>;
 }
 
 

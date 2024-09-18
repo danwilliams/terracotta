@@ -3,7 +3,7 @@
 //		Packages
 
 use super::*;
-use super::super::state::{AppStateStats, AppStats, AppStatsTotals};
+use super::super::state::{State, Stats, StatsTotals};
 use crate::{
 	config::Config,
 	state::AppState,
@@ -36,13 +36,13 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 		assets_dir:       Arc::new(include_dir!("static")),
 		config:           Figment::from(Serialized::defaults(Config::default())).extract().unwrap(),
 		content_dir:      Arc::new(include_dir!("content")),
-		stats:            AsyncRwLock::new(AppStateStats {
-			data:                AppStats {
+		stats:            AsyncRwLock::new(State {
+			data:                Stats {
 				started_at:      start,
 				last_second:     RwLock::new((start + Duration::seconds(95)).with_nanosecond(0).unwrap()),
 				connections:     AtomicUsize::new(5),
 				requests:        AtomicUsize::new(10),
-				totals:          Mutex::new(AppStatsTotals {
+				totals:          Mutex::new(StatsTotals {
 					codes:       hash_map!{
 						StatusCode::OK:                    5,
 						StatusCode::UNAUTHORIZED:          4,
