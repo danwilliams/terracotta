@@ -75,8 +75,10 @@ pub struct User {
 
 //󰭅		AuthUser																
 impl AuthUser for User {
+	type Id = String;
+	
 	//		id																	
-	fn id(&self) -> &String {
+	fn id(&self) -> &Self::Id {
 		&self.username
 	}
 }
@@ -100,7 +102,7 @@ impl AuthUserProvider for User {
 	//		find_by_id															
 	fn find_by_id<SP: AuthStateProvider>(
 		state: &Arc<SP>,
-		id:    &str,
+		id:    &<Self::User as AuthUser>::Id,
 	) -> Option<Self> {
 		state.users()
 			.get(id)

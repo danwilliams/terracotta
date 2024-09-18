@@ -19,10 +19,10 @@ use axum::{
 };
 use core::{
 	convert::Infallible,
-	fmt::Debug,
+	fmt::{Debug, Display},
 };
 use rubedo::sugar::s;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::sync::Arc;
 use tower_sessions::Session;
 use tracing::info;
@@ -87,7 +87,7 @@ impl<U: User> Context<U> {
 		SP: StateProvider,
 		UP: UserProvider<User = U>,
 	{
-		if let Ok(Some(user_id)) = self.session.get::<String>(SESSION_USER_ID_KEY).await {
+		if let Ok(Some(user_id)) = self.session.get(SESSION_USER_ID_KEY).await {
 			if let Some(user)    = UP::find_by_id(state, &user_id) {
 				return Some(user);
 			}
@@ -107,8 +107,7 @@ impl<U: User> Context<U> {
 	/// * `user` - The user to log in.
 	/// 
 	pub async fn login(&mut self, user: &U) {
-		let user_id       = &user.id();
-		self.session.insert(SESSION_USER_ID_KEY, user_id).await.unwrap();
+		self.session.insert(SESSION_USER_ID_KEY, user.id()).await.unwrap();
 		self.current_user = Some(user.clone());
 	}
 	
@@ -169,13 +168,17 @@ pub trait Credentials: Clone + Debug + for<'de> Deserialize<'de> + Send + Sync +
 /// Just the basics for identification are usually sufficient.
 /// 
 pub trait User: Clone + Debug + Send + Sync + 'static {
+	/// The user ID type. This is the type that uniquely identifies a user, and
+	/// might be an ID, username, email, or similar.
+	type Id: Clone + Debug + DeserializeOwned + Display + Serialize + Send + Sync + 'static;
+	
 	//		id																	
 	/// The user's unique identifier.
 	/// 
 	/// This function gets the user's unique identifier for the purposes of
 	/// authentication. This could be an ID, username, email, or similar.
 	/// 
-	fn id(&self) -> &String;
+	fn id(&self) -> &Self::Id;
 }
 
 //§		UserProvider															
@@ -219,7 +222,7 @@ pub trait UserProvider: Debug + 'static {
 	/// 
 	fn find_by_id<SP: StateProvider>(
 		state: &Arc<SP>,
-		id:    &str,
+		id:    &<Self::User as User>::Id,
 	) -> Option<Self::User>;
 }
 
@@ -252,13 +255,9 @@ where
 	U:  User,
 	UP: UserProvider<User = U>,
 {
-	let mut auth_cx      = Context::<U>::new(session);
-	let user             = auth_cx.get_user::<SP, UP>(&state).await;
-	let mut username     = s!("none");
-	if let Some(ref u) = user {
-		username.clone_from(u.id());
-	}
-	info!("Current user: {username}");
+	let mut auth_cx = Context::<U>::new(session);
+	let user        = auth_cx.get_user::<SP, UP>(&state).await;
+	info!("Current user: {}", user.as_ref().map_or(s!("none"), |u| u.id().to_string()));
 	auth_cx.current_user = user;
 	drop(request.extensions_mut().insert(auth_cx));
 	next.run(request).await
