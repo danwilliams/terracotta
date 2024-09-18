@@ -56,9 +56,6 @@ pub struct User {
 	//		Private properties													
 	/// The username.
 	pub username: String,
-	
-	/// The password.
-	pub password: String,
 }
 
 //󰭅		AuthUser																
@@ -79,16 +76,7 @@ impl AuthUserProvider for User {
 		username: &str,
 		password: &str,
 	) -> Option<Self> {
-		if state.users().contains_key(username) {
-			let pass = state.users().get(username)?;
-			if pass == password {
-				return Some(Self {
-					username: username.to_owned(),
-					password: pass.clone(),
-				});
-			}
-		}
-		None
+		state.users().get(username).filter(|&pass| pass == password).map(|_| Self { username: username.to_owned() })
 	}
 	
 	//		find_by_id															
@@ -96,14 +84,7 @@ impl AuthUserProvider for User {
 		state: &Arc<SP>,
 		id:    &str,
 	) -> Option<Self> {
-		if state.users().contains_key(id) {
-			let password = state.users().get(id)?;
-			return Some(Self {
-				username: id.to_owned(),
-				password: password.clone(),
-			});
-		}
-		None
+		state.users().get(id).map(|_| Self { username: id.to_owned() })
 	}
 }
 
