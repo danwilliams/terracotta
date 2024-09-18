@@ -17,9 +17,11 @@ use axum::{
 	middleware::Next,
 	response::{IntoResponse, Response},
 };
-use core::convert::Infallible;
+use core::{
+	convert::Infallible,
+	fmt::Debug,
+};
 use rubedo::sugar::s;
-use serde::Serialize;
 use std::sync::Arc;
 use tower_sessions::Session;
 use tracing::info;
@@ -35,79 +37,6 @@ const SESSION_USER_ID_KEY: &str = "_user_id";
 
 //		Structs
 
-//		User																	
-/// User data functionality.
-/// 
-/// This struct contains the user fields used for authentication, and methods
-/// for retrieving user data.
-/// 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
-pub struct User {
-	//		Private properties													
-	/// The username.
-	pub username: String,
-	
-	/// The password.
-	pub password: String,
-}
-
-//󰭅		User																	
-impl User {
-	//		find																
-	/// Finds a user by username and password.
-	/// 
-	/// Returns [`Some(User)`](Some) if the user exists and the password is
-	/// correct, otherwise returns [`None`].
-	/// 
-	/// # Parameters
-	/// 
-	/// * `state`    - The application state.
-	/// * `username` - The username to search for.
-	/// * `password` - The password to match.
-	/// 
-	pub fn find<S: AuthStateProvider>(
-		state:    &Arc<S>,
-		username: &String,
-		password: &String,
-	) -> Option<Self> {
-		if state.users().contains_key(username) {
-			let pass = state.users().get(username)?;
-			if pass == password {
-				return Some(Self {
-					username: username.clone(),
-					password: pass.clone(),
-				});
-			}
-		}
-		None
-	}
-	
-	//		find_by_id															
-	/// Finds a user by username.
-	/// 
-	/// Returns [`Some(User)`](Some) if the user exists, otherwise returns
-	/// [`None`].
-	/// 
-	/// # Parameters
-	/// 
-	/// * `state`    - The application state.
-	/// * `username` - The username to search for.
-	/// 
-	pub fn find_by_id<S: AuthStateProvider>(
-		state: &Arc<S>,
-		id:    &String,
-	) -> Option<Self> {
-		if state.users().contains_key(id) {
-			let password = state.users().get(id)?;
-			return Some(Self {
-				username: id.clone(),
-				password: password.clone(),
-			});
-		}
-		None
-	}
-}
-
 //		AuthContext																
 /// The authentication context.
 /// 
@@ -115,10 +44,10 @@ impl User {
 /// context of an authentication session.
 /// 
 #[derive(Clone, Debug)]
-pub struct AuthContext {
+pub struct AuthContext<U: User> {
 	//		Public properties													
 	/// The current user.
-	pub current_user: Option<User>,
+	pub current_user: Option<U>,
 	
 	//		Private properties													
 	/// The active session.
@@ -126,7 +55,7 @@ pub struct AuthContext {
 }
 
 //󰭅		AuthContext																
-impl AuthContext {
+impl<U: User> AuthContext<U> {
 	//		new																	
 	/// Creates a new authentication context.
 	/// 
@@ -152,9 +81,13 @@ impl AuthContext {
 	/// 
 	/// * `appstate` - The application state.
 	/// 
-	pub async fn get_user<S: AuthStateProvider>(&self, appstate: &Arc<S>) -> Option<User> {
+	pub async fn get_user<S, P>(&self, appstate: &Arc<S>) -> Option<U>
+	where
+		S: AuthStateProvider,
+		P: UserProvider<User = U>,
+	{
 		if let Ok(Some(user_id)) = self.session.get::<String>(SESSION_USER_ID_KEY).await {
-			if let Some(user)    = User::find_by_id(appstate, &user_id) {
+			if let Some(user)    = P::find_by_id(appstate, &user_id) {
 				return Some(user);
 			}
 			self.logout().await;
@@ -172,8 +105,8 @@ impl AuthContext {
 	/// 
 	/// * `user` - The user to log in.
 	/// 
-	pub async fn login(&mut self, user: &User) {
-		let user_id       = &user.username;
+	pub async fn login(&mut self, user: &U) {
+		let user_id       = &user.id();
 		self.session.insert(SESSION_USER_ID_KEY, user_id).await.unwrap();
 		self.current_user = Some(user.clone());
 	}
@@ -190,8 +123,11 @@ impl AuthContext {
 
 //󰭅		FromRequestParts														
 #[async_trait]
-impl<State> FromRequestParts<State> for AuthContext
-where State: Send + Sync {
+impl<S, U> FromRequestParts<S> for AuthContext<U>
+where
+	S: Send + Sync,
+	U: User,
+{
 	type Rejection = Infallible;
 	
 	//		from_request_parts													
@@ -203,7 +139,7 @@ where State: Send + Sync {
 	/// * `state` - The application state.
 	/// 
 	#[expect(clippy::expect_used, reason = "Misconfiguration, so hard quit")]
-	async fn from_request_parts(parts: &mut Parts, state: &State) -> Result<Self, Self::Rejection> {
+	async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
 		let Extension(auth_cx): Extension<Self> =
 			Extension::from_request_parts(parts, state)
 				.await
@@ -211,6 +147,69 @@ where State: Send + Sync {
 		;
 		Ok(auth_cx)
 	}
+}
+
+
+
+//		Traits
+
+//§		User																	
+/// An instance of user data providing enough functionality for authentication.
+/// 
+/// This gets stored in application state, so ideally should not be too large.
+/// Just the basics for identification are usually sufficient.
+/// 
+pub trait User: Clone + Debug + Send + Sync + 'static {
+	//		id																	
+	/// The user's unique identifier.
+	/// 
+	/// This function gets the user's unique identifier for the purposes of
+	/// authentication. This could be an ID, username, email, or similar.
+	/// 
+	fn id(&self) -> &String;
+}
+
+//§		UserProvider															
+/// A trait for providing basic user data.
+pub trait UserProvider: Debug + 'static {
+	/// The user data type. This is the type that implements the [`User`] trait.
+	type User: User;
+	
+	//		find_by_credentials													
+	/// Finds a user by username and password.
+	/// 
+	/// Returns [`Some(User)`](Some) if the user exists and the password is
+	/// correct, otherwise returns [`None`].
+	/// 
+	/// # Parameters
+	/// 
+	/// * `state`    - The application state.
+	/// * `username` - The username to search for.
+	/// * `password` - The password to match.
+	/// 
+	fn find_by_credentials<S: AuthStateProvider>(
+		state:    &Arc<S>,
+		username: &str,
+		password: &str,
+	) -> Option<Self::User>;
+	
+	//		find_by_id															
+	/// Finds a user by unique identifier.
+	/// 
+	/// The unique identifier could be an ID, username, email, or similar.
+	/// 
+	/// Returns [`Some(User)`](Some) if the user exists, otherwise returns
+	/// [`None`].
+	/// 
+	/// # Parameters
+	/// 
+	/// * `state` - The application state.
+	/// * `id`    - The identifying field to search for.
+	/// 
+	fn find_by_id<S: AuthStateProvider>(
+		state: &Arc<S>,
+		id:    &str,
+	) -> Option<Self::User>;
 }
 
 
@@ -231,17 +230,22 @@ where State: Send + Sync {
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn auth_layer<S: AuthStateProvider>(
+pub async fn auth_layer<S, U, P>(
 	State(appstate):    State<Arc<S>>,
 	Extension(session): Extension<Session>,
 	mut request:        Request<Body>,
 	next:               Next,
-) -> Response {
-	let mut auth_cx      = AuthContext::new(session);
-	let user             = auth_cx.get_user(&appstate).await;
+) -> Response
+where
+	S: AuthStateProvider,
+	U: User,
+	P: UserProvider<User = U>,
+{
+	let mut auth_cx      = AuthContext::<U>::new(session);
+	let user             = auth_cx.get_user::<S, P>(&appstate).await;
 	let mut username     = s!("none");
 	if let Some(ref u) = user {
-		username.clone_from(&u.username);
+		username.clone_from(u.id());
 	}
 	info!("Current user: {username}");
 	auth_cx.current_user = user;
@@ -264,13 +268,17 @@ pub async fn auth_layer<S: AuthStateProvider>(
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn protect<S: AuthStateProvider>(
+pub async fn protect<S, U>(
 	State(appstate):    State<Arc<S>>,
-	Extension(auth_cx): Extension<AuthContext>,
+	Extension(auth_cx): Extension<AuthContext<U>>,
 	uri:                Uri,
 	request:            Request<Body>,
 	next:               Next,
-) -> Response {
+) -> Response
+where
+	S: AuthStateProvider,
+	U: User,
+{
 	match auth_cx.current_user {
 		Some(_) => next.run(request).await,
 		_       => {

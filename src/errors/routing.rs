@@ -5,7 +5,10 @@
 //		Packages
 
 use super::middleware::{final_error_layer, graceful_error_layer};
-use crate::state::AppStateProvider;
+use crate::{
+	auth::middleware::User as AuthUser,
+	state::AppStateProvider,
+};
 use axum::{
 	Router,
 	middleware::{from_fn, from_fn_with_state},
@@ -31,7 +34,11 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 	/// 
 	/// * `shared_state` - The shared application state.
 	/// 
-	fn add_error_template<P: AppStateProvider>(self, shared_state: &Arc<P>) -> Self;
+	fn add_error_template<P, U>(self, shared_state: &Arc<P>) -> Self
+	where
+		P: AppStateProvider,
+		U: AuthUser,
+	;
 }
 
 //󰭅		RouterExt																
@@ -44,10 +51,14 @@ impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
 	}
 	
 	//		add_error_template													
-	fn add_error_template<P: AppStateProvider>(self, shared_state: &Arc<P>) -> Self {
+	fn add_error_template<P, U>(self, shared_state: &Arc<P>) -> Self
+	where
+		P: AppStateProvider,
+		U: AuthUser,
+	{
 		self
 			.layer(CatchPanicLayer::new())
-			.layer(from_fn_with_state(Arc::clone(shared_state), graceful_error_layer))
+			.layer(from_fn_with_state(Arc::clone(shared_state), graceful_error_layer::<_, U>))
 	}
 }
 

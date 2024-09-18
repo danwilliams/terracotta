@@ -11,6 +11,7 @@ use crate::{
 	health::handlers::{get_ping, get_version},
 	state::AppState,
 	stats::handlers::{get_stats, get_stats_feed, get_stats_history},
+	utility::User,
 };
 use axum::routing::{MethodRouter, get, post};
 use std::sync::Arc;
@@ -37,8 +38,8 @@ pub fn public() -> Vec<(&'static str, MethodRouter<Arc<AppState>>)> {
 		("/api/stats",         get(get_stats)),
 		("/api/stats/history", get(get_stats_history)),
 		("/api/stats/feed",    get(get_stats_feed)),
-		("/login",             post(post_login)),
-		("/logout",            get(get_logout)),
+		("/login",             post(post_login::<_, User, User>)),
+		("/logout",            get(get_logout::<User>)),
 		("/css/*path",         get(get_public_static_asset)),
 		("/img/*path",         get(get_public_static_asset)),
 		("/js/*path",          get(get_public_static_asset)),

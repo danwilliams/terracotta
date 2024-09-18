@@ -72,7 +72,7 @@ use crate::{
 		worker::start_stats_processor,
 	},
 	state::AppState,
-	utility::ApiDoc,
+	utility::{ApiDoc, User},
 };
 use axum::Router;
 use ::core::net::SocketAddr;
@@ -115,12 +115,12 @@ async fn main() {
 	});
 	start_stats_processor(&shared_state).await;
 	let app           = Router::new()
-		.protected_routes(protected(), &shared_state)
+		.protected_routes::<_, User>(protected(), &shared_state)
 		.public_routes(public())
 		.add_openapi("/api-docs", ApiDoc::openapi())
 		.fallback(no_route)
-		.add_error_template(&shared_state)
-		.add_authentication(&shared_state)
+		.add_error_template::<_, User>(&shared_state)
+		.add_authentication::<_, User, User>(&shared_state)
 		.add_stats_gathering(&shared_state)
 		.with_state(shared_state)
 		.add_http_logging()

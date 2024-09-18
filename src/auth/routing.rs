@@ -5,7 +5,7 @@
 //		Packages
 
 use super::{
-	middleware::{auth_layer, protect},
+	middleware::{User as AuthUser, UserProvider as AuthUserProvider, auth_layer, protect},
 	state::AuthStateProvider,
 };
 use axum::{
@@ -34,7 +34,12 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 	/// 
 	/// * `shared_state` - The shared application state.
 	/// 
-	fn add_authentication<P: AuthStateProvider>(self, shared_state: &Arc<P>) -> Self;
+	fn add_authentication<SP, U, UP>(self, shared_state: &Arc<SP>) -> Self
+	where
+		SP: AuthStateProvider,
+		U:  AuthUser,
+		UP: AuthUserProvider<User = U>,
+	;
 	
 	//		protected_routes													
 	/// Adds protected routes to the router.
@@ -51,7 +56,11 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 	/// 
 	/// * [`public_routes()`](#method.public_routes)
 	/// 
-	fn protected_routes<P: AuthStateProvider>(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<P>) -> Self;
+	fn protected_routes<SP, U>(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<SP>) -> Self
+	where
+		SP: AuthStateProvider,
+		U:  AuthUser,
+	;
 	
 	//		public_routes														
 	/// Adds public routes to the router.
@@ -75,22 +84,31 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 #[expect(clippy::similar_names, reason = "Not too similar")]
 impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
 	//		add_authentication													
-	fn add_authentication<P: AuthStateProvider>(self, shared_state: &Arc<P>) -> Self {
+	fn add_authentication<SP, U, UP>(self, shared_state: &Arc<SP>) -> Self
+	where
+		SP: AuthStateProvider,
+		U:  AuthUser,
+		UP: AuthUserProvider<User = U>,
+	{
 		let session_key   = SessionKey::generate();
 		let session_store = SessionMemoryStore::default();
 		self
-			.layer(from_fn_with_state(Arc::clone(shared_state), auth_layer))
+			.layer(from_fn_with_state(Arc::clone(shared_state), auth_layer::<_, U, UP>))
 			.layer(SessionManagerLayer::new(session_store).with_secure(false).with_signed(session_key))
 	}
 	
 	//		protected_routes													
-	fn protected_routes<P: AuthStateProvider>(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<P>) -> Self {
+	fn protected_routes<SP, U>(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<SP>) -> Self
+	where
+		SP: AuthStateProvider,
+		U:  AuthUser,
+	{
 		let mut router = self;
 		for (path, method_router) in routes {
 			router = router.route(path, method_router);
 		}
 		router
-			.route_layer(from_fn_with_state(Arc::clone(shared_state), protect))
+			.route_layer(from_fn_with_state(Arc::clone(shared_state), protect::<_, U>))
 	}
 	
 	//		public_routes														

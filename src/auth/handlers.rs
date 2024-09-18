@@ -5,7 +5,7 @@
 //		Packages
 
 use super::{
-	middleware::{AuthContext, User},
+	middleware::{AuthContext, User, UserProvider},
 	state::AuthStateProvider,
 	utility::{build_uri, extract_uri_query_parts},
 };
@@ -89,16 +89,21 @@ pub async fn get_login<S: AppStateProvider>(
 /// * `auth`  - The authentication context.
 /// * `login` - The login form.
 /// 
-pub async fn post_login<S: AuthStateProvider>(
+pub async fn post_login<S, U, P>(
 	State(state): State<Arc<S>>,
-	mut auth:     AuthContext,
+	mut auth:     AuthContext<U>,
 	Form(login):  Form<PostLogin>,
-) -> Redirect {
+) -> Redirect
+where
+	S: AuthStateProvider,
+	U: User,
+	P: UserProvider<User = U>,
+{
 	let uri        = login.uri.parse::<Uri>().unwrap();
 	let mut params = extract_uri_query_parts(&uri);
-	let user       = User::find(&state, &login.username, &login.password);
+	let user       = P::find_by_credentials(&state, &login.username, &login.password);
 	if user.is_some() {
-		info!("Logging in user: {}", user.as_ref().unwrap().username);
+		info!("Logging in user: {}", user.as_ref().unwrap().id());
 		auth.login(user.as_ref().unwrap()).await;
 	} else {
 		drop(params.insert(s!("failed"), s!("")));
@@ -116,11 +121,11 @@ pub async fn post_login<S: AuthStateProvider>(
 /// 
 /// * `auth` - The authentication context.
 /// 
-pub async fn get_logout(
-	auth: AuthContext,
+pub async fn get_logout<U: User>(
+	auth: AuthContext<U>,
 ) -> Redirect {
 	if auth.current_user.is_some() {
-		info!("Logging out user: {}", auth.current_user.as_ref().unwrap().username);
+		info!("Logging out user: {}", auth.current_user.as_ref().unwrap().id());
 	}
 	auth.logout().await;
 	Redirect::to("/")
