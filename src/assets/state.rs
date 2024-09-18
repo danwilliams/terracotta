@@ -4,7 +4,7 @@
 
 //		Packages
 
-use super::config::AssetsConfig;
+use super::config::Config;
 use include_dir::Dir;
 use std::sync::Arc;
 
@@ -17,7 +17,7 @@ use std::sync::Arc;
 pub trait StateProvider: Send + Sync + 'static {
 	//		config																
 	/// Gets the assets configuration.
-	fn config(&self) -> &AssetsConfig;
+	fn config(&self) -> &Config;
 	
 	//		assets_dir															
 	/// The directory containing the static assets.

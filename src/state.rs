@@ -6,13 +6,13 @@
 
 use crate::{
 	assets::{
-		config::AssetsConfig,
+		config::Config as AssetsConfig,
 		state::StateProvider as AssetsStateProvider,
 	},
 	auth::state::StateProvider as AuthStateProvider,
 	config::Config,
 	stats::{
-		config::StatsConfig,
+		config::Config as StatsConfig,
 		state::{State as StatsState, StateProvider as StatsStateProvider},
 	},
 };

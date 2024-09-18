@@ -12,10 +12,10 @@ use std::collections::HashMap;
 
 //		Structs
 
-//		StatsConfig																
+//		Config																	
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
 /// The configuration options for gathering and processing statistics.
-pub struct StatsConfig {
+pub struct Config {
 	//		Public properties													
 	/// Whether to enable statistics gathering and processing. If enabled, there
 	/// is a very small CPU overhead for each request, plus an

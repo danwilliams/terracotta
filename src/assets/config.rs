@@ -30,10 +30,10 @@ pub enum LoadingBehavior {
 
 //		Structs
 
-//		AssetsConfig															
+//		Config																	
 /// The configuration options for gathering and processing statistics.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
-pub struct AssetsConfig {
+pub struct Config {
 	//		Public properties													
 	/// The loading behaviour for local, non-baked-in resources. This allows
 	/// local resources to be used to complement the baked-in resources.

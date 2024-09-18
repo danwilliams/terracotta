@@ -5,7 +5,7 @@
 //		Packages
 
 use super::{
-	config::StatsConfig,
+	config::Config,
 	worker::{AllStatsForPeriod, Endpoint, ResponseMetrics, StatsForPeriod},
 };
 use axum::http::StatusCode;
@@ -156,7 +156,7 @@ pub struct StatsBuffers {
 pub trait StateProvider: Send + Sync + 'static {
 	//		config																
 	/// Gets the statistics configuration.
-	fn config(&self) -> &StatsConfig;
+	fn config(&self) -> &Config;
 	
 	//		state																
 	/// Gets the statistics state.

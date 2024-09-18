@@ -5,8 +5,8 @@
 //		Packages
 
 use crate::{
-	assets::config::AssetsConfig,
-	stats::config::StatsConfig,
+	assets::config::Config as AssetsConfig,
+	stats::config::Config as StatsConfig,
 };
 use core::net::IpAddr;
 use serde::{Deserialize, Serialize};
