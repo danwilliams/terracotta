@@ -5,7 +5,7 @@
 //		Packages
 
 use super::{
-	middleware::{Context, User, UserProvider},
+	middleware::{Context, Credentials, User, UserProvider},
 	state::StateProvider,
 	utility::{build_uri, extract_uri_query_parts},
 };
@@ -17,7 +17,7 @@ use axum::{
 	response::{Html, Redirect},
 };
 use rubedo::sugar::s;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 use std::sync::Arc;
 use tera::Context as Template;
 use tracing::info;
@@ -31,17 +31,41 @@ use tracing::info;
 /// 
 /// This is consumed by the [`post_login()`] handler.
 /// 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-pub struct PostLogin {
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PostLogin<C: Credentials> {
 	//		Private properties													
-	/// The username.
-	username: String,
-	
-	/// The password.
-	password: String,
+	/// The user credentials needed to log in.
+	credentials: C,
 	
 	/// The URL to redirect to after logging in.
-	uri:      String,
+	uri:         String,
+}
+
+//󰭅		Deserialize																
+impl<'de, C> Deserialize<'de> for PostLogin<C>
+where
+	C: Credentials,
+{
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		#[allow(clippy::allow_attributes,              reason = "The allow below doesn't work with an expect")]
+		#[allow(clippy::missing_docs_in_private_items, reason = "Internal helper struct")]
+		#[derive(Deserialize)]
+		struct Helper<C> {
+			#[serde(flatten)]
+			credentials: C,
+			uri:         String,
+		}
+		
+		let helper = Helper::deserialize(deserializer)?;
+		
+		Ok(Self {
+			credentials: helper.credentials,
+			uri:         helper.uri,
+		})
+	}
 }
 
 
@@ -89,25 +113,26 @@ pub async fn get_login<SP: AppStateProvider>(
 /// * `auth`  - The authentication context.
 /// * `login` - The login form.
 /// 
-pub async fn post_login<SP, U, UP>(
+pub async fn post_login<SP, C, U, UP>(
 	State(state): State<Arc<SP>>,
 	mut auth:     Context<U>,
-	Form(login):  Form<PostLogin>,
+	Form(login):  Form<PostLogin<C>>,
 ) -> Redirect
 where
 	SP: StateProvider,
+	C:  Credentials,
 	U:  User,
-	UP: UserProvider<User = U>,
+	UP: UserProvider<Credentials = C, User = U>,
 {
 	let uri        = login.uri.parse::<Uri>().unwrap();
 	let mut params = extract_uri_query_parts(&uri);
-	let user       = UP::find_by_credentials(&state, &login.username, &login.password);
+	let user       = UP::find_by_credentials(&state, &login.credentials);
 	if user.is_some() {
 		info!("Logging in user: {}", user.as_ref().unwrap().id());
 		auth.login(user.as_ref().unwrap()).await;
 	} else {
 		drop(params.insert(s!("failed"), s!("")));
-		info!("Failed login attempt for user: {}", &login.username);
+		info!("Failed login attempt");
 	}
 	Redirect::to(build_uri(uri.path(), &params).path_and_query().unwrap().to_string().as_str())
 }

@@ -6,13 +6,13 @@
 
 use crate::{
 	auth::{
-		middleware::{User as AuthUser, UserProvider as AuthUserProvider},
+		middleware::{User as AuthUser, Credentials as AuthCredentials, UserProvider as AuthUserProvider},
 		state::StateProvider as AuthStateProvider,
 	},
 	health::handlers as health,
 	stats::handlers as stats,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use utoipa::OpenApi;
 
@@ -45,6 +45,21 @@ use utoipa::OpenApi;
 )]
 pub struct ApiDoc;
 
+//		Credentials																
+/// The data required to authenticate a user.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+pub struct Credentials {
+	//		Private properties													
+	/// The username.
+	username: String,
+	
+	/// The password.
+	password: String,
+}
+
+//󰭅		AuthCredentials															
+impl AuthCredentials for Credentials {}
+
 //		User																	
 /// User data functionality.
 /// 
@@ -68,15 +83,18 @@ impl AuthUser for User {
 
 //󰭅		AuthUserProvider														
 impl AuthUserProvider for User {
-	type User = Self;
+	type Credentials = Credentials;
+	type User        = Self;
 	
 	//		find_by_credentials													
 	fn find_by_credentials<SP: AuthStateProvider>(
-		state:    &Arc<SP>,
-		username: &str,
-		password: &str,
+		state:       &Arc<SP>,
+		credentials: &Self::Credentials,
 	) -> Option<Self> {
-		state.users().get(username).filter(|&pass| pass == password).map(|_| Self { username: username.to_owned() })
+		state.users()
+			.get(&credentials.username)
+			.filter(|&pass| pass == &credentials.password)
+			.map(|_| Self { username: credentials.username.clone() })
 	}
 	
 	//		find_by_id															
@@ -84,7 +102,9 @@ impl AuthUserProvider for User {
 		state: &Arc<SP>,
 		id:    &str,
 	) -> Option<Self> {
-		state.users().get(id).map(|_| Self { username: id.to_owned() })
+		state.users()
+			.get(id)
+			.map(|_| Self { username: id.to_owned() })
 	}
 }
 

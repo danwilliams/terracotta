@@ -22,6 +22,7 @@ use core::{
 	fmt::Debug,
 };
 use rubedo::sugar::s;
+use serde::Deserialize;
 use std::sync::Arc;
 use tower_sessions::Session;
 use tracing::info;
@@ -153,8 +154,16 @@ where
 
 //		Traits
 
-//§		User																	
+//§		Credentials																
 /// An instance of user data providing enough functionality for authentication.
+/// 
+/// This gets used to authenticate the user, notably being sent via POST from
+/// the login form.
+/// 
+pub trait Credentials: Clone + Debug + for<'de> Deserialize<'de> + Send + Sync + 'static {}
+
+//§		User																	
+/// An instance of user data providing enough functionality for identification.
 /// 
 /// This gets stored in application state, so ideally should not be too large.
 /// Just the basics for identification are usually sufficient.
@@ -172,25 +181,27 @@ pub trait User: Clone + Debug + Send + Sync + 'static {
 //§		UserProvider															
 /// A trait for providing basic user data.
 pub trait UserProvider: Debug + 'static {
+	/// The credentials data type. This is the type that implements the
+	/// [`Credentials`] trait.
+	type Credentials: Credentials;
+	
 	/// The user data type. This is the type that implements the [`User`] trait.
-	type User: User;
+	type User:        User;
 	
 	//		find_by_credentials													
-	/// Finds a user by username and password.
+	/// Finds a user by matching credentials.
 	/// 
-	/// Returns [`Some(User)`](Some) if the user exists and the password is
+	/// Returns [`Some(User)`](Some) if the user exists and the credentials are
 	/// correct, otherwise returns [`None`].
 	/// 
 	/// # Parameters
 	/// 
-	/// * `state`    - The application state.
-	/// * `username` - The username to search for.
-	/// * `password` - The password to match.
+	/// * `state`       - The application state.
+	/// * `credentials` - The credentials to check.
 	/// 
 	fn find_by_credentials<SP: StateProvider>(
-		state:    &Arc<SP>,
-		username: &str,
-		password: &str,
+		state:       &Arc<SP>,
+		credentials: &Self::Credentials,
 	) -> Option<Self::User>;
 	
 	//		find_by_id															
