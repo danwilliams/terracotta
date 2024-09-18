@@ -209,14 +209,14 @@ pub struct ResponseMetrics {
 /// 
 /// # Parameters
 /// 
-/// * `receiver`     - The receiving end of the queue.
-/// * `shared_state` - The shared application state.
+/// * `receiver` - The receiving end of the queue.
+/// * `state`    - The application state.
 /// 
-pub async fn start_stats_processor<SP: StateProvider>(shared_state: &Arc<SP>) {
-	if !shared_state.config().enabled {
+pub async fn start_stats_processor<SP: StateProvider>(state: &Arc<SP>) {
+	if !state.config().enabled {
 		return;
 	}
-	let appstate            = Arc::clone(shared_state);
+	let appstate            = Arc::clone(state);
 	let (sender, receiver)  = flume::unbounded();
 	let (tx, rx)            = broadcast::channel(10);
 	let mut stats_state     = appstate.state().write().await;
@@ -293,7 +293,7 @@ pub async fn start_stats_processor<SP: StateProvider>(shared_state: &Arc<SP>) {
 /// 
 /// # Parameters
 /// 
-/// * `appstate`       - The application state.
+/// * `state`          - The application state.
 /// * `metrics`        - The response metrics to process, received from the
 ///                      statistics queue in [`AppState.stats.Queue`]. If
 ///                      [`None`], then no stats will be added or altered, and
@@ -306,7 +306,7 @@ pub async fn start_stats_processor<SP: StateProvider>(shared_state: &Arc<SP>) {
 /// * `current_second` - The current second.
 /// 
 async fn stats_processor<SP: StateProvider>(
-	appstate:       &Arc<SP>,
+	state:          &Arc<SP>,
 	metrics:        Option<ResponseMetrics>,
 	timing_stats:   &mut StatsForPeriod,
 	conn_stats:     &mut StatsForPeriod,
@@ -351,7 +351,7 @@ async fn stats_processor<SP: StateProvider>(
 		
 	//		Update statistics													
 		//	Lock source data
-		let stats_state = appstate.state().read().await;
+		let stats_state = state.state().read().await;
 		let mut totals = stats_state.data.totals.lock();
 		
 		//	Update responses counter
@@ -392,13 +392,13 @@ async fn stats_processor<SP: StateProvider>(
 	if new_second > *current_second {
 		#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
 		let elapsed     = (new_second - *current_second).num_seconds();
-		let stats_state = appstate.state().read().await;
+		let stats_state = state.state().read().await;
 		let mut buffers = stats_state.data.buffers.write();
 		let mut message = AllStatsForPeriod::default();
 		//	Timing stats buffer
 		update_buffer(
 			&mut buffers.responses,
-			appstate.config().timing_buffer_size,
+			state.config().timing_buffer_size,
 			timing_stats,
 			current_second,
 			elapsed,
@@ -408,7 +408,7 @@ async fn stats_processor<SP: StateProvider>(
 		//	Connections stats buffer
 		update_buffer(
 			&mut buffers.connections,
-			appstate.config().connection_buffer_size,
+			state.config().connection_buffer_size,
 			conn_stats,
 			current_second,
 			elapsed,
@@ -418,7 +418,7 @@ async fn stats_processor<SP: StateProvider>(
 		//	Memory stats buffer
 		update_buffer(
 			&mut buffers.memory,
-			appstate.config().memory_buffer_size,
+			state.config().memory_buffer_size,
 			memory_stats,
 			current_second,
 			elapsed,

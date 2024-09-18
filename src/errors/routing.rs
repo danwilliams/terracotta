@@ -35,9 +35,9 @@ where
 	/// 
 	/// # Parameters
 	/// 
-	/// * `shared_state` - The shared application state.
+	/// * `state` - The application state.
 	/// 
-	fn add_error_template<SP, U>(self, shared_state: &Arc<SP>) -> Self
+	fn add_error_template<SP, U>(self, state: &Arc<SP>) -> Self
 	where
 		SP: AppStateProvider,
 		U:  AuthUser,
@@ -57,14 +57,14 @@ where
 	}
 	
 	//		add_error_template													
-	fn add_error_template<SP, U>(self, shared_state: &Arc<SP>) -> Self
+	fn add_error_template<SP, U>(self, state: &Arc<SP>) -> Self
 	where
 		SP: AppStateProvider,
 		U:  AuthUser,
 	{
 		self
 			.layer(CatchPanicLayer::new())
-			.layer(from_fn_with_state(Arc::clone(shared_state), graceful_error_layer::<_, U>))
+			.layer(from_fn_with_state(Arc::clone(state), graceful_error_layer::<_, U>))
 	}
 }
 

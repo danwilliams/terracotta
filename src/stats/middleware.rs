@@ -83,12 +83,12 @@ where
 /// 
 /// # Parameters
 /// 
-/// * `appstate` - The application state.
-/// * `request`  - The request.
-/// * `next`     - The next middleware.
+/// * `state`   - The application state.
+/// * `request` - The request.
+/// * `next`    - The next middleware.
 /// 
 pub async fn stats_layer<SP: StateProvider>(
-	State(appstate): State<Arc<SP>>,
+	State(state): State<Arc<SP>>,
 	mut request:     Request<Body>,
 	next:            Next,
 ) -> Response {
@@ -97,7 +97,7 @@ pub async fn stats_layer<SP: StateProvider>(
 	_ = request.extensions_mut().insert(stats_cx);
 	
 	//	Check if statistics are enabled
-	if !appstate.config().enabled {
+	if !state.config().enabled {
 		return next.run(request).await;
 	}
 	
@@ -108,7 +108,7 @@ pub async fn stats_layer<SP: StateProvider>(
 	};
 	
 	//	Update requests counter
-	let stats_state = appstate.state().read().await;
+	let stats_state = state.state().read().await;
 	_ = stats_state.data.requests.fetch_add(1, Ordering::Relaxed);
 	_ = stats_state.data.connections.fetch_add(1, Ordering::Relaxed);
 	

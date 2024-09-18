@@ -35,9 +35,9 @@ where
 	/// 
 	/// # Parameters
 	/// 
-	/// * `shared_state` - The shared application state.
+	/// * `state` - The application state.
 	/// 
-	fn add_authentication<SP, U, UP>(self, shared_state: &Arc<SP>) -> Self
+	fn add_authentication<SP, U, UP>(self, state: &Arc<SP>) -> Self
 	where
 		SP: StateProvider,
 		U:  User,
@@ -52,14 +52,14 @@ where
 	/// 
 	/// # Parameters
 	/// 
-	/// * `routes`       - The routes to add.
-	/// * `shared_state` - The shared application state.
+	/// * `routes` - The routes to add.
+	/// * `state`  - The application state.
 	/// 
 	/// # See also
 	/// 
 	/// * [`public_routes()`](#method.public_routes)
 	/// 
-	fn protected_routes<SP, U>(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<SP>) -> Self
+	fn protected_routes<SP, U>(self, routes: Vec<(&str, MethodRouter<S>)>, state: &Arc<SP>) -> Self
 	where
 		SP: StateProvider,
 		U:  User,
@@ -90,7 +90,7 @@ where
 	S: Clone + Send + Sync + 'static,
 {
 	//		add_authentication													
-	fn add_authentication<SP, U, UP>(self, shared_state: &Arc<SP>) -> Self
+	fn add_authentication<SP, U, UP>(self, state: &Arc<SP>) -> Self
 	where
 		SP: StateProvider,
 		U:  User,
@@ -99,12 +99,12 @@ where
 		let session_key   = SessionKey::generate();
 		let session_store = SessionMemoryStore::default();
 		self
-			.layer(from_fn_with_state(Arc::clone(shared_state), auth_layer::<_, U, UP>))
+			.layer(from_fn_with_state(Arc::clone(state), auth_layer::<_, U, UP>))
 			.layer(SessionManagerLayer::new(session_store).with_secure(false).with_signed(session_key))
 	}
 	
 	//		protected_routes													
-	fn protected_routes<SP, U>(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<SP>) -> Self
+	fn protected_routes<SP, U>(self, routes: Vec<(&str, MethodRouter<S>)>, state: &Arc<SP>) -> Self
 	where
 		SP: StateProvider,
 		U:  User,
@@ -114,7 +114,7 @@ where
 			router = router.route(path, method_router);
 		}
 		router
-			.route_layer(from_fn_with_state(Arc::clone(shared_state), protect::<_, U>))
+			.route_layer(from_fn_with_state(Arc::clone(state), protect::<_, U>))
 	}
 	
 	//		public_routes														

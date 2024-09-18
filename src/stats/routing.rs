@@ -29,9 +29,9 @@ where
 	/// 
 	/// # Parameters
 	/// 
-	/// * `shared_state` - The shared application state.
+	/// * `state` - The application state.
 	/// 
-	fn add_stats_gathering<SP: StateProvider>(self, shared_state: &Arc<SP>) -> Self;
+	fn add_stats_gathering<SP: StateProvider>(self, state: &Arc<SP>) -> Self;
 }
 
 //󰭅		RouterExt																
@@ -40,8 +40,8 @@ where
 	S: Clone + Send + Sync + 'static,
 {
 	//		add_stats_gathering													
-	fn add_stats_gathering<SP: StateProvider>(self, shared_state: &Arc<SP>) -> Self {
-		self.layer(from_fn_with_state(Arc::clone(shared_state), stats_layer))
+	fn add_stats_gathering<SP: StateProvider>(self, state: &Arc<SP>) -> Self {
+		self.layer(from_fn_with_state(Arc::clone(state), stats_layer))
 	}
 }
 

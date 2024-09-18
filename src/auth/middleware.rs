@@ -79,15 +79,15 @@ impl<U: User> AuthContext<U> {
 	/// 
 	/// # Parameters
 	/// 
-	/// * `appstate` - The application state.
+	/// * `state` - The application state.
 	/// 
-	pub async fn get_user<SP, UP>(&self, appstate: &Arc<SP>) -> Option<U>
+	pub async fn get_user<SP, UP>(&self, state: &Arc<SP>) -> Option<U>
 	where
 		SP: StateProvider,
 		UP: UserProvider<User = U>,
 	{
 		if let Ok(Some(user_id)) = self.session.get::<String>(SESSION_USER_ID_KEY).await {
-			if let Some(user)    = UP::find_by_id(appstate, &user_id) {
+			if let Some(user)    = UP::find_by_id(state, &user_id) {
 				return Some(user);
 			}
 			self.logout().await;
@@ -225,13 +225,13 @@ pub trait UserProvider: Debug + 'static {
 /// 
 /// # Parameters
 /// 
-/// * `appstate` - The application state.
-/// * `session`  - The session handle.
-/// * `request`  - The request.
-/// * `next`     - The next middleware.
+/// * `state`   - The application state.
+/// * `session` - The session handle.
+/// * `request` - The request.
+/// * `next`    - The next middleware.
 /// 
 pub async fn auth_layer<SP, U, UP>(
-	State(appstate):    State<Arc<SP>>,
+	State(state):       State<Arc<SP>>,
 	Extension(session): Extension<Session>,
 	mut request:        Request<Body>,
 	next:               Next,
@@ -242,7 +242,7 @@ where
 	UP: UserProvider<User = U>,
 {
 	let mut auth_cx      = AuthContext::<U>::new(session);
-	let user             = auth_cx.get_user::<SP, UP>(&appstate).await;
+	let user             = auth_cx.get_user::<SP, UP>(&state).await;
 	let mut username     = s!("none");
 	if let Some(ref u) = user {
 		username.clone_from(u.id());
@@ -262,14 +262,14 @@ where
 /// 
 /// # Parameters
 /// 
-/// * `appstate` - The application state.
-/// * `auth_cx`  - The authentication context.
-/// * `uri`      - The request URI.
-/// * `request`  - The request.
-/// * `next`     - The next middleware.
+/// * `state`   - The application state.
+/// * `auth_cx` - The authentication context.
+/// * `uri`     - The request URI.
+/// * `request` - The request.
+/// * `next`    - The next middleware.
 /// 
 pub async fn protect<SP, U>(
-	State(appstate):    State<Arc<SP>>,
+	State(state):       State<Arc<SP>>,
 	Extension(auth_cx): Extension<AuthContext<U>>,
 	uri:                Uri,
 	request:            Request<Body>,
@@ -284,7 +284,7 @@ where
 		_       => {
 			(
 				StatusCode::UNAUTHORIZED,
-				get_login(State(appstate), uri).await,
+				get_login(State(state), uri).await,
 			).into_response()
 		},
 	}

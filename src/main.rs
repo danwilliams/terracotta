@@ -103,26 +103,26 @@ static GLOBAL: Jemalloc = Jemalloc;
 #[expect(clippy::expect_used, reason = "Misconfiguration or inability to start, so hard quit")]
 #[tokio::main]
 async fn main() {
-	let config        = load_config();
-	let address       = SocketAddr::from((config.host, config.port));
-	let _guard        = setup_logging(&config.logdir);
-	let shared_state  = Arc::new(AppState {
-		assets_dir:     Arc::new(include_dir!("static")),
+	let config  = load_config();
+	let address = SocketAddr::from((config.host, config.port));
+	let _guard  = setup_logging(&config.logdir);
+	let state   = Arc::new(AppState {
+		assets_dir:  Arc::new(include_dir!("static")),
 		config,
-		content_dir:    Arc::new(include_dir!("content")),
-		stats:          RwLock::new(StatsState::default()),
-		template:       setup_tera(&Arc::new(include_dir!("html"))),
+		content_dir: Arc::new(include_dir!("content")),
+		stats:       RwLock::new(StatsState::default()),
+		template:    setup_tera(&Arc::new(include_dir!("html"))),
 	});
-	start_stats_processor(&shared_state).await;
-	let app           = Router::new()
-		.protected_routes::<_, User>(protected(), &shared_state)
+	start_stats_processor(&state).await;
+	let app = Router::new()
+		.protected_routes::<_, User>(protected(), &state)
 		.public_routes(public())
 		.add_openapi("/api-docs", ApiDoc::openapi())
 		.fallback(no_route)
-		.add_error_template::<_, User>(&shared_state)
-		.add_authentication::<_, User, User>(&shared_state)
-		.add_stats_gathering(&shared_state)
-		.with_state(shared_state)
+		.add_error_template::<_, User>(&state)
+		.add_authentication::<_, User, User>(&state)
+		.add_stats_gathering(&state)
+		.with_state(state)
 		.add_http_logging()
 		.add_error_catcher()
 	;
