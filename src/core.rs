@@ -46,7 +46,10 @@ use utoipa_swagger_ui::SwaggerUi;
 
 //§		RouterExt																
 /// Extension methods for the Axum [`Router`].
-pub trait RouterExt<S: Clone + Send + Sync + 'static> {
+pub trait RouterExt<S>
+where
+	S: Clone + Send + Sync + 'static,
+{
 	//		add_http_logging													
 	/// Adds logging of HTTP requests and responses to the router.
 	fn add_http_logging(self) -> Self;
@@ -65,7 +68,10 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 }
 
 //󰭅		RouterExt																
-impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
+impl<S> RouterExt<S> for Router<S>
+where
+	S: Clone + Send + Sync + 'static,
+{
 	//		add_http_logging													
 	fn add_http_logging(self) -> Self {
 		self.layer(TraceLayer::new_for_http()

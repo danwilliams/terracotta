@@ -81,13 +81,13 @@ impl<U: User> AuthContext<U> {
 	/// 
 	/// * `appstate` - The application state.
 	/// 
-	pub async fn get_user<S, P>(&self, appstate: &Arc<S>) -> Option<U>
+	pub async fn get_user<SP, UP>(&self, appstate: &Arc<SP>) -> Option<U>
 	where
-		S: AuthStateProvider,
-		P: UserProvider<User = U>,
+		SP: AuthStateProvider,
+		UP: UserProvider<User = U>,
 	{
 		if let Ok(Some(user_id)) = self.session.get::<String>(SESSION_USER_ID_KEY).await {
-			if let Some(user)    = P::find_by_id(appstate, &user_id) {
+			if let Some(user)    = UP::find_by_id(appstate, &user_id) {
 				return Some(user);
 			}
 			self.logout().await;
@@ -187,8 +187,8 @@ pub trait UserProvider: Debug + 'static {
 	/// * `username` - The username to search for.
 	/// * `password` - The password to match.
 	/// 
-	fn find_by_credentials<S: AuthStateProvider>(
-		state:    &Arc<S>,
+	fn find_by_credentials<SP: AuthStateProvider>(
+		state:    &Arc<SP>,
 		username: &str,
 		password: &str,
 	) -> Option<Self::User>;
@@ -206,8 +206,8 @@ pub trait UserProvider: Debug + 'static {
 	/// * `state` - The application state.
 	/// * `id`    - The identifying field to search for.
 	/// 
-	fn find_by_id<S: AuthStateProvider>(
-		state: &Arc<S>,
+	fn find_by_id<SP: AuthStateProvider>(
+		state: &Arc<SP>,
 		id:    &str,
 	) -> Option<Self::User>;
 }
@@ -230,19 +230,19 @@ pub trait UserProvider: Debug + 'static {
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn auth_layer<S, U, P>(
-	State(appstate):    State<Arc<S>>,
+pub async fn auth_layer<SP, U, UP>(
+	State(appstate):    State<Arc<SP>>,
 	Extension(session): Extension<Session>,
 	mut request:        Request<Body>,
 	next:               Next,
 ) -> Response
 where
-	S: AuthStateProvider,
-	U: User,
-	P: UserProvider<User = U>,
+	SP: AuthStateProvider,
+	U:  User,
+	UP: UserProvider<User = U>,
 {
 	let mut auth_cx      = AuthContext::<U>::new(session);
-	let user             = auth_cx.get_user::<S, P>(&appstate).await;
+	let user             = auth_cx.get_user::<SP, UP>(&appstate).await;
 	let mut username     = s!("none");
 	if let Some(ref u) = user {
 		username.clone_from(u.id());
@@ -268,16 +268,16 @@ where
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn protect<S, U>(
-	State(appstate):    State<Arc<S>>,
+pub async fn protect<SP, U>(
+	State(appstate):    State<Arc<SP>>,
 	Extension(auth_cx): Extension<AuthContext<U>>,
 	uri:                Uri,
 	request:            Request<Body>,
 	next:               Next,
 ) -> Response
 where
-	S: AuthStateProvider,
-	U: User,
+	SP: AuthStateProvider,
+	U:  User,
 {
 	match auth_cx.current_user {
 		Some(_) => next.run(request).await,

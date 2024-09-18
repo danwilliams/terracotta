@@ -49,8 +49,8 @@ pub enum AssetContext {
 /// * `state` - The application state.
 /// * `uri`   - The URI of the asset.
 /// 
-pub async fn get_protected_static_asset<S: AssetsStateProvider>(
-	State(state): State<Arc<S>>,
+pub async fn get_protected_static_asset<SP: AssetsStateProvider>(
+	State(state): State<Arc<SP>>,
 	uri:          Uri,
 ) -> impl IntoResponse {
 	get_static_asset(state, uri, AssetContext::Protected).await
@@ -64,8 +64,8 @@ pub async fn get_protected_static_asset<S: AssetsStateProvider>(
 /// * `state` - The application state.
 /// * `uri`   - The URI of the asset.
 /// 
-pub async fn get_public_static_asset<S: AssetsStateProvider>(
-	State(state): State<Arc<S>>,
+pub async fn get_public_static_asset<SP: AssetsStateProvider>(
+	State(state): State<Arc<SP>>,
 	uri:          Uri,
 ) -> impl IntoResponse {
 	get_static_asset(state, uri, AssetContext::Public).await
@@ -80,8 +80,8 @@ pub async fn get_public_static_asset<S: AssetsStateProvider>(
 /// * `uri`     - The URI of the asset.
 /// * `context` - The protection context of the asset to serve.
 /// 
-async fn get_static_asset<S: AssetsStateProvider>(
-	state:   Arc<S>,
+async fn get_static_asset<SP: AssetsStateProvider>(
+	state:   Arc<SP>,
 	uri:     Uri,
 	context: AssetContext
 ) -> impl IntoResponse {

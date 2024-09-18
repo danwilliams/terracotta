@@ -272,8 +272,8 @@ impl From<&StatsForPeriod> for StatsResponseForPeriod {
 		(status = 200, description = "Application statistics overview", body = StatsResponse),
 	)
 )]
-pub async fn get_stats<S: StatsStateProvider>(
-	State(state): State<Arc<S>>,
+pub async fn get_stats<SP: StatsStateProvider>(
+	State(state): State<Arc<SP>>,
 ) -> Json<StatsResponse> {
 	//		Helper functions													
 	/// Initialises a map of stats for each period.
@@ -399,8 +399,8 @@ pub async fn get_stats<S: StatsStateProvider>(
 		(status = 200, description = "Historical application statistics interval data", body = StatsHistoryResponse),
 	)
 )]
-pub async fn get_stats_history<S: StatsStateProvider>(
-	State(state):  State<Arc<S>>,
+pub async fn get_stats_history<SP: StatsStateProvider>(
+	State(state):  State<Arc<SP>>,
 	Query(params): Query<GetStatsHistoryParams>,
 ) -> Json<StatsHistoryResponse> {
 	//		Helper function														
@@ -474,8 +474,8 @@ pub async fn get_stats_history<S: StatsStateProvider>(
 		(status = 200, description = "Application statistics event feed"),
 	),
 )]
-pub async fn get_stats_feed<S: StatsStateProvider>(
-	State(state):  State<Arc<S>>,
+pub async fn get_stats_feed<SP: StatsStateProvider>(
+	State(state):  State<Arc<SP>>,
 	Query(params): Query<GetStatsFeedParams>,
 	ws_req:        WebSocketUpgrade,
 ) -> Response {
@@ -504,8 +504,8 @@ pub async fn get_stats_feed<S: StatsStateProvider>(
 /// * `scope` - The type of measurement statistics to send.
 /// 
 #[expect(clippy::similar_names, reason = "Clearly different")]
-pub async fn ws_stats_feed<S: StatsStateProvider>(
-	state:  Arc<S>,
+pub async fn ws_stats_feed<SP: StatsStateProvider>(
+	state:  Arc<SP>,
 	mut ws: WebSocket,
 	scope:  Option<MeasurementType>,
 ) {

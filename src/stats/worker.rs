@@ -212,7 +212,7 @@ pub struct ResponseMetrics {
 /// * `receiver`     - The receiving end of the queue.
 /// * `shared_state` - The shared application state.
 /// 
-pub async fn start_stats_processor<S: StatsStateProvider>(shared_state: &Arc<S>) {
+pub async fn start_stats_processor<SP: StatsStateProvider>(shared_state: &Arc<SP>) {
 	if !shared_state.stats_config().enabled {
 		return;
 	}
@@ -305,8 +305,8 @@ pub async fn start_stats_processor<S: StatsStateProvider>(shared_state: &Arc<S>)
 /// * `memory_stats`   - The cumulative memory stats for the current second.
 /// * `current_second` - The current second.
 /// 
-async fn stats_processor<S: StatsStateProvider>(
-	appstate:       &Arc<S>,
+async fn stats_processor<SP: StatsStateProvider>(
+	appstate:       &Arc<SP>,
 	metrics:        Option<ResponseMetrics>,
 	timing_stats:   &mut StatsForPeriod,
 	conn_stats:     &mut StatsForPeriod,

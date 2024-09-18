@@ -58,8 +58,8 @@ pub struct PostLogin {
 /// * `state` - The application state.
 /// * `uri`   - The request URI.
 /// 
-pub async fn get_login<S: AppStateProvider>(
-	State(state): State<Arc<S>>,
+pub async fn get_login<SP: AppStateProvider>(
+	State(state): State<Arc<SP>>,
 	mut uri:      Uri,
 ) -> Html<String> {
 	let mut params  = extract_uri_query_parts(&uri);
@@ -89,19 +89,19 @@ pub async fn get_login<S: AppStateProvider>(
 /// * `auth`  - The authentication context.
 /// * `login` - The login form.
 /// 
-pub async fn post_login<S, U, P>(
-	State(state): State<Arc<S>>,
+pub async fn post_login<SP, U, UP>(
+	State(state): State<Arc<SP>>,
 	mut auth:     AuthContext<U>,
 	Form(login):  Form<PostLogin>,
 ) -> Redirect
 where
-	S: AuthStateProvider,
-	U: User,
-	P: UserProvider<User = U>,
+	SP: AuthStateProvider,
+	U:  User,
+	UP: UserProvider<User = U>,
 {
 	let uri        = login.uri.parse::<Uri>().unwrap();
 	let mut params = extract_uri_query_parts(&uri);
-	let user       = P::find_by_credentials(&state, &login.username, &login.password);
+	let user       = UP::find_by_credentials(&state, &login.username, &login.password);
 	if user.is_some() {
 		info!("Logging in user: {}", user.as_ref().unwrap().id());
 		auth.login(user.as_ref().unwrap()).await;

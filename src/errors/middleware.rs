@@ -60,16 +60,16 @@ pub async fn no_route() -> impl IntoResponse {
 /// * `request` - The request.
 /// * `next`    - The next middleware.
 /// 
-pub async fn graceful_error_layer<S, U>(
-	State(state):       State<Arc<S>>,
+pub async fn graceful_error_layer<SP, U>(
+	State(state):       State<Arc<SP>>,
 	Extension(auth_cx): Extension<AuthContext<U>>,
 	uri:                Uri,
 	request:            Request<Body>,
 	next:               Next,
 ) -> Response
 where
-	S: AppStateProvider,
-	U: AuthUser,
+	SP: AppStateProvider,
+	U:  AuthUser,
 {
 	let response          = next.run(request).await;
 	let (mut parts, body) = response.into_parts();

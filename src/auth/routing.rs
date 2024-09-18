@@ -26,7 +26,10 @@ use tower_sessions::{
 
 //§		RouterExt																
 /// Authentication extension methods for the Axum [`Router`].
-pub trait RouterExt<S: Clone + Send + Sync + 'static> {
+pub trait RouterExt<S>
+where
+	S: Clone + Send + Sync + 'static,
+{
 	//		add_authentication													
 	/// Adds the authentication layer.
 	/// 
@@ -82,7 +85,10 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 
 //󰭅		RouterExt																
 #[expect(clippy::similar_names, reason = "Not too similar")]
-impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
+impl<S> RouterExt<S> for Router<S>
+where
+	S: Clone + Send + Sync + 'static,
+{
 	//		add_authentication													
 	fn add_authentication<SP, U, UP>(self, shared_state: &Arc<SP>) -> Self
 	where

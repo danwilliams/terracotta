@@ -22,7 +22,10 @@ use tower_http::catch_panic::CatchPanicLayer;
 
 //§		RouterExt																
 /// Error-handling extension methods for the Axum [`Router`].
-pub trait RouterExt<S: Clone + Send + Sync + 'static> {
+pub trait RouterExt<S>
+where
+	S: Clone + Send + Sync + 'static,
+{
 	//		add_error_catcher													
 	/// Adds a final error handler that catches all errors.
 	fn add_error_catcher(self) -> Self;
@@ -34,15 +37,18 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 	/// 
 	/// * `shared_state` - The shared application state.
 	/// 
-	fn add_error_template<P, U>(self, shared_state: &Arc<P>) -> Self
+	fn add_error_template<SP, U>(self, shared_state: &Arc<SP>) -> Self
 	where
-		P: AppStateProvider,
-		U: AuthUser,
+		SP: AppStateProvider,
+		U:  AuthUser,
 	;
 }
 
 //󰭅		RouterExt																
-impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
+impl<S> RouterExt<S> for Router<S>
+where
+	S: Clone + Send + Sync + 'static,
+{
 	//		add_error_catcher													
 	fn add_error_catcher(self) -> Self {
 		self
@@ -51,10 +57,10 @@ impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
 	}
 	
 	//		add_error_template													
-	fn add_error_template<P, U>(self, shared_state: &Arc<P>) -> Self
+	fn add_error_template<SP, U>(self, shared_state: &Arc<SP>) -> Self
 	where
-		P: AppStateProvider,
-		U: AuthUser,
+		SP: AppStateProvider,
+		U:  AuthUser,
 	{
 		self
 			.layer(CatchPanicLayer::new())

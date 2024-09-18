@@ -46,8 +46,10 @@ pub struct StatsContext {
 
 //󰭅		FromRequestParts														
 #[async_trait]
-impl<State> FromRequestParts<State> for StatsContext
-where State: Send + Sync {
+impl<S> FromRequestParts<S> for StatsContext
+where
+	S: Send + Sync,
+{
 	type Rejection = Infallible;
 	
 	//		from_request_parts													
@@ -59,7 +61,7 @@ where State: Send + Sync {
 	/// * `state` - The application state.
 	/// 
 	#[expect(clippy::expect_used, reason = "Misconfiguration, so hard quit")]
-	async fn from_request_parts(parts: &mut Parts, state: &State) -> Result<Self, Self::Rejection> {
+	async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
 		let Extension(stats_cx): Extension<Self> =
 			Extension::from_request_parts(parts, state)
 				.await
@@ -85,8 +87,8 @@ where State: Send + Sync {
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn stats_layer<S: StatsStateProvider>(
-	State(appstate): State<Arc<S>>,
+pub async fn stats_layer<SP: StatsStateProvider>(
+	State(appstate): State<Arc<SP>>,
 	mut request:     Request<Body>,
 	next:            Next,
 ) -> Response {

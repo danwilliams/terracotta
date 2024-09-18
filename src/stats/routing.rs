@@ -20,7 +20,10 @@ use std::sync::Arc;
 
 //§		RouterExt																
 /// Error-handling extension methods for the Axum [`Router`].
-pub trait RouterExt<S: Clone + Send + Sync + 'static> {
+pub trait RouterExt<S>
+where
+	S: Clone + Send + Sync + 'static,
+{
 	//		add_stats_gathering													
 	/// Adds a statistics-gathering layer.
 	/// 
@@ -28,13 +31,16 @@ pub trait RouterExt<S: Clone + Send + Sync + 'static> {
 	/// 
 	/// * `shared_state` - The shared application state.
 	/// 
-	fn add_stats_gathering<P: StatsStateProvider>(self, shared_state: &Arc<P>) -> Self;
+	fn add_stats_gathering<SP: StatsStateProvider>(self, shared_state: &Arc<SP>) -> Self;
 }
 
 //󰭅		RouterExt																
-impl<S: Clone + Send + Sync + 'static> RouterExt<S> for Router<S> {
+impl<S> RouterExt<S> for Router<S>
+where
+	S: Clone + Send + Sync + 'static,
+{
 	//		add_stats_gathering													
-	fn add_stats_gathering<P: StatsStateProvider>(self, shared_state: &Arc<P>) -> Self {
+	fn add_stats_gathering<SP: StatsStateProvider>(self, shared_state: &Arc<SP>) -> Self {
 		self.layer(from_fn_with_state(Arc::clone(shared_state), stats_layer))
 	}
 }

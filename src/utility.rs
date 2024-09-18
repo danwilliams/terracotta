@@ -74,8 +74,8 @@ impl AuthUserProvider for User {
 	type User = Self;
 	
 	//		find_by_credentials													
-	fn find_by_credentials<S: AuthStateProvider>(
-		state:    &Arc<S>,
+	fn find_by_credentials<SP: AuthStateProvider>(
+		state:    &Arc<SP>,
 		username: &str,
 		password: &str,
 	) -> Option<Self> {
@@ -92,8 +92,8 @@ impl AuthUserProvider for User {
 	}
 	
 	//		find_by_id															
-	fn find_by_id<S: AuthStateProvider>(
-		state: &Arc<S>,
+	fn find_by_id<SP: AuthStateProvider>(
+		state: &Arc<SP>,
 		id:    &str,
 	) -> Option<Self> {
 		if state.users().contains_key(id) {

@@ -41,9 +41,9 @@ pub fn extract_uri_query_parts(uri: &Uri) -> HashMap<String, String> {
 /// * `path`   - The path to build the URI from.
 /// * `params` - The query parameters to add to the URI.
 /// 
-pub fn build_uri<S, K, V>(path: S, params: &HashMap<K, V>) -> Uri
+pub fn build_uri<P, K, V>(path: P, params: &HashMap<K, V>) -> Uri
 where
-	S: AsRef<str>,
+	P: AsRef<str>,
 	K: AsRef<str> + Display,
 	V: AsRef<str> + Display,
 {
