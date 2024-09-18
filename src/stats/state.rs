@@ -151,9 +151,9 @@ pub struct AppStatsBuffers {
 
 //		Traits
 
-//§		StatsStateProvider														
+//§		StateProvider															
 /// A trait for providing the application state aspects for statistics.
-pub trait StatsStateProvider: Send + Sync + 'static {
+pub trait StateProvider: Send + Sync + 'static {
 	//		stats_config														
 	/// Gets the statistics configuration.
 	fn stats_config(&self) -> &StatsConfig;

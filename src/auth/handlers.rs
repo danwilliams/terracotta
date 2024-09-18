@@ -6,7 +6,7 @@
 
 use super::{
 	middleware::{AuthContext, User, UserProvider},
-	state::AuthStateProvider,
+	state::StateProvider,
 	utility::{build_uri, extract_uri_query_parts},
 };
 use crate::state::AppStateProvider;
@@ -95,7 +95,7 @@ pub async fn post_login<SP, U, UP>(
 	Form(login):  Form<PostLogin>,
 ) -> Redirect
 where
-	SP: AuthStateProvider,
+	SP: StateProvider,
 	U:  User,
 	UP: UserProvider<User = U>,
 {

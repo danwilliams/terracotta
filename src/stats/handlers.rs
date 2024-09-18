@@ -15,7 +15,7 @@ mod tests;
 //		Packages
 
 use super::{
-	state::StatsStateProvider,
+	state::StateProvider,
 	worker::{Endpoint, StatsForPeriod},
 	utility::serialize_status_codes,
 };
@@ -272,7 +272,7 @@ impl From<&StatsForPeriod> for StatsResponseForPeriod {
 		(status = 200, description = "Application statistics overview", body = StatsResponse),
 	)
 )]
-pub async fn get_stats<SP: StatsStateProvider>(
+pub async fn get_stats<SP: StateProvider>(
 	State(state): State<Arc<SP>>,
 ) -> Json<StatsResponse> {
 	//		Helper functions													
@@ -399,7 +399,7 @@ pub async fn get_stats<SP: StatsStateProvider>(
 		(status = 200, description = "Historical application statistics interval data", body = StatsHistoryResponse),
 	)
 )]
-pub async fn get_stats_history<SP: StatsStateProvider>(
+pub async fn get_stats_history<SP: StateProvider>(
 	State(state):  State<Arc<SP>>,
 	Query(params): Query<GetStatsHistoryParams>,
 ) -> Json<StatsHistoryResponse> {
@@ -474,7 +474,7 @@ pub async fn get_stats_history<SP: StatsStateProvider>(
 		(status = 200, description = "Application statistics event feed"),
 	),
 )]
-pub async fn get_stats_feed<SP: StatsStateProvider>(
+pub async fn get_stats_feed<SP: StateProvider>(
 	State(state):  State<Arc<SP>>,
 	Query(params): Query<GetStatsFeedParams>,
 	ws_req:        WebSocketUpgrade,
@@ -504,7 +504,7 @@ pub async fn get_stats_feed<SP: StatsStateProvider>(
 /// * `scope` - The type of measurement statistics to send.
 /// 
 #[expect(clippy::similar_names, reason = "Clearly different")]
-pub async fn ws_stats_feed<SP: StatsStateProvider>(
+pub async fn ws_stats_feed<SP: StateProvider>(
 	state:  Arc<SP>,
 	mut ws: WebSocket,
 	scope:  Option<MeasurementType>,

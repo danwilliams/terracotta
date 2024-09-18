@@ -6,7 +6,7 @@
 
 use super::{
 	handlers::get_login,
-	state::AuthStateProvider,
+	state::StateProvider,
 };
 use axum::{
 	Extension,
@@ -83,7 +83,7 @@ impl<U: User> AuthContext<U> {
 	/// 
 	pub async fn get_user<SP, UP>(&self, appstate: &Arc<SP>) -> Option<U>
 	where
-		SP: AuthStateProvider,
+		SP: StateProvider,
 		UP: UserProvider<User = U>,
 	{
 		if let Ok(Some(user_id)) = self.session.get::<String>(SESSION_USER_ID_KEY).await {
@@ -187,7 +187,7 @@ pub trait UserProvider: Debug + 'static {
 	/// * `username` - The username to search for.
 	/// * `password` - The password to match.
 	/// 
-	fn find_by_credentials<SP: AuthStateProvider>(
+	fn find_by_credentials<SP: StateProvider>(
 		state:    &Arc<SP>,
 		username: &str,
 		password: &str,
@@ -206,7 +206,7 @@ pub trait UserProvider: Debug + 'static {
 	/// * `state` - The application state.
 	/// * `id`    - The identifying field to search for.
 	/// 
-	fn find_by_id<SP: AuthStateProvider>(
+	fn find_by_id<SP: StateProvider>(
 		state: &Arc<SP>,
 		id:    &str,
 	) -> Option<Self::User>;
@@ -237,7 +237,7 @@ pub async fn auth_layer<SP, U, UP>(
 	next:               Next,
 ) -> Response
 where
-	SP: AuthStateProvider,
+	SP: StateProvider,
 	U:  User,
 	UP: UserProvider<User = U>,
 {
@@ -276,7 +276,7 @@ pub async fn protect<SP, U>(
 	next:               Next,
 ) -> Response
 where
-	SP: AuthStateProvider,
+	SP: StateProvider,
 	U:  User,
 {
 	match auth_cx.current_user {

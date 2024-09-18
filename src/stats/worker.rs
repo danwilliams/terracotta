@@ -4,7 +4,7 @@
 
 //		Packages
 
-use super::state::StatsStateProvider;
+use super::state::StateProvider;
 use axum::http::{Method, StatusCode};
 use chrono::{Duration, NaiveDateTime, Timelike, Utc};
 use serde::{Serialize, Serializer};
@@ -212,7 +212,7 @@ pub struct ResponseMetrics {
 /// * `receiver`     - The receiving end of the queue.
 /// * `shared_state` - The shared application state.
 /// 
-pub async fn start_stats_processor<SP: StatsStateProvider>(shared_state: &Arc<SP>) {
+pub async fn start_stats_processor<SP: StateProvider>(shared_state: &Arc<SP>) {
 	if !shared_state.stats_config().enabled {
 		return;
 	}
@@ -305,7 +305,7 @@ pub async fn start_stats_processor<SP: StatsStateProvider>(shared_state: &Arc<SP
 /// * `memory_stats`   - The cumulative memory stats for the current second.
 /// * `current_second` - The current second.
 /// 
-async fn stats_processor<SP: StatsStateProvider>(
+async fn stats_processor<SP: StateProvider>(
 	appstate:       &Arc<SP>,
 	metrics:        Option<ResponseMetrics>,
 	timing_stats:   &mut StatsForPeriod,

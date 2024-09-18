@@ -6,7 +6,7 @@
 
 use super::{
 	middleware::stats_layer,
-	state::StatsStateProvider,
+	state::StateProvider,
 };
 use axum::{
 	Router,
@@ -31,7 +31,7 @@ where
 	/// 
 	/// * `shared_state` - The shared application state.
 	/// 
-	fn add_stats_gathering<SP: StatsStateProvider>(self, shared_state: &Arc<SP>) -> Self;
+	fn add_stats_gathering<SP: StateProvider>(self, shared_state: &Arc<SP>) -> Self;
 }
 
 //󰭅		RouterExt																
@@ -40,7 +40,7 @@ where
 	S: Clone + Send + Sync + 'static,
 {
 	//		add_stats_gathering													
-	fn add_stats_gathering<SP: StatsStateProvider>(self, shared_state: &Arc<SP>) -> Self {
+	fn add_stats_gathering<SP: StateProvider>(self, shared_state: &Arc<SP>) -> Self {
 		self.layer(from_fn_with_state(Arc::clone(shared_state), stats_layer))
 	}
 }

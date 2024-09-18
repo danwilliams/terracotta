@@ -6,7 +6,7 @@
 
 use super::{
 	config::LoadingBehavior,
-	state::AssetsStateProvider,
+	state::StateProvider,
 };
 use axum::{
 	body::Body,
@@ -49,7 +49,7 @@ pub enum AssetContext {
 /// * `state` - The application state.
 /// * `uri`   - The URI of the asset.
 /// 
-pub async fn get_protected_static_asset<SP: AssetsStateProvider>(
+pub async fn get_protected_static_asset<SP: StateProvider>(
 	State(state): State<Arc<SP>>,
 	uri:          Uri,
 ) -> impl IntoResponse {
@@ -64,7 +64,7 @@ pub async fn get_protected_static_asset<SP: AssetsStateProvider>(
 /// * `state` - The application state.
 /// * `uri`   - The URI of the asset.
 /// 
-pub async fn get_public_static_asset<SP: AssetsStateProvider>(
+pub async fn get_public_static_asset<SP: StateProvider>(
 	State(state): State<Arc<SP>>,
 	uri:          Uri,
 ) -> impl IntoResponse {
@@ -80,7 +80,7 @@ pub async fn get_public_static_asset<SP: AssetsStateProvider>(
 /// * `uri`     - The URI of the asset.
 /// * `context` - The protection context of the asset to serve.
 /// 
-async fn get_static_asset<SP: AssetsStateProvider>(
+async fn get_static_asset<SP: StateProvider>(
 	state:   Arc<SP>,
 	uri:     Uri,
 	context: AssetContext

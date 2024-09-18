@@ -12,9 +12,9 @@ use std::sync::Arc;
 
 //		Traits
 
-//§		AssetsStateProvider														
+//§		StateProvider															
 /// A trait for providing the application state aspects for assets.
-pub trait AssetsStateProvider: Send + Sync + 'static {
+pub trait StateProvider: Send + Sync + 'static {
 	//		assets_config														
 	/// Gets the assets configuration.
 	fn assets_config(&self) -> &AssetsConfig;

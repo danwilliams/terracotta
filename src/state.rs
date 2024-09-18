@@ -7,13 +7,13 @@
 use crate::{
 	assets::{
 		config::AssetsConfig,
-		state::AssetsStateProvider,
+		state::StateProvider as AssetsStateProvider,
 	},
-	auth::state::AuthStateProvider,
+	auth::state::StateProvider as AuthStateProvider,
 	config::Config,
 	stats::{
 		config::StatsConfig,
-		state::{AppStateStats, StatsStateProvider},
+		state::{AppStateStats, StateProvider as StatsStateProvider},
 	},
 };
 use include_dir::Dir;

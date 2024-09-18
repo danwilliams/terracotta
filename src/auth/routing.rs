@@ -5,8 +5,8 @@
 //		Packages
 
 use super::{
-	middleware::{User as AuthUser, UserProvider as AuthUserProvider, auth_layer, protect},
-	state::AuthStateProvider,
+	middleware::{User, UserProvider as UserProvider, auth_layer, protect},
+	state::StateProvider,
 };
 use axum::{
 	Router,
@@ -39,9 +39,9 @@ where
 	/// 
 	fn add_authentication<SP, U, UP>(self, shared_state: &Arc<SP>) -> Self
 	where
-		SP: AuthStateProvider,
-		U:  AuthUser,
-		UP: AuthUserProvider<User = U>,
+		SP: StateProvider,
+		U:  User,
+		UP: UserProvider<User = U>,
 	;
 	
 	//		protected_routes													
@@ -61,8 +61,8 @@ where
 	/// 
 	fn protected_routes<SP, U>(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<SP>) -> Self
 	where
-		SP: AuthStateProvider,
-		U:  AuthUser,
+		SP: StateProvider,
+		U:  User,
 	;
 	
 	//		public_routes														
@@ -92,9 +92,9 @@ where
 	//		add_authentication													
 	fn add_authentication<SP, U, UP>(self, shared_state: &Arc<SP>) -> Self
 	where
-		SP: AuthStateProvider,
-		U:  AuthUser,
-		UP: AuthUserProvider<User = U>,
+		SP: StateProvider,
+		U:  User,
+		UP: UserProvider<User = U>,
 	{
 		let session_key   = SessionKey::generate();
 		let session_store = SessionMemoryStore::default();
@@ -106,8 +106,8 @@ where
 	//		protected_routes													
 	fn protected_routes<SP, U>(self, routes: Vec<(&str, MethodRouter<S>)>, shared_state: &Arc<SP>) -> Self
 	where
-		SP: AuthStateProvider,
-		U:  AuthUser,
+		SP: StateProvider,
+		U:  User,
 	{
 		let mut router = self;
 		for (path, method_router) in routes {

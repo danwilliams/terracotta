@@ -7,7 +7,7 @@
 use crate::{
 	auth::{
 		middleware::{User as AuthUser, UserProvider as AuthUserProvider},
-		state::AuthStateProvider,
+		state::StateProvider as AuthStateProvider,
 	},
 	health::handlers as health,
 	stats::handlers as stats,

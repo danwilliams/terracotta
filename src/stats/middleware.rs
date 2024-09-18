@@ -5,7 +5,7 @@
 //		Packages
 
 use super::{
-	state::StatsStateProvider,
+	state::StateProvider,
 	worker::{Endpoint, ResponseMetrics},
 };
 use axum::{
@@ -87,7 +87,7 @@ where
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn stats_layer<SP: StatsStateProvider>(
+pub async fn stats_layer<SP: StateProvider>(
 	State(appstate): State<Arc<SP>>,
 	mut request:     Request<Body>,
 	next:            Next,
