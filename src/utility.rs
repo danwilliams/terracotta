@@ -58,7 +58,12 @@ pub struct Credentials {
 }
 
 //󰭅		AuthCredentials															
-impl AuthCredentials for Credentials {}
+impl AuthCredentials for Credentials {
+	//		to_loggable_string													
+	fn to_loggable_string(&self) -> String {
+		self.username.clone()
+	}
+}
 
 //		User																	
 /// User data functionality.
@@ -80,6 +85,11 @@ impl AuthUser for User {
 	//		id																	
 	fn id(&self) -> &Self::Id {
 		&self.username
+	}
+	
+	//		to_loggable_string													
+	fn to_loggable_string(&self) -> String {
+		self.username.clone()
 	}
 }
 

@@ -20,7 +20,7 @@ use rubedo::sugar::s;
 use serde::{Deserialize, Deserializer};
 use std::sync::Arc;
 use tera::Context as Template;
-use tracing::info;
+use tracing::{info, warn};
 
 
 
@@ -126,13 +126,12 @@ where
 {
 	let uri        = login.uri.parse::<Uri>().unwrap();
 	let mut params = extract_uri_query_parts(&uri);
-	let user       = UP::find_by_credentials(&state, &login.credentials);
-	if user.is_some() {
-		info!("Logging in user: {}", user.as_ref().unwrap().id());
-		auth.login(user.as_ref().unwrap()).await;
+	if let Some(ref user) = UP::find_by_credentials(&state, &login.credentials) {
+		info!("Logging in user: {}", user.to_loggable_string());
+		auth.login(user).await;
 	} else {
 		drop(params.insert(s!("failed"), s!("")));
-		info!("Failed login attempt");
+		warn!("Failed login attempt for user: {}", &login.credentials.to_loggable_string());
 	}
 	Redirect::to(build_uri(uri.path(), &params).path_and_query().unwrap().to_string().as_str())
 }
@@ -149,8 +148,8 @@ where
 pub async fn get_logout<U: User>(
 	auth: Context<U>,
 ) -> Redirect {
-	if auth.current_user.is_some() {
-		info!("Logging out user: {}", auth.current_user.as_ref().unwrap().id());
+	if let Some(ref user) = auth.current_user {
+		info!("Logging out user: {}", user.to_loggable_string());
 	}
 	auth.logout().await;
 	Redirect::to("/")

@@ -159,7 +159,20 @@ where
 /// This gets used to authenticate the user, notably being sent via POST from
 /// the login form.
 /// 
-pub trait Credentials: Clone + Debug + for<'de> Deserialize<'de> + Send + Sync + 'static {}
+pub trait Credentials: Clone + Debug + for<'de> Deserialize<'de> + Send + Sync + 'static {
+	//		to_loggable_string													
+	/// Format appropriately for logging.
+	/// 
+	/// Returns the relevant identifier appropriately formatted to be inserted
+	/// into a log message when there has been a login attempt. This will be
+	/// used if the credentials were invalid, i.e. login failed.
+	/// 
+	/// # See also
+	/// 
+	/// * [`User::to_loggable_string()`]
+	/// 
+	fn to_loggable_string(&self) -> String;
+}
 
 //§		User																	
 /// An instance of user data providing enough functionality for identification.
@@ -179,6 +192,20 @@ pub trait User: Clone + Debug + Send + Sync + 'static {
 	/// authentication. This could be an ID, username, email, or similar.
 	/// 
 	fn id(&self) -> &Self::Id;
+	
+	//		to_loggable_string													
+	/// Format appropriately for logging.
+	/// 
+	/// Returns the relevant identifier appropriately formatted to be inserted
+	/// into a log message when there has been a login attempt, or when the
+	/// user logs out. This will be used if the credentials were valid, i.e.
+	/// login succeeded.
+	/// 
+	/// # See also
+	/// 
+	/// * [`Credentials::to_loggable_string()`]
+	/// 
+	fn to_loggable_string(&self) -> String;
 }
 
 //§		UserProvider															
