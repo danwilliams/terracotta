@@ -68,7 +68,8 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 				..Default::default()
 			},
 			queue:               None,
-			broadcast:           None,
+			broadcaster:         None,
+			listener:            None,
 		}),
 		template:         Tera::default(),
 	};

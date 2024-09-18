@@ -18,7 +18,7 @@ use std::collections::{HashMap, VecDeque};
 use tokio::{
 	sync::{
 		RwLock as AsyncRwLock,
-		broadcast::Sender as Broadcaster,
+		broadcast::{Receiver as Listener, Sender as Broadcaster},
 	},
 };
 use velcro::hash_map;
@@ -37,7 +37,7 @@ use velcro::hash_map;
 pub struct AppStateStats {
 	//		Public properties													
 	/// The application statistics data.
-	pub data:      AppStats,
+	pub data:        AppStats,
 	
 	/// The statistics queue that response times are added to. This is the
 	/// sender side only. A queue is used so that each request-handling thread's
@@ -46,13 +46,17 @@ pub struct AppStateStats {
 	/// incineration routines, as the stats-handling thread can constantly
 	/// process the queue and there will theoretically never be a large build-up
 	/// of data in memory that has to be dealt with all at once.
-	pub queue:     Option<Sender<ResponseMetrics>>,
+	pub queue:       Option<Sender<ResponseMetrics>>,
+	
+	/// The statistics broadcast channel that period-based statistics are added
+	/// to. This is the sender side only.
+	pub broadcaster: Option<Broadcaster<AllStatsForPeriod>>,
 	
 	/// The statistics broadcast channel that period-based statistics are added
 	/// to. This is the receiver side only. Each interested party can subscribe
 	/// to this channel to receive the latest statistics for a given period on
 	/// a real-time basis.
-	pub broadcast: Option<Broadcaster<AllStatsForPeriod>>,
+	pub listener:    Option<Listener<AllStatsForPeriod>>,
 }
 
 //		AppStats																

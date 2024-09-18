@@ -16,7 +16,7 @@ use std::{
 use tokio::{
 	select,
 	spawn,
-	sync::broadcast::{Receiver as Listener, self},
+	sync::broadcast,
 	time::{interval, sleep},
 };
 use tracing::error;
@@ -212,22 +212,23 @@ pub struct ResponseMetrics {
 /// * `receiver`     - The receiving end of the queue.
 /// * `shared_state` - The shared application state.
 /// 
-pub async fn start_stats_processor<S: StatsStateProvider>(shared_state: &Arc<S>) -> Option<Listener<AllStatsForPeriod>> {
+pub async fn start_stats_processor<S: StatsStateProvider>(shared_state: &Arc<S>) {
 	if !shared_state.stats_config().enabled {
-		return None;
+		return;
 	}
-	let appstate           = Arc::clone(shared_state);
-	let (sender, receiver) = flume::unbounded();
-	let (tx, rx)           = broadcast::channel(10);
-	let mut stats_state    = appstate.stats_state().write().await;
-	stats_state.queue      = Some(sender);
-	stats_state.broadcast  = Some(tx);
+	let appstate            = Arc::clone(shared_state);
+	let (sender, receiver)  = flume::unbounded();
+	let (tx, rx)            = broadcast::channel(10);
+	let mut stats_state     = appstate.stats_state().write().await;
+	stats_state.queue       = Some(sender);
+	stats_state.broadcaster = Some(tx);
+	stats_state.listener    = Some(rx);
 	//	Fixed time period of the current second
-	let mut current_second = Utc::now().naive_utc().with_nanosecond(0).unwrap();
+	let mut current_second  = Utc::now().naive_utc().with_nanosecond(0).unwrap();
 	//	Cumulative stats for the current second
-	let mut timing_stats   = StatsForPeriod::default();
-	let mut conn_stats     = StatsForPeriod::default();
-	let mut memory_stats   = StatsForPeriod::default();
+	let mut timing_stats    = StatsForPeriod::default();
+	let mut conn_stats      = StatsForPeriod::default();
+	let mut memory_stats    = StatsForPeriod::default();
 	
 	//	Initialise circular buffers. We reserve the capacities here right at the
 	//	start so that the application always uses exactly the same amount of
@@ -237,7 +238,7 @@ pub async fn start_stats_processor<S: StatsStateProvider>(shared_state: &Arc<S>)
 	//	have enough memory it would fail right away, instead of gradually
 	//	building up to that point which would make it harder to diagnose.
 	{
-		let mut buffers    = stats_state.data.buffers.write();
+		let mut buffers = stats_state.data.buffers.write();
 		buffers.responses  .reserve(appstate.stats_config().timing_buffer_size);
 		buffers.connections.reserve(appstate.stats_config().connection_buffer_size);
 		buffers.memory     .reserve(appstate.stats_config().memory_buffer_size);
@@ -282,8 +283,6 @@ pub async fn start_stats_processor<S: StatsStateProvider>(shared_state: &Arc<S>)
 			}
 		}
 	}}}));
-	
-	Some(rx)
 }
 
 //		stats_processor															
@@ -429,8 +428,8 @@ async fn stats_processor<S: StatsStateProvider>(
 		drop(buffers);
 		*stats_state.data.last_second.write() = *current_second;
 		*current_second = new_second;
-		if let Some(ref broadcast) = stats_state.broadcast {
-			drop(broadcast.send(message).inspect_err(|err| error!("Failed to broadcast stats: {err}")));
+		if let Some(ref broadcaster) = stats_state.broadcaster {
+			drop(broadcaster.send(message).inspect_err(|err| error!("Failed to broadcast stats: {err}")));
 		}
 		drop(stats_state);
 	}

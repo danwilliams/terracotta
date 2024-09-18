@@ -513,8 +513,8 @@ pub async fn ws_stats_feed<S: StatsStateProvider>(
 	info!("WebSocket connection established");
 	//	Subscribe to the broadcast channel
 	#[expect(clippy::significant_drop_in_scrutinee, reason = "Short-lived")]
-	let mut rx        = if let Some(ref broadcast) = state.stats_state().read().await.broadcast {
-		broadcast.subscribe()
+	let mut rx        = if let Some(ref broadcaster) = state.stats_state().read().await.broadcaster {
+		broadcaster.subscribe()
 	} else {
 		warn!("Broadcast channel not available");
 		return;

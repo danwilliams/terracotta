@@ -113,7 +113,7 @@ async fn main() {
 		stats:          RwLock::new(AppStateStats::default()),
 		template:       setup_tera(&Arc::new(include_dir!("html"))),
 	});
-	let _rx           = start_stats_processor(&shared_state).await;
+	start_stats_processor(&shared_state).await;
 	let app           = Router::new()
 		.protected_routes(protected(), &shared_state)
 		.public_routes(public())
