@@ -315,13 +315,13 @@ pub async fn get_stats<SP: StateProvider>(
 	
 	//		Preparation															
 	//	Lock source data
-	let stats_state  = state.stats_state().read().await;
+	let stats_state  = state.state().read().await;
 	let buffers      = stats_state.data.buffers.read();
 	
 	//	Create pots for each period and process stats buffers
-	let timing_input = initialize_map(&state.stats_config().periods, &buffers.responses);
-	let conn_input   = initialize_map(&state.stats_config().periods, &buffers.connections);
-	let memory_input = initialize_map(&state.stats_config().periods, &buffers.memory);
+	let timing_input = initialize_map(&state.config().periods, &buffers.responses);
+	let conn_input   = initialize_map(&state.config().periods, &buffers.connections);
+	let memory_input = initialize_map(&state.config().periods, &buffers.memory);
 	
 	//	Unlock source data
 	drop(buffers);
@@ -419,7 +419,7 @@ pub async fn get_stats_history<SP: StateProvider>(
 	
 	//		Prepare response data												
 	//	Lock source data
-	let stats_state  = state.stats_state().read().await;
+	let stats_state  = state.state().read().await;
 	let buffers      = stats_state.data.buffers.read();
 	let mut response = StatsHistoryResponse {
 		last_second:   *stats_state.data.last_second.read(),
@@ -513,7 +513,7 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 	info!("WebSocket connection established");
 	//	Subscribe to the broadcast channel
 	#[expect(clippy::significant_drop_in_scrutinee, reason = "Short-lived")]
-	let mut rx        = if let Some(ref broadcaster) = state.stats_state().read().await.broadcaster {
+	let mut rx        = if let Some(ref broadcaster) = state.state().read().await.broadcaster {
 		broadcaster.subscribe()
 	} else {
 		warn!("Broadcast channel not available");
@@ -521,9 +521,9 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 	};
 	//	Set up a timer to send pings at regular intervals
 	#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
-	let mut timer     = interval(Duration::seconds(state.stats_config().ws_ping_interval as i64).to_std().unwrap());
+	let mut timer     = interval(Duration::seconds(state.config().ws_ping_interval as i64).to_std().unwrap());
 	#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
-	let mut timeout   = interval(Duration::seconds(state.stats_config().ws_ping_timeout  as i64).to_std().unwrap());
+	let mut timeout   = interval(Duration::seconds(state.config().ws_ping_timeout  as i64).to_std().unwrap());
 	let mut last_ping = None;
 	let mut last_pong = Instant::now();
 	
@@ -544,7 +544,7 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 		_ = timeout.tick() => {
 			if let Some(ping_time) = last_ping {
 				#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
-				let limit = Duration::seconds(state.stats_config().ws_ping_timeout as i64).to_std().unwrap();
+				let limit = Duration::seconds(state.config().ws_ping_timeout as i64).to_std().unwrap();
 				if last_pong < ping_time && ping_time.elapsed() > limit {
 					warn!("WebSocket ping timed out");
 					break;

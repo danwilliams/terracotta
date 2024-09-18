@@ -68,8 +68,8 @@ impl AppStateProvider for AppState {
 
 //󰭅		AssetsStateProvider														
 impl AssetsStateProvider for AppState {
-	//		assets_config														
-	fn assets_config(&self) -> &AssetsConfig {
+	//		config																
+	fn config(&self) -> &AssetsConfig {
 		&self.config.assets
 	}
 	
@@ -94,13 +94,13 @@ impl AuthStateProvider for AppState {
 
 //󰭅		StatsStateProvider														
 impl StatsStateProvider for AppState {
-	//		stats_config														
-	fn stats_config(&self) -> &StatsConfig {
+	//		config																
+	fn config(&self) -> &StatsConfig {
 		&self.config.stats
 	}
 	
-	//		stats_state															
-	fn stats_state(&self) -> &RwLock<StatsState> {
+	//		state																
+	fn state(&self) -> &RwLock<StatsState> {
 		&self.stats
 	}
 }

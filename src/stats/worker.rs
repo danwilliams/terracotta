@@ -213,13 +213,13 @@ pub struct ResponseMetrics {
 /// * `shared_state` - The shared application state.
 /// 
 pub async fn start_stats_processor<SP: StateProvider>(shared_state: &Arc<SP>) {
-	if !shared_state.stats_config().enabled {
+	if !shared_state.config().enabled {
 		return;
 	}
 	let appstate            = Arc::clone(shared_state);
 	let (sender, receiver)  = flume::unbounded();
 	let (tx, rx)            = broadcast::channel(10);
-	let mut stats_state     = appstate.stats_state().write().await;
+	let mut stats_state     = appstate.state().write().await;
 	stats_state.queue       = Some(sender);
 	stats_state.broadcaster = Some(tx);
 	stats_state.listener    = Some(rx);
@@ -239,9 +239,9 @@ pub async fn start_stats_processor<SP: StateProvider>(shared_state: &Arc<SP>) {
 	//	building up to that point which would make it harder to diagnose.
 	{
 		let mut buffers = stats_state.data.buffers.write();
-		buffers.responses  .reserve(appstate.stats_config().timing_buffer_size);
-		buffers.connections.reserve(appstate.stats_config().connection_buffer_size);
-		buffers.memory     .reserve(appstate.stats_config().memory_buffer_size);
+		buffers.responses  .reserve(appstate.config().timing_buffer_size);
+		buffers.connections.reserve(appstate.config().connection_buffer_size);
+		buffers.memory     .reserve(appstate.config().memory_buffer_size);
 	}
 	drop(stats_state);
 	
@@ -351,7 +351,7 @@ async fn stats_processor<SP: StateProvider>(
 		
 	//		Update statistics													
 		//	Lock source data
-		let stats_state = appstate.stats_state().read().await;
+		let stats_state = appstate.state().read().await;
 		let mut totals = stats_state.data.totals.lock();
 		
 		//	Update responses counter
@@ -392,13 +392,13 @@ async fn stats_processor<SP: StateProvider>(
 	if new_second > *current_second {
 		#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
 		let elapsed     = (new_second - *current_second).num_seconds();
-		let stats_state = appstate.stats_state().read().await;
+		let stats_state = appstate.state().read().await;
 		let mut buffers = stats_state.data.buffers.write();
 		let mut message = AllStatsForPeriod::default();
 		//	Timing stats buffer
 		update_buffer(
 			&mut buffers.responses,
-			appstate.stats_config().timing_buffer_size,
+			appstate.config().timing_buffer_size,
 			timing_stats,
 			current_second,
 			elapsed,
@@ -408,7 +408,7 @@ async fn stats_processor<SP: StateProvider>(
 		//	Connections stats buffer
 		update_buffer(
 			&mut buffers.connections,
-			appstate.stats_config().connection_buffer_size,
+			appstate.config().connection_buffer_size,
 			conn_stats,
 			current_second,
 			elapsed,
@@ -418,7 +418,7 @@ async fn stats_processor<SP: StateProvider>(
 		//	Memory stats buffer
 		update_buffer(
 			&mut buffers.memory,
-			appstate.stats_config().memory_buffer_size,
+			appstate.config().memory_buffer_size,
 			memory_stats,
 			current_second,
 			elapsed,

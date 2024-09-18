@@ -15,9 +15,9 @@ use std::sync::Arc;
 //§		StateProvider															
 /// A trait for providing the application state aspects for assets.
 pub trait StateProvider: Send + Sync + 'static {
-	//		assets_config														
+	//		config																
 	/// Gets the assets configuration.
-	fn assets_config(&self) -> &AssetsConfig;
+	fn config(&self) -> &AssetsConfig;
 	
 	//		assets_dir															
 	/// The directory containing the static assets.

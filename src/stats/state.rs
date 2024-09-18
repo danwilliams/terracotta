@@ -154,11 +154,11 @@ pub struct StatsBuffers {
 //§		StateProvider															
 /// A trait for providing the application state aspects for statistics.
 pub trait StateProvider: Send + Sync + 'static {
-	//		stats_config														
+	//		config																
 	/// Gets the statistics configuration.
-	fn stats_config(&self) -> &StatsConfig;
+	fn config(&self) -> &StatsConfig;
 	
-	//		stats_state															
+	//		state																
 	/// Gets the statistics state.
 	/// 
 	/// Notably, this is behind a read-write lock, so that the broadcaster and
@@ -167,7 +167,7 @@ pub trait StateProvider: Send + Sync + 'static {
 	/// obtaining a lock, and all the internal locks are kept in place in order
 	/// to allow specific access.
 	/// 
-	fn stats_state(&self) -> &AsyncRwLock<State>;
+	fn state(&self) -> &AsyncRwLock<State>;
 }
 
 

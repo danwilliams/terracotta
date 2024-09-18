@@ -97,7 +97,7 @@ pub async fn stats_layer<SP: StateProvider>(
 	_ = request.extensions_mut().insert(stats_cx);
 	
 	//	Check if statistics are enabled
-	if !appstate.stats_config().enabled {
+	if !appstate.config().enabled {
 		return next.run(request).await;
 	}
 	
@@ -108,7 +108,7 @@ pub async fn stats_layer<SP: StateProvider>(
 	};
 	
 	//	Update requests counter
-	let stats_state = appstate.stats_state().read().await;
+	let stats_state = appstate.state().read().await;
 	_ = stats_state.data.requests.fetch_add(1, Ordering::Relaxed);
 	_ = stats_state.data.connections.fetch_add(1, Ordering::Relaxed);
 	
