@@ -10,7 +10,7 @@ use axum::{
 	response::Html,
 };
 use std::sync::Arc;
-use tera::Context;
+use tera::Context as Template;
 
 
 
@@ -24,10 +24,10 @@ use tera::Context;
 /// * `state` - The application state.
 /// 
 pub async fn get_index(State(state): State<Arc<AppState>>) -> Html<String> {
-	let mut context = Context::new();
-	context.insert("Title",   &state.config.title);
-	context.insert("Content", "Index");
-	Html(state.template.render("index", &context).unwrap())
+	let mut template = Template::new();
+	template.insert("Title",   &state.config.title);
+	template.insert("Content", "Index");
+	Html(state.template.render("index", &template).unwrap())
 }
 
 

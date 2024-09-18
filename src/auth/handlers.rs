@@ -5,7 +5,7 @@
 //		Packages
 
 use super::{
-	middleware::{AuthContext, User, UserProvider},
+	middleware::{Context, User, UserProvider},
 	state::StateProvider,
 	utility::{build_uri, extract_uri_query_parts},
 };
@@ -19,7 +19,7 @@ use axum::{
 use rubedo::sugar::s;
 use serde::Deserialize;
 use std::sync::Arc;
-use tera::Context;
+use tera::Context as Template;
 use tracing::info;
 
 
@@ -69,11 +69,11 @@ pub async fn get_login<SP: AppStateProvider>(
 		drop(params.remove("failed"));
 	}
 	uri             = build_uri(uri.path(), &params);
-	let mut context = Context::new();
-	context.insert("Title",   &state.title());
-	context.insert("PageURL", &uri.path_and_query().unwrap().to_string());
-	context.insert("Failed",  &failed);
-	Html(state.render("login", &context).unwrap())
+	let mut template = Template::new();
+	template.insert("Title",   &state.title());
+	template.insert("PageURL", &uri.path_and_query().unwrap().to_string());
+	template.insert("Failed",  &failed);
+	Html(state.render("login", &template).unwrap())
 }
 
 //		post_login																
@@ -91,7 +91,7 @@ pub async fn get_login<SP: AppStateProvider>(
 /// 
 pub async fn post_login<SP, U, UP>(
 	State(state): State<Arc<SP>>,
-	mut auth:     AuthContext<U>,
+	mut auth:     Context<U>,
 	Form(login):  Form<PostLogin>,
 ) -> Redirect
 where
@@ -122,7 +122,7 @@ where
 /// * `auth` - The authentication context.
 /// 
 pub async fn get_logout<U: User>(
-	auth: AuthContext<U>,
+	auth: Context<U>,
 ) -> Redirect {
 	if auth.current_user.is_some() {
 		info!("Logging out user: {}", auth.current_user.as_ref().unwrap().id());

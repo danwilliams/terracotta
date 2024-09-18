@@ -31,13 +31,13 @@ use tracing::error;
 
 //		Structs
 
-//		StatsContext															
+//		Context																	
 /// The statistics context.
 /// 
 /// This struct contains statistics information specific to the current request.
 /// 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, SmartDefault)]
-pub struct StatsContext {
+pub struct Context {
 	//		Public properties													
 	/// The date and time the request processing started.
 	#[default(Utc::now().naive_utc())]
@@ -46,7 +46,7 @@ pub struct StatsContext {
 
 //󰭅		FromRequestParts														
 #[async_trait]
-impl<S> FromRequestParts<S> for StatsContext
+impl<S> FromRequestParts<S> for Context
 where
 	S: Send + Sync,
 {
@@ -93,7 +93,7 @@ pub async fn stats_layer<SP: StateProvider>(
 	next:            Next,
 ) -> Response {
 	//	Create statistics context
-	let stats_cx = StatsContext::default();
+	let stats_cx = Context::default();
 	_ = request.extensions_mut().insert(stats_cx);
 	
 	//	Check if statistics are enabled

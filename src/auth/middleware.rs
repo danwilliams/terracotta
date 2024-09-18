@@ -37,14 +37,14 @@ const SESSION_USER_ID_KEY: &str = "_user_id";
 
 //		Structs
 
-//		AuthContext																
+//		Context																	
 /// The authentication context.
 /// 
 /// This struct contains the current user and session data, to persist the
 /// context of an authentication session.
 /// 
 #[derive(Clone, Debug)]
-pub struct AuthContext<U: User> {
+pub struct Context<U: User> {
 	//		Public properties													
 	/// The current user.
 	pub current_user: Option<U>,
@@ -54,8 +54,8 @@ pub struct AuthContext<U: User> {
 	session:          Session,
 }
 
-//󰭅		AuthContext																
-impl<U: User> AuthContext<U> {
+//󰭅		Context																	
+impl<U: User> Context<U> {
 	//		new																	
 	/// Creates a new authentication context.
 	/// 
@@ -123,7 +123,7 @@ impl<U: User> AuthContext<U> {
 
 //󰭅		FromRequestParts														
 #[async_trait]
-impl<S, U> FromRequestParts<S> for AuthContext<U>
+impl<S, U> FromRequestParts<S> for Context<U>
 where
 	S: Send + Sync,
 	U: User,
@@ -241,7 +241,7 @@ where
 	U:  User,
 	UP: UserProvider<User = U>,
 {
-	let mut auth_cx      = AuthContext::<U>::new(session);
+	let mut auth_cx      = Context::<U>::new(session);
 	let user             = auth_cx.get_user::<SP, UP>(&state).await;
 	let mut username     = s!("none");
 	if let Some(ref u) = user {
@@ -270,7 +270,7 @@ where
 /// 
 pub async fn protect<SP, U>(
 	State(state):       State<Arc<SP>>,
-	Extension(auth_cx): Extension<AuthContext<U>>,
+	Extension(auth_cx): Extension<Context<U>>,
 	uri:                Uri,
 	request:            Request<Body>,
 	next:               Next,

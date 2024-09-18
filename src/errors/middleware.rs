@@ -7,7 +7,7 @@
 use crate::{
 	auth::{
 		handlers::get_login,
-		middleware::{AuthContext, User as AuthUser},
+		middleware::{Context as AuthContext, User as AuthUser},
 	},
 	state::AppStateProvider,
 };
@@ -21,7 +21,7 @@ use axum::{
 };
 use rubedo::http::UnpackedResponseBody;
 use std::sync::Arc;
-use tera::Context;
+use tera::Context as Template;
 use tracing::error;
 
 
@@ -88,24 +88,24 @@ where
 					).into_response();
 				}
 			}
-			let mut context = Context::new();
-			context.insert("Title", &state.title());
+			let mut template = Template::new();
+			template.insert("Title", &state.title());
 			(
 				parts,
-				Html(state.render("404-notfound", &context).unwrap()),
+				Html(state.render("404-notfound", &template).unwrap()),
 			).into_response()
 		},
 		//		500: Internal Server Error										
 		StatusCode::INTERNAL_SERVER_ERROR => {
 			error!("Internal server error: {}", UnpackedResponseBody::from(body));
-			let mut context = Context::new();
-			context.insert("Title", &state.title());
+			let mut template = Template::new();
+			template.insert("Title", &state.title());
 			drop(parts.headers.remove("content-length"));
 			drop(parts.headers.remove("content-type"));
 			drop(parts.headers.insert("error-handled", "gracefully".parse().unwrap()));
 			(
 				parts,
-				Html(state.render("500-error", &context).unwrap()),
+				Html(state.render("500-error", &template).unwrap()),
 			).into_response()
 		},
 		//		Everything else													
