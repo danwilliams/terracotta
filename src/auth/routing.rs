@@ -37,6 +37,7 @@ where
 	/// 
 	/// * `state` - The application state.
 	/// 
+	#[must_use]
 	fn add_authentication<SP, U, UP>(self, state: &Arc<SP>) -> Self
 	where
 		SP: StateProvider,
@@ -59,6 +60,7 @@ where
 	/// 
 	/// * [`public_routes()`](#method.public_routes)
 	/// 
+	#[must_use]
 	fn protected_routes<SP, U>(self, routes: Vec<(&str, MethodRouter<S>)>, state: &Arc<SP>) -> Self
 	where
 		SP: StateProvider,
@@ -80,6 +82,7 @@ where
 	/// 
 	/// * [`protected_routes()`](#method.protected_routes)
 	/// 
+	#[must_use]
 	fn public_routes(self, routes: Vec<(&str, MethodRouter<S>)>) -> Self;
 }
 

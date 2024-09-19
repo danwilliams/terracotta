@@ -85,6 +85,7 @@ impl StatsForPeriod {
 	///             average, maximum, and minimum values, and the count will be
 	///             set to 1.
 	/// 
+	#[must_use]
 	pub fn initialize(value: u64) -> Self {
 		#[expect(clippy::cast_precision_loss, reason = "Not expected to get anywhere near 52 bits")]
 		Self {

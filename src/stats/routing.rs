@@ -31,6 +31,7 @@ where
 	/// 
 	/// * `state` - The application state.
 	/// 
+	#[must_use]
 	fn add_stats_gathering<SP: StateProvider>(self, state: &Arc<SP>) -> Self;
 }
 

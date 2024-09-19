@@ -63,6 +63,7 @@ impl<U: User> Context<U> {
 	/// * `session` - The active session.
 	/// * `key`     - The HMAC key.
 	/// 
+	#[must_use]
 	pub const fn new(session: Session) -> Self {
 		Self {
 			current_user: None,

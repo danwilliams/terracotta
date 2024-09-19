@@ -28,6 +28,7 @@ where
 {
 	//		add_error_catcher													
 	/// Adds a final error handler that catches all errors.
+	#[must_use]
 	fn add_error_catcher(self) -> Self;
 	
 	//		add_error_template													
@@ -37,6 +38,7 @@ where
 	/// 
 	/// * `state` - The application state.
 	/// 
+	#[must_use]
 	fn add_error_template<SP, U>(self, state: &Arc<SP>) -> Self
 	where
 		SP: AppStateProvider,
