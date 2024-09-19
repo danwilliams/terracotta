@@ -1,3 +1,5 @@
+#![allow(clippy::exhaustive_structs, reason = "Configuration structs")]
+
 //! Configuration for the statistics functionality.
 
 

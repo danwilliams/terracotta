@@ -1,4 +1,5 @@
-#![allow(clippy::unused_async, reason = "Handler functions need to be async")]
+#![allow(clippy::exhaustive_structs, reason = "Handlers have auto-generated OpenAPI documentation")]
+#![allow(clippy::unused_async,       reason = "Handler functions need to be async")]
 
 //! Health check endpoints.
 

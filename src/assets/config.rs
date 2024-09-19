@@ -1,3 +1,5 @@
+#![allow(clippy::exhaustive_structs, reason = "Configuration structs")]
+
 //! Configuration for the assets-serving functionality.
 
 
@@ -15,6 +17,7 @@ use std::path::PathBuf;
 //		LoadingBehavior															
 /// The possible options for loading local, non-baked-in resources.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[expect(clippy::exhaustive_enums, reason = "Exhaustive")]
 pub enum LoadingBehavior {
 	/// Deny loading of local resources.
 	Deny,

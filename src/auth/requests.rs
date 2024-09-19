@@ -18,6 +18,7 @@ use serde::{Deserialize, Deserializer};
 /// handler.
 /// 
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
 pub struct PostLogin<C: Credentials> {
 	//		Private properties													
 	/// The user credentials needed to log in.

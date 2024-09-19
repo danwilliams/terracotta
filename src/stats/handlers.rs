@@ -1,5 +1,6 @@
-#![allow(unused_qualifications, reason = "False positive")]
-#![allow(clippy::unused_async,  reason = "Handler functions need to be async")]
+#![allow(unused_qualifications,      reason = "False positive")]
+#![allow(clippy::exhaustive_structs, reason = "Handlers have auto-generated OpenAPI documentation")]
+#![allow(clippy::unused_async,       reason = "Handler functions need to be async")]
 
 //! Endpoint handlers for statistics functionality.
 

@@ -34,6 +34,7 @@ use velcro::hash_map;
 /// requests, specific to what is used for statistics purposes.
 /// 
 #[derive(Debug, SmartDefault)]
+#[non_exhaustive]
 pub struct State {
 	//		Public properties													
 	/// The application statistics data.
@@ -62,6 +63,7 @@ pub struct State {
 //		Stats																	
 /// Various application statistics.
 #[derive(Debug, SmartDefault)]
+#[non_exhaustive]
 pub struct Stats {
 	//		Public properties													
 	/// The date and time the application was started.
@@ -102,6 +104,7 @@ pub struct Stats {
 //		StatsTotals																
 /// The all-time application statistics totals for each area sampled.
 #[derive(Clone, Debug, PartialEq, SmartDefault)]
+#[non_exhaustive]
 pub struct StatsTotals {
 	//		Public properties													
 	/// The number of responses that have been handled, by status code.
@@ -132,6 +135,7 @@ pub struct StatsTotals {
 //		StatsBuffers															
 /// Buffers for storing application statistics data.
 #[derive(Clone, Debug, PartialEq, SmartDefault)]
+#[non_exhaustive]
 pub struct StatsBuffers {
 	//		Public properties													
 	/// A circular buffer of response time stats per second for the configured

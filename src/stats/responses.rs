@@ -22,6 +22,7 @@ use utoipa::ToSchema;
 //		StatsResponse															
 /// The application statistics returned by the `/api/stats` endpoint.
 #[derive(Clone, Debug, PartialEq, Serialize, ToSchema)]
+#[non_exhaustive]
 pub struct StatsResponse {
 	//		Public properties													
 	/// The date and time the application was started.
@@ -66,6 +67,7 @@ pub struct StatsResponse {
 //		StatsHistoryResponse													
 /// The application statistics returned by the `/api/stats/history` endpoint.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, ToSchema)]
+#[non_exhaustive]
 pub struct StatsHistoryResponse {
 	//		Public properties													
 	/// The latest second period that has been completed.
@@ -90,6 +92,7 @@ pub struct StatsHistoryResponse {
 //		StatsResponseForPeriod													
 /// Average, maximum, minimum, and count of values for a period of time.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, ToSchema)]
+#[non_exhaustive]
 pub struct StatsResponseForPeriod {
 	//		Public properties													
 	/// Average value.

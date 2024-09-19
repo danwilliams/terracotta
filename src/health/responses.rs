@@ -14,6 +14,7 @@ use utoipa::ToSchema;
 //		HealthVersionResponse													
 /// The current version information returned by the `/api/version` endpoint.
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, ToSchema)]
+#[non_exhaustive]
 pub struct HealthVersionResponse {
 	//		Public properties													
 	/// The current version of the application.

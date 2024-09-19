@@ -30,6 +30,7 @@ use utoipa::ToSchema;
 //		Endpoint																
 /// A formalised definition of an endpoint for identification.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, SmartDefault)]
+#[expect(clippy::exhaustive_structs, reason = "Exhaustive")]
 pub struct Endpoint {
 	//		Public properties													
 	/// The path of the endpoint, minus any query parameters. As this is just
@@ -55,6 +56,7 @@ impl Serialize for Endpoint {
 //		StatsForPeriod															
 /// Average, maximum, minimum, and count of values for a period of time.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, SmartDefault)]
+#[non_exhaustive]
 pub struct StatsForPeriod {
 	//		Public properties													
 	/// The date and time the period started.
@@ -138,6 +140,7 @@ impl StatsForPeriod {
 /// Average, maximum, minimum, and count of values for a period of time, for all
 /// areas being measured.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, ToSchema)]
+#[non_exhaustive]
 pub struct AllStatsForPeriod {
 	//		Public properties													
 	/// The average, maximum, and minimum response times in microseconds, plus
@@ -159,6 +162,7 @@ pub struct AllStatsForPeriod {
 /// This is used by the statistics queue in [`AppState.stats.Queue`].
 /// 
 #[derive(Clone, Debug, Eq, PartialEq, SmartDefault)]
+#[non_exhaustive]
 pub struct ResponseMetrics {
 	//		Public properties													
 	/// The endpoint that was requested.

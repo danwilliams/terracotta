@@ -1,4 +1,5 @@
-#![allow(clippy::unused_async, reason = "Handler functions need to be async")]
+#![allow(clippy::exhaustive_structs, reason = "Handlers have auto-generated OpenAPI documentation")]
+#![allow(clippy::unused_async,       reason = "Handler functions need to be async")]
 
 //! Endpoint handlers for assets.
 
@@ -32,6 +33,7 @@ use tokio_util::io::ReaderStream;
 //		AssetContext															
 /// The protection contexts for static assets.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[expect(clippy::exhaustive_enums, reason = "Exhaustive")]
 pub enum AssetContext {
 	/// Public files.
 	Public,

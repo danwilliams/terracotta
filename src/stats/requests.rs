@@ -17,6 +17,7 @@ use utoipa::{IntoParams, ToSchema};
 /// The type of measurement to get statistics for.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, ToSchema)]
 #[serde(rename_all = "lowercase")]
+#[non_exhaustive]
 pub enum MeasurementType {
 	/// Response times.
 	Times,
@@ -51,6 +52,7 @@ impl FromStr for MeasurementType {
 /// The parameters for the [`get_stats_history()`](super::handlers::get_stats_history())
 /// handler.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, IntoParams, PartialEq)]
+#[non_exhaustive]
 pub struct GetStatsHistoryParams {
 	//		Public properties													
 	/// The buffer to get the statistics for. The buffer items are returned in
@@ -83,6 +85,7 @@ pub struct GetStatsHistoryParams {
 /// The parameters for the [`get_stats_feed()`](super::handlers::get_stats_feed())
 /// handler.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, IntoParams, PartialEq)]
+#[non_exhaustive]
 pub struct GetStatsFeedParams {
 	//		Public properties													
 	/// The type of measurement to subscribe to statistics for.

@@ -36,6 +36,7 @@ use tracing::{error, warn};
 /// This struct contains statistics information specific to the current request.
 /// 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, SmartDefault)]
+#[non_exhaustive]
 pub struct Context {
 	//		Public properties													
 	/// The date and time the request processing started.
