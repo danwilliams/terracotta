@@ -4,12 +4,9 @@
 
 use super::*;
 use super::super::{
-	state::{State, Stats, StatsTotals},
+	config::Config as StatsConfig,
+	state::{State, StateProvider, Stats, StatsTotals},
 	worker::Endpoint,
-};
-use crate::{
-	config::Config,
-	state::AppState,
 };
 use assert_json_diff::assert_json_eq;
 use axum::{
@@ -19,15 +16,57 @@ use axum::{
 use chrono::{TimeDelta, SubsecRound};
 use core::sync::atomic::AtomicUsize;
 use figment::{Figment, providers::Serialized};
-use include_dir::include_dir;
 use parking_lot::{Mutex, RwLock};
 use rubedo::{
 	http::{ResponseExt, UnpackedResponse, UnpackedResponseBody},
 	sugar::s,
 };
-use tera::Tera;
+use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
 use tokio::sync::RwLock as AsyncRwLock;
 use velcro::hash_map;
+
+
+
+//		Structs
+
+//		Config																	
+/// The main configuration options for the application.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
+struct Config {
+	//		Public properties													
+	/// The configuration options for gathering and processing statistics.
+	pub stats: StatsConfig,
+}
+
+//		AppState																
+/// The application state.
+/// 
+/// This is used to store global state information that is shared between
+/// requests.
+/// 
+#[derive(Debug)]
+struct AppState {
+	//		Public properties													
+	/// The application configuration.
+	pub config: Config,
+	
+	/// The application statistics.
+	pub stats:  AsyncRwLock<State>,
+}
+
+//󰭅		StateProvider															
+impl StateProvider for AppState {
+	//		config																
+	fn config(&self) -> &StatsConfig {
+		&self.config.stats
+	}
+	
+	//		state																
+	fn state(&self) -> &AsyncRwLock<State> {
+		&self.stats
+	}
+}
 
 
 
@@ -36,9 +75,7 @@ use velcro::hash_map;
 //		prepare_state															
 fn prepare_state(start: NaiveDateTime) -> AppState {
 	let mut state       = AppState {
-		assets_dir:       Arc::new(include_dir!("static")),
 		config:           Figment::from(Serialized::defaults(Config::default())).extract().unwrap(),
-		content_dir:      Arc::new(include_dir!("content")),
 		stats:            AsyncRwLock::new(State {
 			data:                Stats {
 				started_at:      start,
@@ -74,7 +111,6 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 			broadcaster:         None,
 			listener:            None,
 		}),
-		template:         Tera::default(),
 	};
 	state.config.stats.periods = hash_map!{
 		s!("second"):          1,
