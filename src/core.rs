@@ -141,7 +141,7 @@ pub fn setup_logging<S: AsRef<str>>(logdir: S) -> WorkerGuard {
 	registry()
 		.with(
 			EnvFilter::try_from_default_env()
-				.unwrap_or_else(|_| "terracotta=debug,tower_http=debug".into()),
+				.unwrap_or_else(|_| format!("{}=debug,tower_http=debug", env!("CARGO_PKG_NAME")).into()),
 		)
 		.with(
 			layer()
