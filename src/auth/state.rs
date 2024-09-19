@@ -4,7 +4,7 @@
 
 //		Packages
 
-use crate::state::AppStateProvider;
+use crate::app::state::StateProvider as AppStateProvider;
 use std::collections::HashMap;
 
 

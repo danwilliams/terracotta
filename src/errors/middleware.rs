@@ -6,11 +6,11 @@
 
 use super::errors::ErrorsError;
 use crate::{
+	app::state::StateProvider as AppStateProvider,
 	auth::{
 		handlers::get_login,
 		middleware::{Context as AuthContext, User as AuthUser},
 	},
-	state::AppStateProvider,
 };
 use axum::{
 	Extension,

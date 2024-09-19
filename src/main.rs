@@ -42,6 +42,7 @@
 
 //		Modules
 
+mod app;
 mod assets;
 mod auth;
 mod config;

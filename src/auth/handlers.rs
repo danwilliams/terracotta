@@ -10,7 +10,7 @@ use super::{
 	state::StateProvider,
 	utility::{build_uri, extract_uri_query_parts},
 };
-use crate::state::AppStateProvider;
+use crate::app::state::StateProvider as AppStateProvider;
 use axum::{
 	Form,
 	extract::State,

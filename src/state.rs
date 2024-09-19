@@ -5,6 +5,7 @@
 //		Packages
 
 use crate::{
+	app::state::StateProvider as AppStateProvider,
 	assets::{
 		config::Config as AssetsConfig,
 		state::StateProvider as AssetsStateProvider,
@@ -103,32 +104,6 @@ impl StatsStateProvider for AppState {
 	fn state(&self) -> &RwLock<StatsState> {
 		&self.stats
 	}
-}
-
-
-
-//		Traits
-
-//§		AppStateProvider														
-/// A trait for providing the application state for general functionality.
-pub trait AppStateProvider: Send + Sync + 'static {
-	//		render																
-	/// Renders a template.
-	/// 
-	/// # Parameters
-	/// 
-	/// * `template` - The template to render.
-	/// * `context`  - The context to render the template with.
-	/// 
-	/// # Errors
-	/// 
-	/// If the template cannot be rendered, an error is returned.
-	/// 
-	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, TemplateError>;
-	
-	//		title																
-	/// Gets the application title.
-	fn title(&self) -> &String;
 }
 
 

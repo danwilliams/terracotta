@@ -6,8 +6,8 @@
 
 use super::middleware::{final_error_layer, graceful_error_layer};
 use crate::{
+	app::state::StateProvider as AppStateProvider,
 	auth::middleware::User as AuthUser,
-	state::AppStateProvider,
 };
 use axum::{
 	Router,
