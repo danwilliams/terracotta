@@ -12,16 +12,13 @@ use axum::{
 	Extension,
 	async_trait,
 	body::Body,
-	extract::{FromRequestParts, State},
+	extract::{FromRequestParts, State, rejection::ExtensionRejection},
 	http::{Request, request::Parts},
 	middleware::Next,
 	response::Response,
 };
 use chrono::{NaiveDateTime, Utc};
-use core::{
-	convert::Infallible,
-	sync::atomic::Ordering,
-};
+use core::sync::atomic::Ordering;
 use smart_default::SmartDefault;
 use std::sync::Arc;
 use tikv_jemalloc_ctl::stats::allocated as Malloc;
@@ -50,7 +47,7 @@ impl<S> FromRequestParts<S> for Context
 where
 	S: Send + Sync,
 {
-	type Rejection = Infallible;
+	type Rejection = ExtensionRejection;
 	
 	//		from_request_parts													
 	/// Creates a statistics context from the request parts.
@@ -60,14 +57,8 @@ where
 	/// * `parts` - The request parts.
 	/// * `state` - The application state.
 	/// 
-	#[expect(clippy::expect_used, reason = "Misconfiguration, so hard quit")]
 	async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-		let Extension(stats_cx): Extension<Self> =
-			Extension::from_request_parts(parts, state)
-				.await
-				.expect("Stats extension/layer missing")
-		;
-		Ok(stats_cx)
+		Extension::<Self>::from_request_parts(parts, state).await.map(|Extension(stats_cx)| stats_cx)
 	}
 }
 
