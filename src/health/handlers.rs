@@ -1,3 +1,5 @@
+#![allow(clippy::unused_async, reason = "Handler functions need to be async")]
+
 //! Health check endpoints.
 
 

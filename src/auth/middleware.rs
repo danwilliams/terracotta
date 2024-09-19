@@ -1,3 +1,5 @@
+#![allow(clippy::unused_async, reason = "Middleware functions need to be async")]
+
 //! Authentication functionality.
 
 

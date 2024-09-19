@@ -1,4 +1,5 @@
 #![allow(unused_qualifications, reason = "False positive")]
+#![allow(clippy::unused_async,  reason = "Handler functions need to be async")]
 
 //! Endpoint handlers for statistics functionality.
 
