@@ -5,6 +5,7 @@
 //		Packages
 
 use super::{
+	errors::AuthError,
 	middleware::{Context, Credentials, User, UserProvider},
 	state::StateProvider,
 	utility::{build_uri, extract_uri_query_parts},
@@ -85,19 +86,19 @@ where
 pub async fn get_login<SP: AppStateProvider>(
 	State(state): State<Arc<SP>>,
 	mut uri:      Uri,
-) -> Html<String> {
+) -> Result<Html<String>, AuthError> {
 	let mut params  = extract_uri_query_parts(&uri);
 	let mut failed  = false;
 	if params.contains_key("failed") {
 		failed      = true;
 		drop(params.remove("failed"));
 	}
-	uri             = build_uri(uri.path(), &params);
+	uri             = build_uri(uri.path(), &params)?;
 	let mut template = Template::new();
 	template.insert("Title",   &state.title());
-	template.insert("PageURL", &uri.path_and_query().unwrap().to_string());
+	template.insert("PageURL", &uri.path_and_query().map_or_else(|| s!("/"), ToString::to_string));
 	template.insert("Failed",  &failed);
-	Html(state.render("login", &template).unwrap())
+	Ok(Html(state.render("login", &template)?))
 }
 
 //		post_login																
@@ -117,23 +118,23 @@ pub async fn post_login<SP, C, U, UP>(
 	State(state): State<Arc<SP>>,
 	mut auth:     Context<U>,
 	Form(login):  Form<PostLogin<C>>,
-) -> Redirect
+) -> Result<Redirect, AuthError>
 where
 	SP: StateProvider,
 	C:  Credentials,
 	U:  User,
 	UP: UserProvider<Credentials = C, User = U>,
 {
-	let uri        = login.uri.parse::<Uri>().unwrap();
+	let uri        = login.uri.parse::<Uri>()?;
 	let mut params = extract_uri_query_parts(&uri);
 	if let Some(ref user) = UP::find_by_credentials(&state, &login.credentials) {
 		info!("Logging in user: {}", user.to_loggable_string());
-		auth.login(user).await;
+		auth.login(user).await?;
 	} else {
 		drop(params.insert(s!("failed"), s!("")));
 		warn!("Failed login attempt for user: {}", &login.credentials.to_loggable_string());
 	}
-	Redirect::to(build_uri(uri.path(), &params).path_and_query().unwrap().to_string().as_str())
+	Ok(Redirect::to(&build_uri(uri.path(), &params)?.path_and_query().map_or_else(|| s!("/"), ToString::to_string)))
 }
 
 //		get_logout																

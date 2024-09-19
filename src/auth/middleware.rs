@@ -5,6 +5,7 @@
 //		Packages
 
 use super::{
+	errors::AuthError,
 	handlers::get_login,
 	state::StateProvider,
 };
@@ -106,9 +107,10 @@ impl<U: User> Context<U> {
 	/// 
 	/// * `user` - The user to log in.
 	/// 
-	pub async fn login(&mut self, user: &U) {
-		self.session.insert(SESSION_USER_ID_KEY, user.id()).await.unwrap();
+	pub async fn login(&mut self, user: &U) -> Result<(), AuthError> {
+		self.session.insert(SESSION_USER_ID_KEY, user.id()).await?;
 		self.current_user = Some(user.clone());
+		Ok(())
 	}
 	
 	//		logout																
