@@ -184,17 +184,17 @@ pub struct StatsHistoryResponse {
 	
 	/// The average, maximum, and minimum response times in microseconds, plus
 	/// sample count, per second for every second since the application last
-	/// started, or up until the end of the [configured buffer](StatsOptions.timing_buffer_size).
+	/// started, or up until the end of the [configured buffer](super::config::Config#structfield.timing_buffer_size).
 	pub times:       Vec<StatsResponseForPeriod>,
 	
 	/// The average, maximum, and minimum open connections, plus sample count,
 	/// per second for every second since the application last started, or up
-	/// until the end of the [configured buffer](StatsOptions.connection_buffer_size).
+	/// until the end of the [configured buffer](super::config::Config#structfield.connection_buffer_size).
 	pub connections: Vec<StatsResponseForPeriod>,
 	
 	/// The average, maximum, and minimum memory usage in bytes, plus sample
 	/// count, per second for every second since the application last started,
-	/// or up until the end of the [configured buffer](StatsOptions.memory_buffer_size).
+	/// or up until the end of the [configured buffer](super::config::Config#structfield.memory_buffer_size).
 	pub memory:      Vec<StatsResponseForPeriod>,
 }
 
@@ -250,15 +250,15 @@ impl From<&StatsForPeriod> for StatsResponseForPeriod {
 ///   - `codes`       - The counts of responses that have been handled, broken
 ///                     down by status code, since the application last started.
 ///   - `times`       - The average, maximum, and minimum response times, plus
-///                     sample count, for the [configured periods](StatsOptions.stats_periods),
+///                     sample count, for the [configured periods](super::config::Config#structfield.periods),
 ///                     and since the application last started.
 ///   - `endpoints`   - The counts of responses that have been handled, broken
 ///                     down by endpoint, since the application last started.
 ///   - `connections` - The average, maximum, and minimum open connections, plus
-///                     sample count, for the [configured periods](StatsOptions.stats_periods),
+///                     sample count, for the [configured periods](super::config::Config#structfield.periods),
 ///                     and since the application last started.
 ///   - `memory`      - The average, maximum, and minimum memory usage, plus
-///                     sample count, for the [configured periods](StatsOptions.stats_periods),
+///                     sample count, for the [configured periods](super::config::Config#structfield.periods),
 ///                     and since the application last started.
 /// 
 /// # Parameters
@@ -373,15 +373,15 @@ pub async fn get_stats<SP: StateProvider>(
 ///   - `times`       - The average, maximum, and minimum response times, plus
 ///                     sample count, per second for every second since the
 ///                     application last started, or up until the end of the
-///                     [configured buffer](StatsOptions.timing_buffer_size).
+///                     [configured buffer](super::config::Config#structfield.timing_buffer_size).
 ///   - `connections` - The average, maximum, and minimum open connections, plus
 ///                     sample count, per second for every second since the
 ///                     application last started, or up until the end of the
-///                     [configured buffer](StatsOptions.connection_buffer_size).
+///                     [configured buffer](super::config::Config#structfield.connection_buffer_size).
 ///   - `memory`      - The average, maximum, and minimum memory usage, plus
 ///                     sample count, per second for every second since the
 ///                     application last started, or up until the end of the
-///                     [configured buffer](StatsOptions.memory_buffer_size).
+///                     [configured buffer](super::config::Config#structfield.memory_buffer_size).
 /// 
 /// # Parameters
 /// 

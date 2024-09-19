@@ -20,10 +20,11 @@ pub struct Config {
 	/// Whether to enable statistics gathering and processing. If enabled, there
 	/// is a very small CPU overhead for each request, plus an
 	/// individually-configurable amount of memory used to store the
-	/// [response time buffer](StatsOptions.timing_buffer_size), the
-	/// [connection count buffer](StatsOptions.connection_buffer_size), and the
-	/// [memory usage buffer](StatsOptions.memory_buffer_size) (default 4.8MB
-	/// per buffer). If disabled, the [statistics processing thread](crate::stats::worker::start_stats_processor())
+	/// [response time buffer](Config#structfield.timing_buffer_size), the
+	/// [connection count buffer](Config#structfield.connection_buffer_size),
+	/// and the [memory usage buffer](Config#structfield.memory_buffer_size)
+	/// (default 4.8MB per buffer). If disabled, the
+	/// [statistics processing thread](crate::stats::worker::start_stats_processor())
 	/// will not be started, the buffers' capacities will not be reserved, and
 	/// the [statistics middleware](crate::stats::middleware::stats_layer())
 	/// will do nothing. Under usual circumstances the statistics thread should
