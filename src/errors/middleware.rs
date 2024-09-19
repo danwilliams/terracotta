@@ -143,6 +143,7 @@ pub async fn final_error_layer(
 				drop(parts.headers.remove("error-handled"));
 				return (parts, body).into_response();
 			}
+			error!("Internal server error: {}", UnpackedResponseBody::from(body));
 			drop(parts.headers.remove("content-length"));
 			drop(parts.headers.remove("content-type"));
 			(
