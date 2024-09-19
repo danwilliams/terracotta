@@ -11,6 +11,7 @@ use axum::http::{
 use core::{
 	error::Error,
 	fmt::{Display, Formatter, self},
+	hash::BuildHasher,
 };
 use std::collections::HashMap;
 use tracing::warn;
@@ -79,11 +80,12 @@ pub fn extract_uri_query_parts(uri: &Uri) -> HashMap<String, String> {
 /// 
 /// If the URI cannot be built, an error will be returned.
 /// 
-pub fn build_uri<P, K, V>(path: P, params: &HashMap<K, V>) -> Result<Uri, InvalidUriParts>
+pub fn build_uri<P, K, V, H>(path: P, params: &HashMap<K, V, H>) -> Result<Uri, InvalidUriParts>
 where
 	P: AsRef<str>,
 	K: AsRef<str> + Display,
 	V: AsRef<str> + Display,
+	H: BuildHasher,
 {
 	Uri::builder()
 		.path_and_query(format!("{}?{}",

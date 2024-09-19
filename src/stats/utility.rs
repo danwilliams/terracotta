@@ -5,6 +5,7 @@
 //		Packages
 
 use axum::http::StatusCode;
+use core::hash::BuildHasher;
 use serde::{Serialize, Serializer};
 use std::collections::{BTreeMap, HashMap};
 
@@ -28,9 +29,13 @@ use std::collections::{BTreeMap, HashMap};
 /// If there is an error serialising the status codes, an error will be
 /// returned.
 /// 
-pub fn serialize_status_codes<S>(status_codes: &HashMap<StatusCode, u64>, serializer: S) -> Result<S::Ok, S::Error>
+pub fn serialize_status_codes<S, H>(
+	status_codes: &HashMap<StatusCode, u64, H>,
+	serializer:   S,
+) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
+	H: BuildHasher,
 {
 	let codes: BTreeMap<String, u64> = status_codes
 		.iter()
