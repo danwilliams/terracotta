@@ -4,6 +4,7 @@
 
 //		Packages
 
+use super::errors::ErrorsError;
 use crate::{
 	auth::{
 		handlers::get_login,
@@ -15,7 +16,7 @@ use axum::{
 	Extension,
 	body::Body,
 	extract::State,
-	http::{Request, StatusCode, Uri},
+	http::{HeaderValue, Request, StatusCode, Uri},
 	middleware::Next,
 	response::{Html, IntoResponse, Response},
 };
@@ -66,14 +67,14 @@ pub async fn graceful_error_layer<SP, U>(
 	uri:                Uri,
 	request:            Request<Body>,
 	next:               Next,
-) -> Response
+) -> Result<Response, ErrorsError>
 where
 	SP: AppStateProvider,
 	U:  AuthUser,
 {
 	let response          = next.run(request).await;
 	let (mut parts, body) = response.into_parts();
-	match parts.status {
+	Ok(match parts.status {
 		//		404: Not Found													
 		StatusCode::NOT_FOUND             => {
 			drop(parts.headers.remove("content-length"));
@@ -82,17 +83,17 @@ where
 				drop(parts.headers.remove("protected"));
 				if auth_cx.current_user.is_none() {
 					parts.status = StatusCode::UNAUTHORIZED;
-					return (
+					return Ok((
 						parts,
 						get_login(State(state), uri).await,
-					).into_response();
+					).into_response());
 				}
 			}
 			let mut template = Template::new();
 			template.insert("Title", &state.title());
 			(
 				parts,
-				Html(state.render("404-notfound", &template).unwrap()),
+				Html(state.render("404-notfound", &template)?),
 			).into_response()
 		},
 		//		500: Internal Server Error										
@@ -102,10 +103,10 @@ where
 			template.insert("Title", &state.title());
 			drop(parts.headers.remove("content-length"));
 			drop(parts.headers.remove("content-type"));
-			drop(parts.headers.insert("error-handled", "gracefully".parse().unwrap()));
+			drop(parts.headers.insert("error-handled", HeaderValue::from_static("gracefully")));
 			(
 				parts,
-				Html(state.render("500-error", &template).unwrap()),
+				Html(state.render("500-error", &template)?),
 			).into_response()
 		},
 		//		Everything else													
@@ -115,7 +116,7 @@ where
 				body,
 			).into_response()
 		},
-	}
+	})
 }
 
 //		final_error_layer														
