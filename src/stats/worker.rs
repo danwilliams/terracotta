@@ -6,7 +6,8 @@
 
 use super::state::StateProvider;
 use axum::http::{Method, StatusCode};
-use chrono::{Duration, NaiveDateTime, Timelike, Utc};
+use chrono::{TimeDelta, NaiveDateTime, SubsecRound, Utc};
+use core::time::Duration;
 use serde::{Serialize, Serializer};
 use smart_default::SmartDefault;
 use std::{
@@ -224,7 +225,7 @@ pub async fn start_stats_processor<SP: StateProvider>(state: &Arc<SP>) {
 	stats_state.broadcaster = Some(tx);
 	stats_state.listener    = Some(rx);
 	//	Fixed time period of the current second
-	let mut current_second  = Utc::now().naive_utc().with_nanosecond(0).unwrap();
+	let mut current_second  = Utc::now().naive_utc().trunc_subsecs(0);
 	//	Cumulative stats for the current second
 	let mut timing_stats    = StatsForPeriod::default();
 	let mut conn_stats      = StatsForPeriod::default();
@@ -248,11 +249,11 @@ pub async fn start_stats_processor<SP: StateProvider>(state: &Arc<SP>) {
 	//	Wait until the start of the next second, to align with it so that the
 	//	tick interval change happens right after the second change, to wrap up
 	//	the data for the period that has just ended.
-	#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
-	sleep((current_second + Duration::seconds(1) - Utc::now().naive_utc()).to_std().unwrap()).await;
+	let next_second = current_second.checked_add_signed(TimeDelta::seconds(1)).unwrap_or(current_second);
+	sleep(next_second.signed_duration_since(Utc::now().naive_utc()).to_std().unwrap_or(Duration::from_secs(0))).await;
 	
 	//	Queue processing loop
-	let mut timer = interval(Duration::seconds(1).to_std().unwrap());
+	let mut timer = interval(Duration::from_secs(1));
 	drop(spawn(async move { loop { select!{
 		_ = timer.tick() => {
 			//	Ensure last period is wrapped up
@@ -267,11 +268,11 @@ pub async fn start_stats_processor<SP: StateProvider>(state: &Arc<SP>) {
 		}
 		//	Wait for message - this is a blocking call
 		message = receiver.recv_async() => {
-			if let Ok(response_time) = message {
+			if let Ok(response_metrics) = message {
 				//	Process response time
 				stats_processor(
 					&appstate,
-					Some(response_time),
+					Some(response_metrics),
 					&mut timing_stats,
 					&mut conn_stats,
 					&mut memory_stats,
@@ -328,7 +329,7 @@ async fn stats_processor<SP: StateProvider>(
 			if buffer.len() == buffer_size {
 				_ = buffer.pop_back();
 			}
-			stats.started_at = current_second.checked_add_signed(Duration::seconds(i)).unwrap_or(*current_second);
+			stats.started_at = current_second.checked_add_signed(TimeDelta::seconds(i)).unwrap_or(*current_second);
 			buffer.push_front(*stats);
 			update_message(stats, message);
 			*stats           = StatsForPeriod::default();
@@ -378,9 +379,9 @@ async fn stats_processor<SP: StateProvider>(
 		drop(stats_state);
 		
 	//		Check time period													
-		new_second = metrics.started_at.with_nanosecond(0).unwrap();
+		new_second = metrics.started_at.trunc_subsecs(0);
 	} else {
-		new_second = Utc::now().naive_utc().with_nanosecond(0).unwrap();
+		new_second = Utc::now().naive_utc().trunc_subsecs(0);
 	};
 	
 	//	Check to see if we've moved into a new time period. We want to increment

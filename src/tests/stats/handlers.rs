@@ -13,7 +13,7 @@ use axum::{
 	http::{Method, StatusCode},
 	response::IntoResponse,
 };
-use chrono::Duration;
+use chrono::{TimeDelta, SubsecRound};
 use core::sync::atomic::AtomicUsize;
 use figment::{Figment, providers::Serialized};
 use include_dir::include_dir;
@@ -39,7 +39,7 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 		stats:            AsyncRwLock::new(State {
 			data:                Stats {
 				started_at:      start,
-				last_second:     RwLock::new((start + Duration::seconds(95)).with_nanosecond(0).unwrap()),
+				last_second:     RwLock::new((start + TimeDelta::seconds(95)).trunc_subsecs(0)),
 				connections:     AtomicUsize::new(5),
 				requests:        AtomicUsize::new(10),
 				totals:          Mutex::new(StatsTotals {
@@ -91,7 +91,7 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 async fn stats() {
 	//	There is a very small possibility that this test will fail if the
 	//	test is run at the exact moment that the date changes.
-	let start           = Utc::now().naive_utc() - Duration::seconds(99);
+	let start           = Utc::now().naive_utc() - TimeDelta::seconds(99);
 	let state           = prepare_state(start);
 	let unpacked        = get_stats(State(Arc::new(state))).await.into_response().unpack().unwrap();
 	let crafted         = UnpackedResponse::new(
@@ -101,8 +101,8 @@ async fn stats() {
 			(s!("content-type"), s!("application/json")),
 		],
 		UnpackedResponseBody::new(json!({
-			"started_at":  start.with_nanosecond(0).unwrap(),
-			"last_second": (start + Duration::seconds(95)).with_nanosecond(0).unwrap(),
+			"started_at":  start.trunc_subsecs(0),
+			"last_second": (start + TimeDelta::seconds(95)).trunc_subsecs(0),
 			"uptime":      99,
 			"active":      5,
 			"requests":    10,
@@ -226,7 +226,7 @@ async fn stats() {
 async fn stats_history() {
 	//	There is a very small possibility that this test will fail if the
 	//	test is run at the exact moment that the date changes.
-	let start        = Utc::now().naive_utc() - Duration::seconds(99);
+	let start        = Utc::now().naive_utc() - TimeDelta::seconds(99);
 	let state        = prepare_state(start);
 	{
 		let stats_state = state.stats.read().await;
@@ -246,7 +246,7 @@ async fn stats_history() {
 			(s!("content-type"), s!("application/json")),
 		],
 		UnpackedResponseBody::new(json!({
-			"last_second":     (start + Duration::seconds(95)).with_nanosecond(0).unwrap(),
+			"last_second":     (start + TimeDelta::seconds(95)).trunc_subsecs(0),
 			"times": [
 				{
 					"average": 0.0,

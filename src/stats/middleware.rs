@@ -25,7 +25,7 @@ use core::{
 use smart_default::SmartDefault;
 use std::sync::Arc;
 use tikv_jemalloc_ctl::stats::allocated as Malloc;
-use tracing::error;
+use tracing::{error, warn};
 
 
 
@@ -117,15 +117,22 @@ pub async fn stats_layer<SP: StateProvider>(
 	
 	//	Add response time to the queue
 	if let Some(ref queue) = stats_state.queue {
-		#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
-		#[expect(clippy::cast_sign_loss,          reason = "We don't ever want a negative for time taken")]
+		#[expect(clippy::cast_sign_loss, reason = "We don't ever want a negative for time taken")]
 		drop(queue.send(ResponseMetrics {
 			endpoint,
 			started_at:  stats_cx.started_at,
-			time_taken:  (Utc::now().naive_utc() - stats_cx.started_at).num_microseconds().unwrap() as u64,
+			time_taken:  Utc::now()
+				.naive_utc()
+				.signed_duration_since(stats_cx.started_at)
+				.num_microseconds()
+				.unwrap_or(i64::MAX) as u64
+			,
 			status_code: response.status(),
 			connections: stats_state.data.connections.load(Ordering::Relaxed) as u64,
-			memory:	     Malloc::read().unwrap() as u64,
+			memory:	     Malloc::read()
+				.inspect_err(|err| warn!("Could not read memory usage: {err}"))
+				.unwrap_or_default() as u64
+			,
 		}).inspect_err(|err| error!("Failed to send response time: {err}")));
 	}
 	

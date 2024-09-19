@@ -26,10 +26,11 @@ use axum::{
 	http::StatusCode,
 	response::Response,
 };
-use chrono::{Duration, NaiveDateTime, Timelike, Utc};
+use chrono::{NaiveDateTime, SubsecRound, Utc};
 use core::{
 	str::FromStr,
 	sync::atomic::Ordering,
+	time::Duration,
 };
 use indexmap::IndexMap;
 use itertools::Itertools;
@@ -283,16 +284,15 @@ pub async fn get_stats<SP: StateProvider>(
 	) -> IndexMap<String, StatsForPeriod> {
 		let mut output: IndexMap<String, StatsForPeriod> = periods
 			.iter()
-			.sorted_by(|a, b| a.1.cmp(b.1))
+			.sorted_by_key(|p| p.1)
 			.map(|(name, _)| (name.clone(), StatsForPeriod::default()))
 			.collect()
 		;
 		//	Loop through the circular buffer and calculate the stats
 		for (i, stats) in buffer.iter().enumerate() {
-			#[expect(clippy::iter_over_hash_type, reason = "Order doesn't matter here")]
-			for (name, period) in periods {
-				if i < *period {
-					output.get_mut(name).unwrap().update(stats);
+			for (name, stats_for_period) in &mut output {
+				if i < periods[name] {
+					stats_for_period.update(stats);
 				}
 			}
 		}
@@ -340,7 +340,7 @@ pub async fn get_stats<SP: StateProvider>(
 	#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
 	#[expect(clippy::cast_sign_loss,          reason = "We don't ever want a negative for uptime")]
 	let response   = Json(StatsResponse {
-		started_at:  stats_state.data.started_at.with_nanosecond(0).unwrap(),
+		started_at:  stats_state.data.started_at.trunc_subsecs(0),
 		last_second: *stats_state.data.last_second.read(),
 		uptime:      (now - stats_state.data.started_at).num_seconds() as u64,
 		active:      stats_state.data.connections.load(Ordering::Relaxed) as u64,
@@ -520,10 +520,8 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 		return;
 	};
 	//	Set up a timer to send pings at regular intervals
-	#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
-	let mut timer     = interval(Duration::seconds(state.config().ws_ping_interval as i64).to_std().unwrap());
-	#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
-	let mut timeout   = interval(Duration::seconds(state.config().ws_ping_timeout  as i64).to_std().unwrap());
+	let mut timer     = interval(Duration::from_secs(state.config().ws_ping_interval as u64));
+	let mut timeout   = interval(Duration::from_secs(state.config().ws_ping_timeout  as u64));
 	let mut last_ping = None;
 	let mut last_pong = Instant::now();
 	
@@ -543,8 +541,7 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 		//	Check for ping timeout (X seconds since the last ping without a pong)
 		_ = timeout.tick() => {
 			if let Some(ping_time) = last_ping {
-				#[expect(clippy::cast_possible_wrap, reason = "Should never be large enough to wrap")]
-				let limit = Duration::seconds(state.config().ws_ping_timeout as i64).to_std().unwrap();
+				let limit = Duration::from_secs(state.config().ws_ping_timeout as u64);
 				if last_pong < ping_time && ping_time.elapsed() > limit {
 					warn!("WebSocket ping timed out");
 					break;
