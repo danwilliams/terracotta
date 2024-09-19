@@ -9,6 +9,7 @@
 use super::{
 	errors::AuthError,
 	middleware::{Context, Credentials, User, UserProvider},
+	requests::PostLogin,
 	state::StateProvider,
 	utility::{build_uri, extract_uri_query_parts},
 };
@@ -20,56 +21,9 @@ use axum::{
 	response::{Html, Redirect},
 };
 use rubedo::sugar::s;
-use serde::{Deserialize, Deserializer};
 use std::sync::Arc;
 use tera::Context as Template;
 use tracing::{info, warn};
-
-
-
-//		Structs
-
-//		PostLogin																
-/// The data sent by the login form.
-/// 
-/// This is consumed by the [`post_login()`] handler.
-/// 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PostLogin<C: Credentials> {
-	//		Private properties													
-	/// The user credentials needed to log in.
-	credentials: C,
-	
-	/// The URL to redirect to after logging in.
-	uri:         String,
-}
-
-//󰭅		Deserialize																
-impl<'de, C> Deserialize<'de> for PostLogin<C>
-where
-	C: Credentials,
-{
-	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-	where
-		D: Deserializer<'de>,
-	{
-		#[allow(clippy::allow_attributes,              reason = "The allow below doesn't work with an expect")]
-		#[allow(clippy::missing_docs_in_private_items, reason = "Internal helper struct")]
-		#[derive(Deserialize)]
-		struct Helper<C> {
-			#[serde(flatten)]
-			credentials: C,
-			uri:         String,
-		}
-		
-		let helper = Helper::deserialize(deserializer)?;
-		
-		Ok(Self {
-			credentials: helper.credentials,
-			uri:         helper.uri,
-		})
-	}
-}
 
 
 

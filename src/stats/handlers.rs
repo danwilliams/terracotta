@@ -16,20 +16,19 @@ mod tests;
 //		Packages
 
 use super::{
+	requests::{GetStatsFeedParams, GetStatsHistoryParams, MeasurementType},
+	responses::{StatsHistoryResponse, StatsResponse, StatsResponseForPeriod},
 	state::StateProvider,
-	worker::{Endpoint, StatsForPeriod},
-	utility::serialize_status_codes,
+	worker::StatsForPeriod,
 };
 use axum::{
 	Json,
 	extract::{Query, State},
 	extract::ws::{Message, WebSocketUpgrade, WebSocket},
-	http::StatusCode,
 	response::Response,
 };
 use chrono::{NaiveDateTime, SubsecRound, Utc};
 use core::{
-	str::FromStr,
 	sync::atomic::Ordering,
 	time::Duration,
 };
@@ -39,7 +38,6 @@ use rubedo::{
 	std::IteratorExt,
 	sugar::s,
 };
-use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{
 	collections::{HashMap, VecDeque},
@@ -51,184 +49,7 @@ use tokio::{
 	time::interval,
 };
 use tracing::{info, warn};
-use utoipa::{IntoParams, ToSchema};
 use velcro::btree_map;
-
-
-
-//		Enums
-
-//		MeasurementType															
-/// The type of measurement to get statistics for.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, ToSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum MeasurementType {
-	/// Response times.
-	Times,
-	
-	/// Active connections.
-	Connections,
-	
-	/// Memory usage.
-	Memory,
-}
-
-//󰭅		FromStr																	
-impl FromStr for MeasurementType {
-	type Err = ();
-	
-	//		from_str															
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		match s.to_lowercase().as_str() {
-			"times"       => Ok(Self::Times),
-			"connections" => Ok(Self::Connections),
-			"memory"      => Ok(Self::Memory),
-			_             => Err(()),
-		}
-	}
-}
-
-
-
-//		Structs
-
-//		GetStatsHistoryParams													
-/// The parameters for the [`get_stats_history()`] handler.
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, IntoParams, PartialEq)]
-pub struct GetStatsHistoryParams {
-	//		Public properties													
-	/// The buffer to get the statistics for. The buffer items are returned in
-	/// order of most-recent first.
-	pub buffer: Option<MeasurementType>,
-	
-	/// The date and time to get the statistics from. This will apply from the
-	/// given point in time until now, i.e. the check is, "is the time of the
-	/// response item newer than or equal to the given time?". The expected
-	/// format is `YYYY-MM-DDTHH:MM:SS`, e.g. `2023-10-18T06:08:34`.
-	pub from:   Option<NaiveDateTime>,
-	
-	/// The number of buffer entries, i.e. the number of seconds, to get the
-	/// statistics for. This will apply from now backwards, i.e. the count will
-	/// start with the most-recent item and return up to the given number of
-	/// items. If used with [`GetStatsHistoryParams::from`], this may seem
-	/// somewhat counter-intuitive, as the item identified by that parameter may
-	/// not be included in the results, but the items closest to the current
-	/// time are the ones of most interest, and so asking for a maximum number
-	/// of items is most likely to mean the X most-recent items rather than the
-	/// X oldest items. Because the most-recent items are always returned first,
-	/// the [`last_second`](StatsResponse::last_second)/[`last_second`](StatsHistoryResponse::last_second)
-	/// property of the response will always be the time of the first item in
-	/// the list.
-	pub limit:  Option<usize>,
-}
-
-//		GetStatsFeedParams														
-/// The parameters for the [`get_stats_feed()`] handler.
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, IntoParams, PartialEq)]
-pub struct GetStatsFeedParams {
-	//		Public properties													
-	/// The type of measurement to subscribe to statistics for.
-	pub r#type: Option<MeasurementType>,
-}
-
-//		StatsResponse															
-/// The application statistics returned by the `/api/stats` endpoint.
-#[derive(Clone, Debug, PartialEq, Serialize, ToSchema)]
-pub struct StatsResponse {
-	//		Public properties													
-	/// The date and time the application was started.
-	pub started_at:  NaiveDateTime,
-	
-	/// The latest second period that has been completed.
-	pub last_second: NaiveDateTime,
-	
-	/// The amount of time the application has been running, in seconds.
-	pub uptime:      u64,
-	
-	/// The current number of open connections, i.e. requests that have not yet
-	/// been responded to.
-	pub active:      u64,
-	
-	/// The number of requests that have been made. The number of responses will
-	/// be incremented only when the request has been fully handled and a
-	/// response generated.
-	pub requests:    u64,
-	
-	/// The number of responses that have been handled, by status code.
-	#[serde(serialize_with = "serialize_status_codes")]
-	pub codes:       HashMap<StatusCode, u64>,
-	
-	/// The average, maximum, and minimum response times in microseconds, plus
-	/// sample count, grouped by time period.
-	pub times:       IndexMap<String, StatsResponseForPeriod>,
-	
-	/// The average, maximum, and minimum response times in microseconds, plus
-	/// sample count, grouped by endpoint, since the application last started.
-	pub endpoints:   HashMap<Endpoint, StatsResponseForPeriod>,
-	
-	/// The average, maximum, and minimum open connections, plus sample count,
-	/// grouped by time period.
-	pub connections: IndexMap<String, StatsResponseForPeriod>,
-	
-	/// The average, maximum, and minimum memory usage in bytes, plus sample
-	/// count, grouped by time period.
-	pub memory:      IndexMap<String, StatsResponseForPeriod>,
-}
-
-//		StatsHistoryResponse													
-/// The application statistics returned by the `/api/stats/history` endpoint.
-#[derive(Clone, Debug, Default, PartialEq, Serialize, ToSchema)]
-pub struct StatsHistoryResponse {
-	//		Public properties													
-	/// The latest second period that has been completed.
-	pub last_second: NaiveDateTime,
-	
-	/// The average, maximum, and minimum response times in microseconds, plus
-	/// sample count, per second for every second since the application last
-	/// started, or up until the end of the [configured buffer](super::config::Config#structfield.timing_buffer_size).
-	pub times:       Vec<StatsResponseForPeriod>,
-	
-	/// The average, maximum, and minimum open connections, plus sample count,
-	/// per second for every second since the application last started, or up
-	/// until the end of the [configured buffer](super::config::Config#structfield.connection_buffer_size).
-	pub connections: Vec<StatsResponseForPeriod>,
-	
-	/// The average, maximum, and minimum memory usage in bytes, plus sample
-	/// count, per second for every second since the application last started,
-	/// or up until the end of the [configured buffer](super::config::Config#structfield.memory_buffer_size).
-	pub memory:      Vec<StatsResponseForPeriod>,
-}
-
-//		StatsResponseForPeriod													
-/// Average, maximum, minimum, and count of values for a period of time.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, ToSchema)]
-pub struct StatsResponseForPeriod {
-	//		Public properties													
-	/// Average value.
-	pub average: f64,
-	
-	/// Maximum value.
-	pub maximum: u64,
-	
-	/// Minimum value.
-	pub minimum: u64,
-	
-	/// The total number of values.
-	pub count:   u64,
-}
-
-//󰭅		From &StatsForPeriod													
-impl From<&StatsForPeriod> for StatsResponseForPeriod {
-	//		from																
-	fn from(stats: &StatsForPeriod) -> Self {
-		Self {
-			average: stats.average,
-			maximum: stats.maximum,
-			minimum: stats.minimum,
-			count:   stats.count,
-		}
-	}
-}
 
 
 

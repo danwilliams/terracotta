@@ -9,8 +9,8 @@ use crate::{
 		middleware::{User as AuthUser, Credentials as AuthCredentials, UserProvider as AuthUserProvider},
 		state::StateProvider as AuthStateProvider,
 	},
-	health::handlers as health,
-	stats::handlers as stats,
+	health,
+	stats,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -25,18 +25,18 @@ use utoipa::OpenApi;
 #[derive(OpenApi)]
 #[openapi(
 	paths(
-		health::get_ping,
-		health::get_version,
-		stats::get_stats,
-		stats::get_stats_history,
-		stats::get_stats_feed,
+		health::handlers::get_ping,
+		health::handlers::get_version,
+		stats::handlers::get_stats,
+		stats::handlers::get_stats_history,
+		stats::handlers::get_stats_feed,
 	),
 	components(
 		schemas(
-			health::HealthVersionResponse,
-			stats::StatsResponse,
-			stats::StatsResponseForPeriod,
-			stats::StatsHistoryResponse,
+			health::responses::HealthVersionResponse,
+			stats::responses::StatsResponse,
+			stats::responses::StatsResponseForPeriod,
+			stats::responses::StatsHistoryResponse,
 		),
 	),
 	tags(

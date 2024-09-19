@@ -3,7 +3,10 @@
 //		Packages
 
 use super::*;
-use super::super::state::{State, Stats, StatsTotals};
+use super::super::{
+	state::{State, Stats, StatsTotals},
+	worker::Endpoint,
+};
 use crate::{
 	config::Config,
 	state::AppState,
