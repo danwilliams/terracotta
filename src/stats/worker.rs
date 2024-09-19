@@ -246,44 +246,52 @@ pub async fn start_stats_processor<SP: StateProvider>(state: &Arc<SP>) {
 	}
 	drop(stats_state);
 	
-	//	Wait until the start of the next second, to align with it so that the
-	//	tick interval change happens right after the second change, to wrap up
-	//	the data for the period that has just ended.
-	let next_second = current_second.checked_add_signed(TimeDelta::seconds(1)).unwrap_or(current_second);
-	sleep(next_second.signed_duration_since(Utc::now().naive_utc()).to_std().unwrap_or(Duration::from_secs(0))).await;
-	
-	//	Queue processing loop
-	let mut timer = interval(Duration::from_secs(1));
-	drop(spawn(async move { loop { select!{
-		_ = timer.tick() => {
-			//	Ensure last period is wrapped up
-			stats_processor(
-				&appstate,
-				None,
-				&mut timing_stats,
-				&mut conn_stats,
-				&mut memory_stats,
-				&mut current_second,
-			).await;
-		}
-		//	Wait for message - this is a blocking call
-		message = receiver.recv_async() => {
-			if let Ok(response_metrics) = message {
-				//	Process response time
+	drop(spawn(async move {
+		//	Wait until the start of the next second, to align with it so that the
+		//	tick interval change happens right after the second change, to wrap up
+		//	the data for the period that has just ended.
+		sleep(
+			current_second
+				.checked_add_signed(TimeDelta::seconds(1))
+				.unwrap_or(current_second)
+				.signed_duration_since(Utc::now().naive_utc())
+				.to_std()
+				.unwrap_or(Duration::from_secs(0))
+		).await;
+		
+		//	Queue processing loop
+		let mut timer = interval(Duration::from_secs(1));
+		loop { select!{
+			_ = timer.tick() => {
+				//	Ensure last period is wrapped up
 				stats_processor(
 					&appstate,
-					Some(response_metrics),
+					None,
 					&mut timing_stats,
 					&mut conn_stats,
 					&mut memory_stats,
 					&mut current_second,
 				).await;
-			} else {
-				error!("Channel has been disconnected, exiting thread.");
-				break;
 			}
-		}
-	}}}));
+			//	Wait for message - this is a blocking call
+			message = receiver.recv_async() => {
+				if let Ok(response_metrics) = message {
+					//	Process response time
+					stats_processor(
+						&appstate,
+						Some(response_metrics),
+						&mut timing_stats,
+						&mut conn_stats,
+						&mut memory_stats,
+						&mut current_second,
+					).await;
+				} else {
+					error!("Channel has been disconnected, exiting thread.");
+					break;
+				}
+			}
+		}}
+	}));
 }
 
 //		stats_processor															
