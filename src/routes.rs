@@ -6,15 +6,17 @@
 
 use crate::{
 	handlers::get_index,
-	assets::handlers::{get_protected_static_asset, get_public_static_asset},
-	auth::handlers::{get_logout, post_login},
-	health::handlers::{get_ping, get_version},
 	state::AppState,
-	stats::handlers::{get_stats, get_stats_feed, get_stats_history},
 	utility::{Credentials, User},
 };
 use axum::routing::{MethodRouter, get, post};
 use std::sync::Arc;
+use terracotta::{
+	assets::handlers::{get_protected_static_asset, get_public_static_asset},
+	auth::handlers::{get_logout, post_login},
+	health::handlers::{get_ping, get_version},
+	stats::handlers::{get_stats, get_stats_feed, get_stats_history},
+};
 
 
 

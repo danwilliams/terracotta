@@ -21,7 +21,6 @@ use tower_sessions::session::Error as SessionError;
 /// Represents all possible errors that can occur when dealing with
 /// authentication.
 #[derive(Debug, ThisError)]
-#[expect(clippy::enum_variant_names, reason = "Acceptable for error types")]
 #[non_exhaustive]
 pub enum AuthError {
 	/// Error when handling sessions.

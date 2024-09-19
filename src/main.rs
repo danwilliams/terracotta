@@ -10,6 +10,7 @@
 //	Customisations of the standard linting configuration
 #![allow(unreachable_pub,                 reason = "Not useful in a binary crate")]
 #![allow(clippy::doc_markdown,            reason = "Too many false positives")]
+#![allow(clippy::expect_used,             reason = "Acceptable in a binary crate")]
 #![allow(clippy::multiple_crate_versions, reason = "Cannot resolve all these")]
 #![allow(clippy::unwrap_used,             reason = "Somewhat acceptable in a binary crate")]
 
@@ -42,18 +43,36 @@
 
 //		Modules
 
-mod app;
-mod assets;
-mod auth;
 mod config;
 mod core;
-mod errors;
 mod handlers;
-mod health;
 mod routes;
 mod state;
-mod stats;
 mod utility;
+
+/// List of crates used in the library and not in the binary.
+mod lib {
+	use chrono as _;
+	use flume as _;
+	use indexmap as _;
+	use itertools as _;
+	use mime_guess as _;
+	use parking_lot as _;
+	use rubedo as _;
+	use serde_json as _;
+	use thiserror as _;
+	use tikv_jemalloc_ctl as _;
+	use tokio_util as _;
+	use tower_sessions as _;
+	use url as _;
+	use velcro as _;
+}
+
+/// List of crates used only in library tests.
+#[cfg(test)]
+mod lib_tests {
+	use assert_json_diff as _;
+}
 
 
 
@@ -61,17 +80,7 @@ mod utility;
 
 use crate::{
 	core::{RouterExt, load_config, setup_logging, setup_tera},
-	auth::routing::RouterExt as AuthRouterExt,
-	errors::{
-		middleware::no_route,
-		routing::RouterExt as ErrorsRouterExt,
-	},
 	routes::{protected, public},
-	stats::{
-		routing::RouterExt as StatsRouterExt,
-		state::State as StatsState,
-		worker::start_stats_processor,
-	},
 	state::AppState,
 	utility::{ApiDoc, User},
 };
@@ -79,6 +88,18 @@ use axum::Router;
 use ::core::net::SocketAddr;
 use include_dir::include_dir;
 use std::sync::Arc;
+use terracotta::{
+	auth::routing::RouterExt as AuthRouterExt,
+	errors::{
+		middleware::no_route,
+		routing::RouterExt as ErrorsRouterExt,
+	},
+	stats::{
+		routing::RouterExt as StatsRouterExt,
+		state::State as StatsState,
+		worker::start_stats_processor,
+	},
+};
 use tikv_jemallocator::Jemalloc;
 use tokio::{
 	net::TcpListener,
@@ -101,7 +122,6 @@ static GLOBAL: Jemalloc = Jemalloc;
 //		Functions
 
 //		main																	
-#[expect(clippy::expect_used, reason = "Misconfiguration or inability to start, so hard quit")]
 #[tokio::main]
 async fn main() {
 	let config  = load_config();

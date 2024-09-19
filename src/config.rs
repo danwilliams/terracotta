@@ -4,14 +4,14 @@
 
 //		Packages
 
-use crate::{
-	assets::config::Config as AssetsConfig,
-	stats::config::Config as StatsConfig,
-};
 use core::net::IpAddr;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 use std::collections::HashMap;
+use terracotta::{
+	assets::config::Config as AssetsConfig,
+	stats::config::Config as StatsConfig,
+};
 
 
 

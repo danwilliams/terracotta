@@ -4,25 +4,25 @@
 
 //		Packages
 
-use crate::{
-	app::state::StateProvider as AppStateProvider,
-	assets::{
-		config::Config as AssetsConfig,
-		state::StateProvider as AssetsStateProvider,
-	},
-	auth::state::StateProvider as AuthStateProvider,
-	config::Config,
-	stats::{
-		config::Config as StatsConfig,
-		state::{State as StatsState, StateProvider as StatsStateProvider},
-	},
-};
+use crate::config::Config;
 use include_dir::Dir;
 use std::{
 	collections::HashMap,
 	sync::Arc,
 };
 use tera::{Context, Error as TemplateError, Tera};
+use terracotta::{
+	app::state::StateProvider as AppStateProvider,
+	assets::{
+		config::Config as AssetsConfig,
+		state::StateProvider as AssetsStateProvider,
+	},
+	auth::state::StateProvider as AuthStateProvider,
+	stats::{
+		config::Config as StatsConfig,
+		state::{State as StatsState, StateProvider as StatsStateProvider},
+	},
+};
 use tokio::sync::RwLock;
 
 
