@@ -50,6 +50,11 @@ pub enum AssetContext {
 /// * `state` - The application state.
 /// * `uri`   - The URI of the asset.
 /// 
+/// # Errors
+/// 
+/// If the asset is not found, cannot be read, or cannot be served, an error
+/// will be returned.
+/// 
 pub async fn get_protected_static_asset<SP: StateProvider>(
 	State(state): State<Arc<SP>>,
 	uri:          Uri,
@@ -64,6 +69,11 @@ pub async fn get_protected_static_asset<SP: StateProvider>(
 /// 
 /// * `state` - The application state.
 /// * `uri`   - The URI of the asset.
+/// 
+/// # Errors
+/// 
+/// If the asset is not found, cannot be read, or cannot be served, an error
+/// will be returned.
 /// 
 pub async fn get_public_static_asset<SP: StateProvider>(
 	State(state): State<Arc<SP>>,
@@ -80,6 +90,11 @@ pub async fn get_public_static_asset<SP: StateProvider>(
 /// * `state`   - The application state.
 /// * `uri`     - The URI of the asset.
 /// * `context` - The protection context of the asset to serve.
+/// 
+/// # Errors
+/// 
+/// If the asset is not found, cannot be read, or cannot be served, an error
+/// will be returned.
 /// 
 async fn get_static_asset<SP: StateProvider>(
 	state:   Arc<SP>,

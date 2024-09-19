@@ -75,6 +75,10 @@ pub fn extract_uri_query_parts(uri: &Uri) -> HashMap<String, String> {
 /// * `path`   - The path to build the URI from.
 /// * `params` - The query parameters to add to the URI.
 /// 
+/// # Errors
+/// 
+/// If the URI cannot be built, an error will be returned.
+/// 
 pub fn build_uri<P, K, V>(path: P, params: &HashMap<K, V>) -> Result<Uri, InvalidUriParts>
 where
 	P: AsRef<str>,

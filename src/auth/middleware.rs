@@ -104,6 +104,11 @@ impl<U: User> Context<U> {
 	/// 
 	/// * `user` - The user to log in.
 	/// 
+	/// # Errors
+	/// 
+	/// If there is an error setting the session's user ID, an error will be
+	/// returned.
+	/// 
 	pub async fn login(&mut self, user: &U) -> Result<(), AuthError> {
 		self.session.insert(SESSION_USER_ID_KEY, user.id()).await?;
 		self.current_user = Some(user.clone());

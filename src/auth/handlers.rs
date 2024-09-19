@@ -83,6 +83,10 @@ where
 /// * `state` - The application state.
 /// * `uri`   - The request URI.
 /// 
+/// # Errors
+/// 
+/// If there is an error rendering the login page, an error will be returned.
+/// 
 pub async fn get_login<SP: AppStateProvider>(
 	State(state): State<Arc<SP>>,
 	mut uri:      Uri,
@@ -113,6 +117,10 @@ pub async fn get_login<SP: AppStateProvider>(
 /// * `state` - The application state.
 /// * `auth`  - The authentication context.
 /// * `login` - The login form.
+/// 
+/// # Errors
+/// 
+/// If there is an error processing the login form, an error will be returned.
 /// 
 pub async fn post_login<SP, C, U, UP>(
 	State(state): State<Arc<SP>>,

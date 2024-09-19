@@ -61,6 +61,10 @@ pub async fn no_route() -> impl IntoResponse {
 /// * `request` - The request.
 /// * `next`    - The next middleware.
 /// 
+/// # Errors
+/// 
+/// If there is an error rendering the error page, an error will be returned.
+/// 
 pub async fn graceful_error_layer<SP, U>(
 	State(state):       State<Arc<SP>>,
 	Extension(auth_cx): Extension<AuthContext<U>>,

@@ -23,6 +23,11 @@ use std::collections::{BTreeMap, HashMap};
 /// * `status_codes` - The status codes to serialise, as keys, against values.
 /// * `serializer`   - The serialiser to use.
 /// 
+/// # Errors
+/// 
+/// If there is an error serialising the status codes, an error will be
+/// returned.
+/// 
 pub fn serialize_status_codes<S>(status_codes: &HashMap<StatusCode, u64>, serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
