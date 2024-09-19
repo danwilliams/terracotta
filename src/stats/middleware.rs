@@ -118,7 +118,7 @@ pub async fn stats_layer<SP: StateProvider>(
 	//	Add response time to the queue
 	if let Some(ref queue) = stats_state.queue {
 		#[expect(clippy::cast_sign_loss, reason = "We don't ever want a negative for time taken")]
-		drop(queue.send(ResponseMetrics {
+		drop(queue.send_async(ResponseMetrics {
 			endpoint,
 			started_at:  stats_cx.started_at,
 			time_taken:  Utc::now()
@@ -133,7 +133,7 @@ pub async fn stats_layer<SP: StateProvider>(
 				.inspect_err(|err| warn!("Could not read memory usage: {err}"))
 				.unwrap_or_default() as u64
 			,
-		}).inspect_err(|err| error!("Failed to send response time: {err}")));
+		}).await.inspect_err(|err| error!("Failed to send response time: {err}")));
 	}
 	
 	_ = stats_state.data.connections.fetch_sub(1, Ordering::Relaxed);
