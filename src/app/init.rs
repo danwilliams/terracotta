@@ -1,10 +1,10 @@
-//! Core functionality for the application.
+//! Functionality to prepare the application.
 
 
 
 //		Packages
 
-use crate::app::errors::AppError;
+use super::errors::AppError;
 use figment::{
 	Figment,
 	providers::{Env, Format, Serialized, Toml},

@@ -97,9 +97,11 @@ use ::core::net::SocketAddr;
 use include_dir::include_dir;
 use std::sync::Arc;
 use terracotta::{
-	app::routing::RouterExt,
+	app::{
+		init::{load_config, setup_logging, setup_tera},
+		routing::RouterExt,
+	},
 	auth::routing::RouterExt as AuthRouterExt,
-	core::{load_config, setup_logging, setup_tera},
 	errors::{
 		middleware::no_route,
 		routing::RouterExt as ErrorsRouterExt,

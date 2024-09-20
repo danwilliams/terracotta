@@ -43,7 +43,6 @@
 pub mod app;
 pub mod assets;
 pub mod auth;
-pub mod core;
 pub mod errors;
 pub mod health;
 pub mod stats;
