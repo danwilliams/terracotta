@@ -44,7 +44,6 @@
 //		Modules
 
 mod config;
-mod core;
 mod handlers;
 mod routes;
 mod state;
@@ -54,7 +53,9 @@ mod utility;
 mod lib {
 	use bytes as _;
 	use chrono as _;
+	use figment as _;
 	use flume as _;
+	use glob as _;
 	use indexmap as _;
 	use itertools as _;
 	use mime_guess as _;
@@ -66,6 +67,8 @@ mod lib {
 	use tokio_util as _;
 	use tower_http as _;
 	use tower_sessions as _;
+	use tracing_appender as _;
+	use tracing_subscriber as _;
 	use url as _;
 	use utoipa_rapidoc as _;
 	use utoipa_redoc as _;
@@ -84,7 +87,7 @@ mod lib_tests {
 //		Packages
 
 use crate::{
-	core::{load_config, setup_logging, setup_tera},
+	config::Config,
 	routes::{protected, public},
 	state::AppState,
 	utility::{ApiDoc, User},
@@ -96,6 +99,7 @@ use std::sync::Arc;
 use terracotta::{
 	app::routing::RouterExt,
 	auth::routing::RouterExt as AuthRouterExt,
+	core::{load_config, setup_logging, setup_tera},
 	errors::{
 		middleware::no_route,
 		routing::RouterExt as ErrorsRouterExt,
@@ -130,7 +134,7 @@ static GLOBAL: Jemalloc = Jemalloc;
 //		main																	
 #[tokio::main]
 async fn main() {
-	let config  = load_config();
+	let config  = load_config::<Config>().expect("Error loading config");
 	let address = SocketAddr::from((config.host, config.port));
 	let _guard  = setup_logging(&config.logdir);
 	let state   = Arc::new(AppState {
@@ -138,7 +142,7 @@ async fn main() {
 		config,
 		content_dir: Arc::new(include_dir!("content")),
 		stats:       RwLock::new(StatsState::default()),
-		template:    setup_tera(&Arc::new(include_dir!("html"))),
+		template:    setup_tera(&Arc::new(include_dir!("html"))).expect("Error loading templates"),
 	});
 	start_stats_processor(&state).await;
 	let app = Router::new()

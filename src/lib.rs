@@ -43,16 +43,14 @@
 pub mod app;
 pub mod assets;
 pub mod auth;
+pub mod core;
 pub mod errors;
 pub mod health;
 pub mod stats;
 
 /// List of crates used in the binary and not in the library.
 mod main {
-	use figment as _;
 	use tikv_jemallocator as _;
-	use tracing_appender as _;
-	use tracing_subscriber as _;
 }
 
 

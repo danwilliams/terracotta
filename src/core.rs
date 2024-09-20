@@ -4,7 +4,7 @@
 
 //		Packages
 
-use crate::config::Config;
+use crate::app::errors::AppError;
 use figment::{
 	Figment,
 	providers::{Env, Format, Serialized, Toml},
@@ -14,6 +14,7 @@ use std::{
 	io::stdout,
 	sync::Arc,
 };
+use serde::{Serialize, de::DeserializeOwned};
 use tera::Tera;
 use tracing::Level;
 use tracing_appender::{self, non_blocking, non_blocking::WorkerGuard, rolling::daily};
@@ -31,13 +32,23 @@ use tracing_subscriber::{
 
 //		load_config																
 /// Loads the application configuration.
-#[expect(clippy::expect_used, reason = "Misconfiguration or inability to start, so hard quit")]
-pub fn load_config() -> Config {
-	Figment::from(Serialized::defaults(Config::default()))
+/// 
+/// This function loads the configuration from the `Config.toml` file and the
+/// environment variables.
+/// 
+/// # Errors
+/// 
+/// If there is a problem loading the configuration, or if the configuration is
+/// invalid, an error will be returned.
+/// 
+pub fn load_config<T>() -> Result<T, AppError>
+where
+	T: Default + DeserializeOwned + Serialize,
+{
+	Ok(Figment::from(Serialized::defaults(T::default()))
 		.merge(Toml::file("Config.toml"))
 		.merge(Env::raw())
-		.extract()
-		.expect("Error loading config")
+		.extract()?)
 }
 
 //		setup_logging															
@@ -84,28 +95,37 @@ pub fn setup_logging<S: AsRef<str>>(logdir: S) -> WorkerGuard {
 ///                    wrapped inside an [`Arc`] to support reusability across
 ///                    the application if required.
 /// 
-#[expect(clippy::expect_used, reason = "Misconfiguration or inability to start, so hard quit")]
-pub fn setup_tera(template_dir: &Arc<Dir<'static>>) -> Tera {
-	let mut templates = vec![];
-	for file in template_dir.find("**/*.tera.html").expect("Failed to read glob pattern") {
-		templates.push((
-			file
-				.path()
-				.file_name().unwrap()
-				.to_str().unwrap()
-				.strip_suffix(".tera.html").unwrap()
-				.to_owned()
-			,
-			template_dir
-				.get_file(file.path()).unwrap()
-				.contents_utf8().unwrap()
-			,
-		));
-	}
+/// # Errors
+/// 
+/// If there is a problem reading the template files, or if there is an error
+/// parsing the template, an error will be returned.
+/// 
+pub fn setup_tera(template_dir: &Arc<Dir<'static>>) -> Result<Tera, AppError> {
+	let templates = template_dir
+		.find("**/*.tera.html")?
+		.map(|file| {
+			Ok((
+				file
+					.path()
+					.file_name()
+					.and_then(|f| f.to_str())
+					.and_then(|f| f.strip_suffix(".tera.html"))
+					.ok_or_else(|| AppError::InvalidTemplatePath(file.path().to_path_buf()))?
+					.to_owned()
+				,
+				template_dir
+					.get_file(file.path())
+					.ok_or_else(|| AppError::TemplateFileNotFound(file.path().to_path_buf()))?
+					.contents_utf8()
+					.ok_or_else(|| AppError::InvalidTemplateEncoding(file.path().to_path_buf()))?
+				,
+			))
+		}).collect::<Result<Vec<_>, AppError>>()?
+	;
 	let mut tera = Tera::default();
-	tera.add_raw_templates(templates).expect("Error parsing templates");
+	tera.add_raw_templates(templates)?;
 	tera.autoescape_on(vec![".tera.html", ".html"]);
-	tera
+	Ok(tera)
 }
 
 
