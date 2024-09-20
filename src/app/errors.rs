@@ -10,7 +10,10 @@ use axum::{
 };
 use figment::Error as FigmentError;
 use glob::PatternError;
-use std::path::PathBuf;
+use std::{
+	io::Error as IoError,
+	path::PathBuf,
+};
 use tera::Error as TemplateError;
 use thiserror::Error as ThisError;
 
@@ -26,6 +29,14 @@ pub enum AppError {
 	/// Error when loading config.
 	#[error("Configuration error: {0}")]
 	ConfigError(#[from] FigmentError),
+	
+	/// Error when trying to bind to a host and port.
+	#[error("Could not bind to host and port: {0}")]
+	CouldNotBind(#[from] IoError),
+	
+	/// I/O error when trying to start the server.
+	#[error("Could not start server: {0}")]
+	CouldNotStartServer(IoError),
 	
 	/// Error when reading files.
 	#[error("Glob pattern error: {0}")]

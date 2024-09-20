@@ -5,6 +5,7 @@
 //		Packages
 
 use super::{
+	errors::AppError,
 	routing::RouterExt,
 	state::StateProvider,
 };
@@ -27,7 +28,13 @@ use axum::{
 	Router,
 	routing::MethodRouter,
 };
+use core::net::SocketAddr;
 use std::sync::Arc;
+use tokio::{
+	net::TcpListener,
+	task::JoinHandle as TaskHandle,
+	spawn as spawn_async,
+};
 use utoipa::openapi::OpenApi;
 
 
@@ -67,3 +74,33 @@ where
 		.add_http_logging()
 		.add_error_catcher()
 }
+
+//		server																	
+/// Creates the application server.
+/// 
+/// # Parameters
+/// 
+/// * `app`   - The application router.
+/// * `state` - The application state.
+/// 
+/// # Errors
+/// 
+/// If the configured host and port cannot be bound to, or if the server cannot
+/// be started, an error is returned.
+/// 
+pub async fn server<SP>(
+	app:   Router,
+	state: &Arc<SP>
+) -> Result<TaskHandle<Result<(), AppError>>, AppError>
+where
+	SP: StateProvider,
+{
+	let listener = TcpListener::bind(SocketAddr::from((state.host(), state.port()))).await?;
+	state.set_address(Some(listener.local_addr()?));
+	Ok(spawn_async(async move {
+		axum::serve(listener, app).await
+			.map_err(AppError::CouldNotStartServer)
+	}))
+}
+
+
