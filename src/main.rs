@@ -92,22 +92,16 @@ use crate::{
 	state::AppState,
 	utility::{ApiDoc, User},
 };
-use include_dir::include_dir;
-use parking_lot::RwLock;
 use std::sync::Arc;
 use terracotta::{
 	app::{
 		create::{app as create_app, server as create_server},
-		init::{load_config, setup_logging, setup_tera},
+		init::{load_config, setup_logging},
 		state::StateProvider,
 	},
-	stats::{
-		state::State as StatsState,
-		worker::start_stats_processor,
-	},
+	stats::worker::start_stats_processor,
 };
 use tikv_jemallocator::Jemalloc;
-use tokio::sync::RwLock as AsyncRwLock;
 use tracing::info;
 use utoipa::OpenApi;
 
@@ -129,14 +123,7 @@ static GLOBAL: Jemalloc = Jemalloc;
 async fn main() {
 	let config = load_config::<Config>().expect("Error loading config");
 	let _guard = setup_logging(&config.logdir);
-	let state  = Arc::new(AppState {
-		address:     RwLock::new(None),
-		assets_dir:  Arc::new(include_dir!("static")),
-		config,
-		content_dir: Arc::new(include_dir!("content")),
-		stats:       AsyncRwLock::new(StatsState::default()),
-		template:    setup_tera(&Arc::new(include_dir!("html"))).expect("Error loading templates"),
-	});
+	let state  = Arc::new(AppState::new(config));
 	start_stats_processor(&state).await;
 	let app    = create_app::<_, User, User>(&state, protected(), public(), ApiDoc::openapi());
 	let server = create_server(app, &state).await.unwrap();

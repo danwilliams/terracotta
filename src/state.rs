@@ -6,7 +6,7 @@
 
 use crate::config::Config;
 use core::net::{IpAddr, SocketAddr};
-use include_dir::Dir;
+use include_dir::{Dir, include_dir};
 use parking_lot::RwLock;
 use std::{
 	collections::HashMap,
@@ -14,7 +14,10 @@ use std::{
 };
 use tera::{Context, Error as TemplateError, Tera};
 use terracotta::{
-	app::state::StateProvider as AppStateProvider,
+	app::{
+		init::setup_tera,
+		state::StateProvider as AppStateProvider,
+	},
 	assets::{
 		config::Config as AssetsConfig,
 		state::StateProvider as AssetsStateProvider,
@@ -57,6 +60,27 @@ pub struct AppState {
 	
 	/// The Tera template engine.
 	pub template:    Tera,
+}
+
+//󰭅		AppState																
+impl AppState {
+	//		new																	
+	/// Creates a new application state.
+	/// 
+	/// # Parameters
+	/// 
+	/// * `config` - The application configuration.
+	/// 
+	/// # Returns
+	/// 
+	/// The new application state.
+	/// 
+	pub fn new(config: Config) -> Self {
+		Self {
+			config,
+			..Default::default()
+		}
+	}
 }
 
 //󰭅		AppStateProvider														
@@ -115,6 +139,21 @@ impl AuthStateProvider for AppState {
 	//		users																
 	fn users(&self) -> &HashMap<String, String> {
 		&self.config.users
+	}
+}
+
+//󰭅		Default																	
+impl Default for AppState {
+	//		default																
+	fn default() -> Self {
+		Self {
+			address:     RwLock::new(None),
+			assets_dir:  Arc::new(include_dir!("static")),
+			config:      Config::default(),
+			content_dir: Arc::new(include_dir!("content")),
+			stats:       AsyncRwLock::new(StatsState::default()),
+			template:    setup_tera(&Arc::new(include_dir!("html"))).expect("Error loading templates"),
+		}
 	}
 }
 
