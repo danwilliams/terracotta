@@ -81,24 +81,6 @@ where
 		SP: StateProvider,
 		U:  User,
 	;
-	
-	//		public_routes														
-	/// Adds public routes to the router.
-	/// 
-	/// This is a convenience method that adds the given routes to the router.
-	/// It is useful when combined with [`protected_routes()`](#method.protected_routes)
-	/// to clearly separate public and protected routes.
-	/// 
-	/// # Parameters
-	/// 
-	/// * `routes` - The routes to add.
-	/// 
-	/// # See also
-	/// 
-	/// * [`protected_routes()`](#method.protected_routes)
-	/// 
-	#[must_use]
-	fn public_routes(self, routes: Vec<(&str, MethodRouter<S>)>) -> Self;
 }
 
 //󰭅		RouterExt																
@@ -143,15 +125,6 @@ where
 		}
 		router
 			.route_layer(from_fn_with_state(Arc::clone(state), protect::<_, U>))
-	}
-	
-	//		public_routes														
-	fn public_routes(self, routes: Vec<(&str, MethodRouter<S>)>) -> Self {
-		let mut router = self;
-		for (path, method_router) in routes {
-			router = router.route(path, method_router);
-		}
-		router
 	}
 }
 

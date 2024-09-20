@@ -7,6 +7,7 @@
 use axum::{
 	Router,
 	http::HeaderMap,
+	routing::MethodRouter,
 };
 use bytes::Bytes;
 use ::core::time::Duration;
@@ -48,9 +49,28 @@ where
 	/// 
 	#[must_use]
 	fn add_openapi<P: AsRef<str>>(self, prefix: P, openapi: OpenApi) -> Self;
+	
+	//		public_routes														
+	/// Adds public routes to the router.
+	/// 
+	/// This is a convenience method that adds the given routes to the router.
+	/// It is useful when combined with [`protected_routes()`](#method.protected_routes)
+	/// to clearly separate public and protected routes.
+	/// 
+	/// # Parameters
+	/// 
+	/// * `routes` - The routes to add.
+	/// 
+	/// # See also
+	/// 
+	/// * [`protected_routes()`](#method.protected_routes)
+	/// 
+	#[must_use]
+	fn public_routes(self, routes: Vec<(&str, MethodRouter<S>)>) -> Self;
 }
 
 //󰭅		RouterExt																
+#[expect(clippy::similar_names, reason = "Not too similar")]
 impl<S> RouterExt<S> for Router<S>
 where
 	S: Clone + Send + Sync + 'static,
@@ -89,6 +109,15 @@ where
 			.merge(SwaggerUi::new(format!("{}/swagger", prefix.as_ref()))
 				.url(format!("{}/openapi.json", prefix.as_ref()), openapi)
 			)
+	}
+	
+	//		public_routes														
+	fn public_routes(self, routes: Vec<(&str, MethodRouter<S>)>) -> Self {
+		let mut router = self;
+		for (path, method_router) in routes {
+			router = router.route(path, method_router);
+		}
+		router
 	}
 }
 
