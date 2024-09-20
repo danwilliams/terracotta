@@ -49,14 +49,10 @@ pub mod stats;
 
 /// List of crates used in the binary and not in the library.
 mod main {
-	use bytes as _;
 	use figment as _;
 	use tikv_jemallocator as _;
 	use tracing_appender as _;
 	use tracing_subscriber as _;
-	use utoipa_rapidoc as _;
-	use utoipa_redoc as _;
-	use utoipa_swagger_ui as _;
 }
 
 

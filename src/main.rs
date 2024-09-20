@@ -52,6 +52,7 @@ mod utility;
 
 /// List of crates used in the library and not in the binary.
 mod lib {
+	use bytes as _;
 	use chrono as _;
 	use flume as _;
 	use indexmap as _;
@@ -63,8 +64,12 @@ mod lib {
 	use thiserror as _;
 	use tikv_jemalloc_ctl as _;
 	use tokio_util as _;
+	use tower_http as _;
 	use tower_sessions as _;
 	use url as _;
+	use utoipa_rapidoc as _;
+	use utoipa_redoc as _;
+	use utoipa_swagger_ui as _;
 	use velcro as _;
 }
 
@@ -79,7 +84,7 @@ mod lib_tests {
 //		Packages
 
 use crate::{
-	core::{RouterExt, load_config, setup_logging, setup_tera},
+	core::{load_config, setup_logging, setup_tera},
 	routes::{protected, public},
 	state::AppState,
 	utility::{ApiDoc, User},
@@ -89,6 +94,7 @@ use ::core::net::SocketAddr;
 use include_dir::include_dir;
 use std::sync::Arc;
 use terracotta::{
+	app::routing::RouterExt,
 	auth::routing::RouterExt as AuthRouterExt,
 	errors::{
 		middleware::no_route,
