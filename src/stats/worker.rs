@@ -190,7 +190,7 @@ pub struct ResponseMetrics {
 
 //		Functions
 
-//		start_stats_processor													
+//		start																	
 /// Starts the statistics processor.
 /// 
 /// This function starts a thread that will process the statistics queue in
@@ -218,7 +218,7 @@ pub struct ResponseMetrics {
 /// * `receiver` - The receiving end of the queue.
 /// * `state`    - The application state.
 /// 
-pub async fn start_stats_processor<SP: StateProvider>(state: &Arc<SP>) {
+pub async fn start<SP: StateProvider>(state: &Arc<SP>) {
 	if !state.config().enabled {
 		return;
 	}

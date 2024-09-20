@@ -26,12 +26,12 @@ pub struct Config {
 	/// [connection count buffer](Config#structfield.connection_buffer_size),
 	/// and the [memory usage buffer](Config#structfield.memory_buffer_size)
 	/// (default 4.8MB per buffer). If disabled, the
-	/// [statistics processing thread](crate::stats::worker::start_stats_processor())
-	/// will not be started, the buffers' capacities will not be reserved, and
-	/// the [statistics middleware](crate::stats::middleware::stats_layer())
-	/// will do nothing. Under usual circumstances the statistics thread should
-	/// easily be able to keep up with the incoming requests, even on a system
-	/// with hundreds of CPU cores.
+	/// [statistics processing thread](crate::stats::worker::start()) will not
+	/// be started, the buffers' capacities will not be reserved, and the
+	/// [statistics middleware](crate::stats::middleware::stats_layer()) will do
+	/// nothing. Under usual circumstances the statistics thread should easily
+	/// be able to keep up with the incoming requests, even on a system with
+	/// hundreds of CPU cores.
 	#[default = true]
 	pub enabled:                bool,
 	

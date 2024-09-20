@@ -99,7 +99,7 @@ use terracotta::{
 		init::{load_config, setup_logging},
 		state::StateProvider,
 	},
-	stats::worker::start_stats_processor,
+	stats::worker::start as start_stats_processor,
 };
 use tikv_jemallocator::Jemalloc;
 use tracing::info;
