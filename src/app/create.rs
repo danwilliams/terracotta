@@ -85,15 +85,13 @@ where
 /// * `routes`  - The routes.
 /// * `openapi` - The OpenAPI documentation.
 /// 
-pub fn app_minimal<SP, U, UP>(
+pub fn app_minimal<SP>(
 	state:   &Arc<SP>,
 	routes:  Vec<(&str, MethodRouter<Arc<SP>>)>,
 	openapi: OpenApi,
 ) -> Router
 where
-	SP: StateProvider + AuthStateProvider + StatsStateProvider,
-	U:  AuthUser,
-	UP: AuthUserProvider<User = U>,
+	SP: StateProvider,
 {
 	Router::new()
 		.public_routes(routes)
