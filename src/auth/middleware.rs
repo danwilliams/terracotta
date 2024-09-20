@@ -11,6 +11,10 @@ use super::{
 	handlers::get_login,
 	state::StateProvider,
 };
+use crate::{
+	app::state::StateProvider as AppStateProvider,
+	errors::errors::ErrorsError,
+};
 use axum::{
 	Extension,
 	async_trait,
@@ -326,6 +330,67 @@ where
 			).into_response()
 		},
 	}
+}
+
+//		protected_error_layer													
+/// Handles sensitive errors that need to be protected.
+/// 
+/// This function is called when an error occurs.
+/// 
+/// If the error is a 404, it returns either a 404 status code and a 404 page,
+/// or the login page, depending on the user's authentication status.
+/// 
+/// # Parameters
+/// 
+/// * `state`   - The application state.
+/// * `auth_cx` - The authentication context.
+/// * `uri`     - The URI of the request.
+/// * `request` - The request.
+/// * `next`    - The next middleware.
+/// 
+/// # Errors
+/// 
+/// If there is an error rendering the error page, an error will be returned.
+/// 
+pub async fn protected_error_layer<SP, U>(
+	State(state):       State<Arc<SP>>,
+	Extension(auth_cx): Extension<Context<U>>,
+	uri:                Uri,
+	request:            Request<Body>,
+	next:               Next,
+) -> Result<Response, ErrorsError>
+where
+	SP: AppStateProvider,
+	U:  User,
+{
+	let response          = next.run(request).await;
+	let (mut parts, body) = response.into_parts();
+	Ok(match parts.status {
+		//		404: Not Found													
+		StatusCode::NOT_FOUND => {
+			if parts.headers.contains_key("protected") && auth_cx.current_user.is_none() {
+				drop(parts.headers.remove("content-length"));
+				drop(parts.headers.remove("content-type"));
+				drop(parts.headers.remove("protected"));
+				parts.status = StatusCode::UNAUTHORIZED;
+				return Ok((
+					parts,
+					get_login(State(state), uri).await,
+				).into_response());
+			}
+			(
+				parts,
+				body,
+			).into_response()
+		},
+		//		Everything else													
+		_ => {
+			(
+				parts,
+				body,
+			).into_response()
+		},
+	})
 }
 
 

@@ -7,18 +7,11 @@
 //		Packages
 
 use super::errors::ErrorsError;
-use crate::{
-	app::state::StateProvider as AppStateProvider,
-	auth::{
-		handlers::get_login,
-		middleware::{Context as AuthContext, User as AuthUser},
-	},
-};
+use crate::app::state::StateProvider as AppStateProvider;
 use axum::{
-	Extension,
 	body::Body,
 	extract::State,
-	http::{HeaderValue, Request, StatusCode, Uri},
+	http::{HeaderValue, Request, StatusCode},
 	middleware::Next,
 	response::{Html, IntoResponse, Response},
 };
@@ -52,14 +45,11 @@ pub async fn no_route() -> impl IntoResponse {
 /// This function is called when an error occurs. It returns a 500 status code
 /// and a page with the error message.
 /// 
-/// If the error is a 404, it returns a 404 status code and a page with a link
-/// to the login page.
+/// If the error is a 404, it returns a 404 status code and a 404 page.
 /// 
 /// # Parameters
 /// 
 /// * `state`   - The application state.
-/// * `auth_cx` - The authentication context.
-/// * `uri`     - The URI of the request.
 /// * `request` - The request.
 /// * `next`    - The next middleware.
 /// 
@@ -67,16 +57,13 @@ pub async fn no_route() -> impl IntoResponse {
 /// 
 /// If there is an error rendering the error page, an error will be returned.
 /// 
-pub async fn graceful_error_layer<SP, U>(
-	State(state):       State<Arc<SP>>,
-	Extension(auth_cx): Extension<AuthContext<U>>,
-	uri:                Uri,
-	request:            Request<Body>,
-	next:               Next,
+pub async fn graceful_error_layer<SP>(
+	State(state): State<Arc<SP>>,
+	request:      Request<Body>,
+	next:         Next,
 ) -> Result<Response, ErrorsError>
 where
 	SP: AppStateProvider,
-	U:  AuthUser,
 {
 	let response          = next.run(request).await;
 	let (mut parts, body) = response.into_parts();
@@ -85,16 +72,6 @@ where
 		StatusCode::NOT_FOUND => {
 			drop(parts.headers.remove("content-length"));
 			drop(parts.headers.remove("content-type"));
-			if parts.headers.contains_key("protected") {
-				drop(parts.headers.remove("protected"));
-				if auth_cx.current_user.is_none() {
-					parts.status = StatusCode::UNAUTHORIZED;
-					return Ok((
-						parts,
-						get_login(State(state), uri).await,
-					).into_response());
-				}
-			}
 			let mut template = Template::new();
 			template.insert("Title", &state.title());
 			(
@@ -143,6 +120,7 @@ pub async fn final_error_layer(
 ) -> Response {
 	let response = next.run(request).await;
 	match response.status() {
+		//		500: Internal Server Error										
 		StatusCode::INTERNAL_SERVER_ERROR => {
 			let (mut parts, body) = response.into_parts();
 			if parts.headers.contains_key("error-handled") {
@@ -157,6 +135,7 @@ pub async fn final_error_layer(
 				Html(r"<h1>Internal server error</h1>"),
 			).into_response()
 		},
+		//		Everything else													
 		_ => response,
 	}
 }

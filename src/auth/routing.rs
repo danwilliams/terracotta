@@ -5,9 +5,10 @@
 //		Packages
 
 use super::{
-	middleware::{User, UserProvider as UserProvider, auth_layer, protect},
+	middleware::{User, UserProvider as UserProvider, auth_layer, protect, protected_error_layer},
 	state::StateProvider,
 };
+use crate::app::state::StateProvider as AppStateProvider;
 use axum::{
 	Router,
 	middleware::from_fn_with_state,
@@ -43,6 +44,20 @@ where
 		SP: StateProvider,
 		U:  User,
 		UP: UserProvider<User = U>,
+	;
+	
+	//		add_protected_error_catcher											
+	/// Adds an error handler that protects sensitive errors.
+	/// 
+	/// # Parameters
+	/// 
+	/// * `state` - The application state.
+	/// 
+	#[must_use]
+	fn add_protected_error_catcher<SP, U>(self, state: &Arc<SP>) -> Self
+	where
+		SP: AppStateProvider,
+		U:  User,
 	;
 	
 	//		protected_routes													
@@ -104,6 +119,16 @@ where
 		self
 			.layer(from_fn_with_state(Arc::clone(state), auth_layer::<_, U, UP>))
 			.layer(SessionManagerLayer::new(session_store).with_secure(false).with_signed(session_key))
+	}
+	
+	//		add_protected_error_catcher											
+	fn add_protected_error_catcher<SP, U>(self, state: &Arc<SP>) -> Self
+	where
+		SP: AppStateProvider,
+		U:  User,
+	{
+		self
+			.layer(from_fn_with_state(Arc::clone(state), protected_error_layer::<_, U>))
 	}
 	
 	//		protected_routes													

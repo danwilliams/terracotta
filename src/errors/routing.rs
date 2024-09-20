@@ -5,10 +5,7 @@
 //		Packages
 
 use super::middleware::{final_error_layer, graceful_error_layer};
-use crate::{
-	app::state::StateProvider as AppStateProvider,
-	auth::middleware::User as AuthUser,
-};
+use crate::app::state::StateProvider as AppStateProvider;
 use axum::{
 	Router,
 	middleware::{from_fn, from_fn_with_state},
@@ -39,10 +36,9 @@ where
 	/// * `state` - The application state.
 	/// 
 	#[must_use]
-	fn add_error_template<SP, U>(self, state: &Arc<SP>) -> Self
+	fn add_error_template<SP>(self, state: &Arc<SP>) -> Self
 	where
 		SP: AppStateProvider,
-		U:  AuthUser,
 	;
 }
 
@@ -59,14 +55,13 @@ where
 	}
 	
 	//		add_error_template													
-	fn add_error_template<SP, U>(self, state: &Arc<SP>) -> Self
+	fn add_error_template<SP>(self, state: &Arc<SP>) -> Self
 	where
 		SP: AppStateProvider,
-		U:  AuthUser,
 	{
 		self
 			.layer(CatchPanicLayer::new())
-			.layer(from_fn_with_state(Arc::clone(state), graceful_error_layer::<_, U>))
+			.layer(from_fn_with_state(Arc::clone(state), graceful_error_layer))
 	}
 }
 
