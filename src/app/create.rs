@@ -41,8 +41,8 @@ use utoipa::openapi::OpenApi;
 
 //		Functions
 
-//		app																		
-/// Creates the application router.
+//		app_full																
+/// Creates the application router, with full functionality.
 /// 
 /// # Parameters
 /// 
@@ -51,7 +51,7 @@ use utoipa::openapi::OpenApi;
 /// * `public`    - The public routes.
 /// * `openapi`   - The OpenAPI documentation.
 /// 
-pub fn app<SP, U, UP>(
+pub fn app_full<SP, U, UP>(
 	state:     &Arc<SP>,
 	protected: Vec<(&str, MethodRouter<Arc<SP>>)>,
 	public:    Vec<(&str, MethodRouter<Arc<SP>>)>,
@@ -71,6 +71,35 @@ where
 		.add_error_template(state)
 		.add_authentication::<_, U, UP>(state)
 		.add_stats_gathering(state)
+		.with_state(Arc::clone(state))
+		.add_http_logging()
+		.add_error_catcher()
+}
+
+//		app_minimal																
+/// Creates the application router, with minimal functionality.
+/// 
+/// # Parameters
+/// 
+/// * `state`   - The application state.
+/// * `routes`  - The routes.
+/// * `openapi` - The OpenAPI documentation.
+/// 
+pub fn app_minimal<SP, U, UP>(
+	state:   &Arc<SP>,
+	routes:  Vec<(&str, MethodRouter<Arc<SP>>)>,
+	openapi: OpenApi,
+) -> Router
+where
+	SP: StateProvider + AuthStateProvider + StatsStateProvider,
+	U:  AuthUser,
+	UP: AuthUserProvider<User = U>,
+{
+	Router::new()
+		.public_routes(routes)
+		.add_openapi("/api-docs", openapi)
+		.fallback(no_route)
+		.add_error_template(state)
 		.with_state(Arc::clone(state))
 		.add_http_logging()
 		.add_error_catcher()

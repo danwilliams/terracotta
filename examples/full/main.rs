@@ -41,7 +41,7 @@ use crate::{
 use std::sync::Arc;
 use terracotta::{
 	app::{
-		create::{app as create_app, server as create_server},
+		create::{app_full as create_app, server as create_server},
 		errors::AppError,
 		init::{load_config, setup_logging},
 		state::StateProvider,
