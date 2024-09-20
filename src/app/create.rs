@@ -6,28 +6,9 @@
 
 use super::{
 	errors::AppError,
-	routing::RouterExt,
 	state::StateProvider,
 };
-use crate::{
-	auth::{
-		middleware::{User as AuthUser, UserProvider as AuthUserProvider},
-		routing::RouterExt as AuthRouterExt,
-		state::StateProvider as AuthStateProvider,
-	},
-	errors::{
-		middleware::no_route,
-		routing::RouterExt as ErrorsRouterExt,
-	},
-	stats::{
-		routing::RouterExt as StatsRouterExt,
-		state::StateProvider as StatsStateProvider,
-	},
-};
-use axum::{
-	Router,
-	routing::MethodRouter,
-};
+use axum::Router;
 use core::net::SocketAddr;
 use std::sync::Arc;
 use tokio::{
@@ -35,7 +16,31 @@ use tokio::{
 	task::JoinHandle as TaskHandle,
 	spawn as spawn_async,
 };
-use utoipa::openapi::OpenApi;
+
+#[cfg(all(feature = "auth", feature = "stats"))]
+use crate::{
+	auth::{
+		middleware::{User as AuthUser, UserProvider as AuthUserProvider},
+		routing::RouterExt as AuthRouterExt,
+		state::StateProvider as AuthStateProvider,
+	},
+	stats::{
+		routing::RouterExt as StatsRouterExt,
+		state::StateProvider as StatsStateProvider,
+	},
+};
+#[cfg(feature = "errors")]
+use super::routing::RouterExt;
+#[cfg(feature = "errors")]
+use crate::errors::{
+	middleware::no_route,
+	routing::RouterExt as ErrorsRouterExt,
+};
+#[cfg(feature = "errors")]
+use ::{
+	axum::routing::MethodRouter,
+	utoipa::openapi::OpenApi,
+};
 
 
 
@@ -51,6 +56,7 @@ use utoipa::openapi::OpenApi;
 /// * `public`    - The public routes.
 /// * `openapi`   - The OpenAPI documentation.
 /// 
+#[cfg(all(feature = "auth", feature = "stats"))]
 pub fn app_full<SP, U, UP>(
 	state:     &Arc<SP>,
 	protected: Vec<(&str, MethodRouter<Arc<SP>>)>,
@@ -85,6 +91,7 @@ where
 /// * `routes`  - The routes.
 /// * `openapi` - The OpenAPI documentation.
 /// 
+#[cfg(feature = "errors")]
 pub fn app_minimal<SP>(
 	state:   &Arc<SP>,
 	routes:  Vec<(&str, MethodRouter<Arc<SP>>)>,

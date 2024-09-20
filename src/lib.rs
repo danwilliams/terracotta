@@ -41,16 +41,31 @@
 //		Modules
 
 pub mod app;
+#[cfg(feature = "assets")]
 pub mod assets;
+#[cfg(feature = "auth")]
 pub mod auth;
+#[cfg(feature = "errors")]
 pub mod errors;
+#[cfg(feature = "health")]
 pub mod health;
+#[cfg(feature = "stats")]
 pub mod stats;
 
-/// List of crates used in the examples and not in the library.
+/// List of crates used in the examples and not necessarily in the library.
 #[cfg(test)]
 mod examples {
+	use parking_lot as _;
 	use tikv_jemallocator as _;
+}
+
+/// List of crates used in feature-based tests and not necessarily in the
+/// library.
+#[cfg(test)]
+mod feature_based_tests {
+	use assert_json_diff as _;
+	use rubedo as _;
+	use serde_json as _;
 }
 
 
