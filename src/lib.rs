@@ -47,8 +47,9 @@ pub mod errors;
 pub mod health;
 pub mod stats;
 
-/// List of crates used in the binary and not in the library.
-mod main {
+/// List of crates used in the examples and not in the library.
+#[cfg(test)]
+mod examples {
 	use tikv_jemallocator as _;
 }
 
