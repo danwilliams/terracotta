@@ -96,6 +96,7 @@ use std::sync::Arc;
 use terracotta::{
 	app::{
 		create::{app as create_app, server as create_server},
+		errors::AppError,
 		init::{load_config, setup_logging},
 		state::StateProvider,
 	},
@@ -120,15 +121,15 @@ static GLOBAL: Jemalloc = Jemalloc;
 
 //		main																	
 #[tokio::main]
-async fn main() {
-	let config = load_config::<Config>().expect("Error loading config");
+async fn main() -> Result<(), AppError> {
+	let config = load_config::<Config>()?;
 	let _guard = setup_logging(&config.logdir);
 	let state  = Arc::new(AppState::new(config));
 	start_stats_processor(&state).await;
 	let app    = create_app::<_, User, User>(&state, protected(), public(), ApiDoc::openapi());
-	let server = create_server(app, &state).await.unwrap();
-	info!("Listening on {}", state.address().unwrap());
-	server.await.unwrap().unwrap();
+	let server = create_server(app, &state).await?;
+	info!("Listening on {}", state.address().expect("Server address not set"));
+	server.await.unwrap()
 }
 
 
