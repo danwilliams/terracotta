@@ -60,11 +60,7 @@ impl Error for InvalidUriParts {}
 pub fn extract_uri_query_parts(uri: &Uri) -> HashMap<String, String> {
 	uri
 		.query()
-		.map(|v| {
-			form_urlencoded::parse(v.as_bytes())
-				.into_owned()
-				.collect()
-		})
+		.map(|v| form_urlencoded::parse(v.as_bytes()).into_owned().collect())
 		.unwrap_or_default()
 }
 
@@ -88,7 +84,8 @@ where
 	H: BuildHasher,
 {
 	Uri::builder()
-		.path_and_query(format!("{}?{}",
+		.path_and_query(format!(
+			"{}?{}",
 			path.as_ref(),
 			params
 				.iter()

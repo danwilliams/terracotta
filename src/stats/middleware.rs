@@ -61,7 +61,8 @@ where
 	/// * `state` - The application state.
 	/// 
 	async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-		Extension::<Self>::from_request_parts(parts, state).await.map(|Extension(stats_cx)| stats_cx)
+		Extension::<Self>::from_request_parts(parts, state).await
+			.map(|Extension(stats_cx)| stats_cx)
 	}
 }
 
@@ -97,8 +98,8 @@ pub async fn stats_layer<SP: StateProvider>(
 	
 	//	Obtain endpoint details
 	let endpoint = Endpoint {
-		path:      request.uri().path().to_owned(),
-		method:    request.method().clone(),
+		path:   request.uri().path().to_owned(),
+		method: request.method().clone(),
 	};
 	
 	//	Update requests counter

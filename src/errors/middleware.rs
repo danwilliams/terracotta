@@ -82,7 +82,7 @@ where
 	let (mut parts, body) = response.into_parts();
 	Ok(match parts.status {
 		//		404: Not Found													
-		StatusCode::NOT_FOUND             => {
+		StatusCode::NOT_FOUND => {
 			drop(parts.headers.remove("content-length"));
 			drop(parts.headers.remove("content-type"));
 			if parts.headers.contains_key("protected") {
@@ -116,7 +116,7 @@ where
 			).into_response()
 		},
 		//		Everything else													
-		_                                 => {
+		_ => {
 			(
 				parts,
 				body,
@@ -138,8 +138,8 @@ where
 /// * `next`    - The next middleware.
 /// 
 pub async fn final_error_layer(
-	request:  Request<Body>,
-	next:     Next,
+	request: Request<Body>,
+	next:    Next,
 ) -> Response {
 	let response = next.run(request).await;
 	match response.status() {
@@ -157,7 +157,7 @@ pub async fn final_error_layer(
 				Html(r"<h1>Internal server error</h1>"),
 			).into_response()
 		},
-		_                                 => response,
+		_ => response,
 	}
 }
 

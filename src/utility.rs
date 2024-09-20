@@ -103,7 +103,8 @@ impl AuthUserProvider for User {
 		state:       &Arc<SP>,
 		credentials: &Self::Credentials,
 	) -> Option<Self> {
-		state.users()
+		state
+			.users()
 			.get(&credentials.username)
 			.filter(|&pass| pass == &credentials.password)
 			.map(|_| Self { username: credentials.username.clone() })
@@ -114,7 +115,8 @@ impl AuthUserProvider for User {
 		state: &Arc<SP>,
 		id:    &<Self::User as AuthUser>::Id,
 	) -> Option<Self> {
-		state.users()
+		state
+			.users()
 			.get(id)
 			.map(|_| Self { username: id.to_owned() })
 	}

@@ -112,8 +112,8 @@ use utoipa::OpenApi;
 
 //		Constants
 
-/// The global allocator. This is changed to Jemalloc in order to obtain memory
-/// usage statistics.
+/// The global allocator. This is changed to [`Jemalloc`] in order to obtain
+/// memory usage statistics.
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 

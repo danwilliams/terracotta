@@ -108,7 +108,7 @@ async fn get_static_asset<SP: StateProvider>(
 	let path      = uri.path().trim_start_matches('/');
 	let mime_type = mime_guess::from_path(path).first_or_text_plain();
 	let (basedir, local_path, behavior) = match context {
-		AssetContext::Public    => (
+		AssetContext::Public => (
 			state.assets_dir(),
 			state.config().local_paths.public_assets.join(path),
 			&state.config().local_loading.public_assets
@@ -134,14 +134,14 @@ async fn get_static_asset<SP: StateProvider>(
 		let metadata = file.metadata().await
 			.map_err(|err| AssetsError::FailedToGetLocalFileMetadata(local_path.clone(), err))?
 		;
-		let config   = &state.config().static_files;
+		let config = &state.config().static_files;
 		if metadata.len() > config.stream_threshold.saturating_mul(1_024) as u64 {
 			let reader = BufReader::with_capacity(config.read_buffer.saturating_mul(1_024), file);
 			let stream = ReaderStream::with_capacity(reader, config.stream_buffer.saturating_mul(1_024));
 			Body::from_stream(stream)
 		} else {
 			let mut contents = vec![];
-			let _count = file.read_to_end(&mut contents).await
+			let _count       = file.read_to_end(&mut contents).await
 				.map_err(|err| AssetsError::FailedToReadLocalFile(local_path, err))?
 			;
 			Body::from(contents)

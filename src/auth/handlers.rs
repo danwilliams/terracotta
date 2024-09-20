@@ -48,13 +48,13 @@ pub async fn get_login<SP: AppStateProvider>(
 	State(state): State<Arc<SP>>,
 	mut uri:      Uri,
 ) -> Result<Html<String>, AuthError> {
-	let mut params  = extract_uri_query_parts(&uri);
-	let mut failed  = false;
+	let mut params = extract_uri_query_parts(&uri);
+	let mut failed = false;
 	if params.contains_key("failed") {
-		failed      = true;
+		failed     = true;
 		drop(params.remove("failed"));
 	}
-	uri             = build_uri(uri.path(), &params)?;
+	uri              = build_uri(uri.path(), &params)?;
 	let mut template = Template::new();
 	template.insert("Title",   &state.title());
 	template.insert("PageURL", &uri.path_and_query().map_or_else(|| s!("/"), ToString::to_string));
@@ -99,7 +99,11 @@ where
 		drop(params.insert(s!("failed"), s!("")));
 		warn!("Failed login attempt for user: {}", &login.credentials.to_loggable_string());
 	}
-	Ok(Redirect::to(&build_uri(uri.path(), &params)?.path_and_query().map_or_else(|| s!("/"), ToString::to_string)))
+	Ok(Redirect::to(
+		&build_uri(uri.path(), &params)?
+			.path_and_query()
+			.map_or_else(|| s!("/"), ToString::to_string)
+	))
 }
 
 //		get_logout																

@@ -44,7 +44,10 @@ pub enum AuthError {
 impl IntoResponse for AuthError {
 	//		into_response														
 	fn into_response(self) -> Response {
-		(StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response()
+		(
+			StatusCode::INTERNAL_SERVER_ERROR,
+			self.to_string(),
+		).into_response()
 	}
 }
 

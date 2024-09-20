@@ -159,10 +159,10 @@ pub async fn get_stats<SP: StateProvider>(
 	let memory_output = convert_map(memory_input, &totals.memory);
 	
 	//		Build response data													
-	let now        = Utc::now().naive_utc();
+	let now      = Utc::now().naive_utc();
 	#[expect(clippy::arithmetic_side_effects, reason = "Nothing interesting can happen here")]
 	#[expect(clippy::cast_sign_loss,          reason = "We don't ever want a negative for uptime")]
-	let response   = Json(StatsResponse {
+	let response = Json(StatsResponse {
 		started_at:  stats_state.data.started_at.trunc_subsecs(0),
 		last_second: *stats_state.data.last_second.read(),
 		uptime:      (now - stats_state.data.started_at).num_seconds() as u64,
@@ -250,16 +250,16 @@ pub async fn get_stats_history<SP: StateProvider>(
 	};
 	//	Convert the statistics buffers
 	match params.buffer {
-		Some(MeasurementType::Times)       => {
+		Some(MeasurementType::Times) => {
 			response.times       = process_buffer(&buffers.responses,   params.from, params.limit);
 		},
 		Some(MeasurementType::Connections) => {
 			response.connections = process_buffer(&buffers.connections, params.from, params.limit);
 		},
-		Some(MeasurementType::Memory)      => {
+		Some(MeasurementType::Memory) => {
 			response.memory      = process_buffer(&buffers.memory,      params.from, params.limit);
 		},
-		None                               => {
+		None => {
 			response.times       = process_buffer(&buffers.responses,   params.from, params.limit);
 			response.connections = process_buffer(&buffers.connections, params.from, params.limit);
 			response.memory      = process_buffer(&buffers.memory,      params.from, params.limit);
@@ -336,7 +336,7 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 	info!("WebSocket connection established");
 	//	Subscribe to the broadcast channel
 	#[expect(clippy::significant_drop_in_scrutinee, reason = "Short-lived")]
-	let mut rx        = if let Some(ref broadcaster) = state.state().read().await.broadcaster {
+	let mut rx = if let Some(ref broadcaster) = state.state().read().await.broadcaster {
 		broadcaster.subscribe()
 	} else {
 		warn!("Broadcast channel not available");
@@ -360,6 +360,7 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 			}
 			last_ping = Some(Instant::now());
 		},
+		
 		//		Ping/pong timeout												
 		//	Check for ping timeout (X seconds since the last ping without a pong)
 		_ = timeout.tick() => {
@@ -371,6 +372,7 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 				}
 			}
 		},
+		
 		//		Incoming message												
 		//	Handle incoming messages from the WebSocket
 		Some(msg) = ws.recv() => {
@@ -381,45 +383,46 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 						break;
 					}
 				}
-				Ok(Message::Pong(_))    => {
+				Ok(Message::Pong(_)) => {
 					last_pong = Instant::now();
 				}
-				Ok(Message::Close(_))   => {
+				Ok(Message::Close(_)) => {
 					info!("WebSocket connection closed");
 					break;
 				}
-				Ok(Message::Text(_))    => {
+				Ok(Message::Text(_)) => {
 					warn!("Unexpected WebSocket text message");
 				}
-				Ok(Message::Binary(_))  => {
+				Ok(Message::Binary(_)) => {
 					warn!("Unexpected WebSocket binary message");
 				}
-				Err(err)                => {
+				Err(err) => {
 					warn!("WebSocket error: {err}");
 					break;
 				}
 				#[expect(unreachable_patterns, reason = "Future-proofing")]
-				_                       => {
+				_ => {
 					//	At present there are no other message types, but this is here to catch
 					//	any future additions.
 					warn!("Unknown WebSocket message type");
 				}
 			}	
 		}
+		
 		//		Send stats data													
 		//	Handle new data from the broadcast channel
 		Ok(data) = rx.recv() => {
 			let response = match scope {
-				Some(MeasurementType::Times)       => {
+				Some(MeasurementType::Times)  => {
 					json!{StatsResponseForPeriod::from(&data.times)}
 				},
 				Some(MeasurementType::Connections) => {
 					json!{StatsResponseForPeriod::from(&data.connections)}
 				},
-				Some(MeasurementType::Memory)      => {
+				Some(MeasurementType::Memory) => {
 					json!{StatsResponseForPeriod::from(&data.memory)}
 				},
-				None                               => {
+				None => {
 					json!{btree_map!{
 						"times":       StatsResponseForPeriod::from(&data.times),
 						"connections": StatsResponseForPeriod::from(&data.connections),

@@ -173,11 +173,17 @@ pub fn setup_tera(template_dir: &Arc<Dir<'static>>) -> Tera {
 	let mut templates = vec![];
 	for file in template_dir.find("**/*.tera.html").expect("Failed to read glob pattern") {
 		templates.push((
-			file.path().file_name().unwrap()
+			file
+				.path()
+				.file_name().unwrap()
 				.to_str().unwrap()
 				.strip_suffix(".tera.html").unwrap()
-				.to_owned(),
-			template_dir.get_file(file.path()).unwrap().contents_utf8().unwrap(),
+				.to_owned()
+			,
+			template_dir
+				.get_file(file.path()).unwrap()
+				.contents_utf8().unwrap()
+			,
 		));
 	}
 	let mut tera = Tera::default();

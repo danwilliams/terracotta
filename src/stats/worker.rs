@@ -345,7 +345,7 @@ async fn stats_processor<SP: StateProvider>(
 			stats.started_at = current_second.checked_add_signed(TimeDelta::seconds(i)).unwrap_or(*current_second);
 			buffer.push_front(*stats);
 			update_message(stats, message);
-			*stats           = StatsForPeriod::default();
+			*stats = StatsForPeriod::default();
 		}
 	}
 	
