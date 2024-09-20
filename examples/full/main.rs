@@ -20,6 +20,7 @@
 
 //		Modules
 
+mod auth;
 mod config;
 mod handlers;
 mod routes;
@@ -31,10 +32,11 @@ mod utility;
 //		Packages
 
 use crate::{
+	auth::User,
 	config::Config,
 	routes::{protected, public},
 	state::AppState,
-	utility::{ApiDoc, User},
+	utility::ApiDoc,
 };
 use std::sync::Arc;
 use terracotta::{

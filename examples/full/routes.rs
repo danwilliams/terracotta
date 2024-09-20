@@ -5,9 +5,9 @@
 //		Packages
 
 use crate::{
+	auth::{Credentials, User},
 	handlers::get_index,
 	state::AppState,
-	utility::{Credentials, User},
 };
 use axum::routing::{MethodRouter, get, post};
 use std::sync::Arc;
