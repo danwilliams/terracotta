@@ -92,22 +92,15 @@ use crate::{
 	state::AppState,
 	utility::{ApiDoc, User},
 };
-use axum::Router;
 use ::core::net::SocketAddr;
 use include_dir::include_dir;
 use std::sync::Arc;
 use terracotta::{
 	app::{
+		create::app as create_app,
 		init::{load_config, setup_logging, setup_tera},
-		routing::RouterExt,
-	},
-	auth::routing::RouterExt as AuthRouterExt,
-	errors::{
-		middleware::no_route,
-		routing::RouterExt as ErrorsRouterExt,
 	},
 	stats::{
-		routing::RouterExt as StatsRouterExt,
 		state::State as StatsState,
 		worker::start_stats_processor,
 	},
@@ -147,18 +140,7 @@ async fn main() {
 		template:    setup_tera(&Arc::new(include_dir!("html"))).expect("Error loading templates"),
 	});
 	start_stats_processor(&state).await;
-	let app = Router::new()
-		.protected_routes::<_, User>(protected(), &state)
-		.public_routes(public())
-		.add_openapi("/api-docs", ApiDoc::openapi())
-		.fallback(no_route)
-		.add_error_template::<_, User>(&state)
-		.add_authentication::<_, User, User>(&state)
-		.add_stats_gathering(&state)
-		.with_state(state)
-		.add_http_logging()
-		.add_error_catcher()
-	;
+	let app               = create_app::<_, User, User>(&state, protected(), public(), ApiDoc::openapi());
 	let listener          = TcpListener::bind(address).await.unwrap();
 	let allocated_address = listener.local_addr().expect("Failed to get local address");
 	info!("Listening on {allocated_address}");
