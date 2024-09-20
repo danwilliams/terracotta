@@ -10,6 +10,14 @@ license      = "MIT"
 authors      = ["Dan Williams <dan@dotfive.co.uk>"]
 repository   = "https://github.com/danwilliams/terracotta"
 readme       = "README.md"
+exclude      = [
+    "content/",
+    "docs/",
+    "examples/",
+    "html/",
+    "licenses/",
+    "static/",
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
