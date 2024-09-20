@@ -94,11 +94,13 @@ use crate::{
 };
 use ::core::net::SocketAddr;
 use include_dir::include_dir;
+use parking_lot::RwLock;
 use std::sync::Arc;
 use terracotta::{
 	app::{
 		create::app as create_app,
 		init::{load_config, setup_logging, setup_tera},
+		state::StateProvider,
 	},
 	stats::{
 		state::State as StatsState,
@@ -108,7 +110,7 @@ use terracotta::{
 use tikv_jemallocator::Jemalloc;
 use tokio::{
 	net::TcpListener,
-	sync::RwLock,
+	sync::RwLock as AsyncRwLock,
 };
 use tracing::info;
 use utoipa::OpenApi;
@@ -133,17 +135,18 @@ async fn main() {
 	let address = SocketAddr::from((config.host, config.port));
 	let _guard  = setup_logging(&config.logdir);
 	let state   = Arc::new(AppState {
+		address:     RwLock::new(None),
 		assets_dir:  Arc::new(include_dir!("static")),
 		config,
 		content_dir: Arc::new(include_dir!("content")),
-		stats:       RwLock::new(StatsState::default()),
+		stats:       AsyncRwLock::new(StatsState::default()),
 		template:    setup_tera(&Arc::new(include_dir!("html"))).expect("Error loading templates"),
 	});
 	start_stats_processor(&state).await;
-	let app               = create_app::<_, User, User>(&state, protected(), public(), ApiDoc::openapi());
-	let listener          = TcpListener::bind(address).await.unwrap();
-	let allocated_address = listener.local_addr().expect("Failed to get local address");
-	info!("Listening on {allocated_address}");
+	let app      = create_app::<_, User, User>(&state, protected(), public(), ApiDoc::openapi());
+	let listener = TcpListener::bind(address).await.unwrap();
+	state.set_address(Some(listener.local_addr().expect("Failed to get local address")));
+	info!("Listening on {}", state.address().unwrap());
 	axum::serve(listener, app).await.unwrap();
 }
 

@@ -5,7 +5,9 @@
 //		Packages
 
 use crate::config::Config;
+use core::net::{IpAddr, SocketAddr};
 use include_dir::Dir;
+use parking_lot::RwLock;
 use std::{
 	collections::HashMap,
 	sync::Arc,
@@ -23,7 +25,7 @@ use terracotta::{
 		state::{State as StatsState, StateProvider as StatsStateProvider},
 	},
 };
-use tokio::sync::RwLock;
+use tokio::sync::RwLock as AsyncRwLock;
 
 
 
@@ -38,6 +40,9 @@ use tokio::sync::RwLock;
 #[derive(Debug)]
 pub struct AppState {
 	//		Public properties													
+	/// The address the server is running on.
+	pub address:     RwLock<Option<SocketAddr>>,
+	
 	/// The directory containing the static assets.
 	pub assets_dir:  Arc<Dir<'static>>,
 	
@@ -48,7 +53,7 @@ pub struct AppState {
 	pub content_dir: Arc<Dir<'static>>,
 	
 	/// The application statistics.
-	pub stats:       RwLock<StatsState>,
+	pub stats:       AsyncRwLock<StatsState>,
 	
 	/// The Tera template engine.
 	pub template:    Tera,
@@ -56,9 +61,29 @@ pub struct AppState {
 
 //󰭅		AppStateProvider														
 impl AppStateProvider for AppState {
+	//		address																
+	fn address(&self) -> Option<SocketAddr> {
+		*self.address.read()
+	}
+	
+	//		host																
+	fn host(&self) -> IpAddr {
+		self.config.host
+	}
+	
+	//		port																
+	fn port(&self) -> u16 {
+		self.config.port
+	}
+	
 	//		render																
 	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, TemplateError> {
 		self.template.render(template.as_ref(), context)
+	}
+	
+	//		set_address															
+	fn set_address(&self, address: Option<SocketAddr>) {
+		*self.address.write() = address;
 	}
 	
 	//		title																
@@ -101,7 +126,7 @@ impl StatsStateProvider for AppState {
 	}
 	
 	//		state																
-	fn state(&self) -> &RwLock<StatsState> {
+	fn state(&self) -> &AsyncRwLock<StatsState> {
 		&self.stats
 	}
 }
