@@ -30,12 +30,17 @@ lto       = "thin" # Enable link-time optimisation (fast)
 
 [features]
 default = []
-full    = ["assets", "auth", "errors", "health", "stats"]
-assets  = [          "dep:mime_guess", "dep:rubedo", "dep:smart-default", "dep:tokio-util"]
-auth    = ["errors", "dep:tower-sessions", "dep:url"]
-errors  = [          "dep:rubedo"]
-health  = [          ]
-stats   = [          "dep:chrono", "dep:flume", "dep:indexmap", "dep:itertools", "dep:parking_lot", "dep:rubedo", "dep:serde_json", "dep:smart-default", "dep:tikv-jemalloc-ctl", "dep:velcro"]
+full    = ["assets", "auth", "errors", "health", "stats", "tera"]
+
+#	Feature modules
+assets  = [                  "dep:include_dir", "dep:mime_guess", "dep:rubedo", "dep:smart-default", "dep:tokio-util"]
+auth    = ["errors",         "dep:tower-sessions", "dep:url"]
+errors  = [          "tera", "dep:rubedo"]
+health  = [                  ]
+stats   = [                  "dep:chrono", "dep:flume", "dep:indexmap", "dep:itertools", "dep:parking_lot", "dep:rubedo", "dep:serde_json", "dep:smart-default", "dep:tikv-jemalloc-ctl", "dep:velcro"]
+
+#	Feature abilities
+tera    = [                  "dep:include_dir", "dep:tera"]
 
 #==============================[  DEPENDENCIES  ]===============================
 
@@ -46,7 +51,7 @@ chrono             = { optional = true, version = "0.4.38", features = ["std", "
 figment            = {                  version = "0.10.19", features = ["toml", "env"] }
 flume              = { optional = true, version = "0.11.0", features = ["async"] }
 glob               = {                  version = "0.3.1" }
-include_dir        = {                  version = "0.7.4", features = ["glob"] }
+include_dir        = { optional = true, version = "0.7.4", features = ["glob"] }
 indexmap           = { optional = true, version = "2.5.0", features = ["serde"] }
 itertools          = { optional = true, version = "0.13.0" }
 mime_guess         = { optional = true, version = "2.0.5" }
@@ -55,7 +60,7 @@ rubedo             = { optional = true, version = "0.6.2" }
 serde              = {                  version = "1.0.210", features = ["derive"] }
 serde_json         = { optional = true, version = "1.0.128", features = ["preserve_order"] }
 smart-default      = { optional = true, version = "0.7.1" }
-tera               = {                  version = "1.20.0" }
+tera               = { optional = true, version = "1.20.0" }
 thiserror          = {                  version = "1.0.63" }
 tikv-jemalloc-ctl  = { optional = true, version = "0.6.0", features = ["stats"] }
 tokio              = {                  version = "1.40.0", features = ["fs", "io-std", "io-util", "macros", "rt-multi-thread"] }

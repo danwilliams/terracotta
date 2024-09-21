@@ -6,15 +6,9 @@
 
 use crate::config::Config;
 use core::net::{IpAddr, SocketAddr};
-use include_dir::include_dir;
 use parking_lot::RwLock;
-use std::sync::Arc;
-use tera::{Context, Error as TemplateError, Tera};
 use terracotta::{
-	app::{
-		init::setup_tera,
-		state::StateProvider as AppStateProvider,
-	},
+	app::state::StateProvider as AppStateProvider,
 	stats::{
 		config::Config as StatsConfig,
 		state::{State as StatsState, StateProvider as StatsStateProvider},
@@ -36,16 +30,13 @@ use tokio::sync::RwLock as AsyncRwLock;
 pub struct AppState {
 	//		Public properties													
 	/// The address the server is running on.
-	pub address:     RwLock<Option<SocketAddr>>,
+	pub address: RwLock<Option<SocketAddr>>,
 	
 	/// The application configuration.
-	pub config:      Config,
+	pub config:  Config,
 	
 	/// The application statistics.
-	pub stats:       AsyncRwLock<StatsState>,
-	
-	/// The Tera template engine.
-	pub template:    Tera,
+	pub stats:   AsyncRwLock<StatsState>,
 }
 
 //󰭅		AppState																
@@ -86,11 +77,6 @@ impl AppStateProvider for AppState {
 		self.config.port
 	}
 	
-	//		render																
-	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, TemplateError> {
-		self.template.render(template.as_ref(), context)
-	}
-	
 	//		set_address															
 	fn set_address(&self, address: Option<SocketAddr>) {
 		*self.address.write() = address;
@@ -107,10 +93,9 @@ impl Default for AppState {
 	//		default																
 	fn default() -> Self {
 		Self {
-			address:  RwLock::new(None),
-			config:   Config::default(),
-			stats:    AsyncRwLock::new(StatsState::default()),
-			template: setup_tera(&Arc::new(include_dir!("html"))).expect("Error loading templates"),
+			address: RwLock::new(None),
+			config:  Config::default(),
+			stats:   AsyncRwLock::new(StatsState::default()),
 		}
 	}
 }

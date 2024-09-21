@@ -14,8 +14,10 @@ use std::{
 	io::Error as IoError,
 	path::PathBuf,
 };
-use tera::Error as TemplateError;
 use thiserror::Error as ThisError;
+
+#[cfg(feature = "tera")]
+use tera::Error as TemplateError;
 
 
 
@@ -52,10 +54,12 @@ pub enum AppError {
 	InvalidTemplatePath(PathBuf),
 	
 	/// Error when rendering the template.
+	#[cfg(feature = "tera")]
 	#[error("Template error: {0}")]
 	TemplateError(#[from] TemplateError),
 	
 	/// The template file specified could not be found.
+	#[cfg(feature = "tera")]
 	#[error("Template file not found: {0}")]
 	TemplateFileNotFound(PathBuf),
 }

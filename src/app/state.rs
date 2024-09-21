@@ -5,6 +5,8 @@
 //		Packages
 
 use core::net::{IpAddr, SocketAddr};
+
+#[cfg(feature = "tera")]
 use tera::{Context, Error as TemplateError};
 
 
@@ -38,6 +40,7 @@ pub trait StateProvider: Send + Sync + 'static {
 	/// 
 	/// If the template cannot be rendered, an error is returned.
 	/// 
+	#[cfg(feature = "tera")]
 	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, TemplateError>;
 	
 	//		set_address															

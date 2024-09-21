@@ -9,13 +9,8 @@ use figment::{
 	Figment,
 	providers::{Env, Format, Serialized, Toml},
 };
-use include_dir::Dir;
-use std::{
-	io::stdout,
-	sync::Arc,
-};
+use std::io::stdout;
 use serde::{Serialize, de::DeserializeOwned};
-use tera::Tera;
 use tracing::Level;
 use tracing_appender::{self, non_blocking, non_blocking::WorkerGuard, rolling::daily};
 use tracing_subscriber::{
@@ -24,6 +19,13 @@ use tracing_subscriber::{
 	layer::SubscriberExt,
 	registry,
 	util::SubscriberInitExt,
+};
+
+#[cfg(feature = "tera")]
+use ::{
+	include_dir::Dir,
+	std::sync::Arc,
+	tera::Tera,
 };
 
 
@@ -103,6 +105,7 @@ pub fn setup_logging<S: AsRef<str>>(logdir: S) -> WorkerGuard {
 /// If there is a problem reading the template files, or if there is an error
 /// parsing the template, an error will be returned.
 /// 
+#[cfg(feature = "tera")]
 pub fn setup_tera(template_dir: &Arc<Dir<'static>>) -> Result<Tera, AppError> {
 	let templates = template_dir
 		.find("**/*.tera.html")?
