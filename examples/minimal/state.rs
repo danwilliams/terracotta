@@ -99,7 +99,9 @@ impl Default for AppState {
 		Self {
 			address:  RwLock::new(None),
 			config:   Config::default(),
-			template: setup_tera(&Arc::new(include_dir!("html"))).expect("Error loading templates"),
+			template: setup_tera(&Arc::new(include_dir!("examples/resources/html")))
+				.expect("Error loading templates")
+			,
 		}
 	}
 }

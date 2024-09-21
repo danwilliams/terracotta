@@ -148,11 +148,13 @@ impl Default for AppState {
 	fn default() -> Self {
 		Self {
 			address:     RwLock::new(None),
-			assets_dir:  Arc::new(include_dir!("static")),
+			assets_dir:  Arc::new(include_dir!("examples/resources/static")),
 			config:      Config::default(),
-			content_dir: Arc::new(include_dir!("content")),
+			content_dir: Arc::new(include_dir!("examples/resources/content")),
 			stats:       AsyncRwLock::new(StatsState::default()),
-			template:    setup_tera(&Arc::new(include_dir!("html"))).expect("Error loading templates"),
+			template:    setup_tera(&Arc::new(include_dir!("examples/resources/html")))
+				.expect("Error loading templates")
+			,
 		}
 	}
 }
