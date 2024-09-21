@@ -83,6 +83,11 @@ tikv-jemallocator  = "0.6.0"
 #================================[  EXAMPLES  ]=================================
 
 [[example]]
+name = "api"
+path = "examples/api/main.rs"
+required-features = ["health", "stats"]
+
+[[example]]
 name = "full"
 path = "examples/full/main.rs"
 required-features = ["full"]

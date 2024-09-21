@@ -1,0 +1,18 @@
+host   = "127.0.0.1"
+port   = 8000
+logdir = "log"
+title  = "Terracotta"
+
+[stats]
+enabled                = true
+timing_buffer_size     = 86_400 # One day: 60 * 60 * 24
+connection_buffer_size = 86_400 # One day: 60 * 60 * 24
+memory_buffer_size     = 86_400 # One day: 60 * 60 * 24
+ws_ping_interval       = 60
+ws_ping_timeout        = 10
+
+[stats.periods]
+second =      1
+minute =     60
+hour   =  3_600
+day    = 86_400
