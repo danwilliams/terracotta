@@ -21,6 +21,8 @@ use tokio::{
 	time::{interval, sleep},
 };
 use tracing::error;
+
+#[cfg(feature = "utoipa")]
 use utoipa::ToSchema;
 
 
@@ -139,7 +141,8 @@ impl StatsForPeriod {
 //		AllStatsForPeriod														
 /// Average, maximum, minimum, and count of values for a period of time, for all
 /// areas being measured.
-#[derive(Clone, Debug, Default, PartialEq, Serialize, ToSchema)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize)]
+#[cfg_attr(feature = "utoipa", derive(ToSchema))]
 #[non_exhaustive]
 pub struct AllStatsForPeriod {
 	//		Public properties													

@@ -13,6 +13,8 @@ use chrono::NaiveDateTime;
 use indexmap::IndexMap;
 use serde::Serialize;
 use std::collections::HashMap;
+
+#[cfg(feature = "utoipa")]
 use utoipa::ToSchema;
 
 
@@ -21,7 +23,8 @@ use utoipa::ToSchema;
 
 //		StatsResponse															
 /// The application statistics returned by the `/api/stats` endpoint.
-#[derive(Clone, Debug, PartialEq, Serialize, ToSchema)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "utoipa", derive(ToSchema))]
 #[non_exhaustive]
 pub struct StatsResponse {
 	//		Public properties													
@@ -66,7 +69,8 @@ pub struct StatsResponse {
 
 //		StatsHistoryResponse													
 /// The application statistics returned by the `/api/stats/history` endpoint.
-#[derive(Clone, Debug, Default, PartialEq, Serialize, ToSchema)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize)]
+#[cfg_attr(feature = "utoipa", derive(ToSchema))]
 #[non_exhaustive]
 pub struct StatsHistoryResponse {
 	//		Public properties													
@@ -91,7 +95,8 @@ pub struct StatsHistoryResponse {
 
 //		StatsResponseForPeriod													
 /// Average, maximum, minimum, and count of values for a period of time.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, ToSchema)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "utoipa", derive(ToSchema))]
 #[non_exhaustive]
 pub struct StatsResponseForPeriod {
 	//		Public properties													

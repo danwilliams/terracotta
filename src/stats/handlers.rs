@@ -88,14 +88,14 @@ use velcro::btree_map;
 /// 
 /// * `state` - The application state.
 /// 
-#[utoipa::path(
+#[cfg_attr(feature = "utoipa", utoipa::path(
 	get,
 	path = "/api/stats",
 	tag  = "health",
 	responses(
 		(status = 200, description = "Application statistics overview", body = StatsResponse),
 	)
-)]
+))]
 pub async fn get_stats<SP: StateProvider>(
 	State(state): State<Arc<SP>>,
 ) -> Json<StatsResponse> {
@@ -211,7 +211,7 @@ pub async fn get_stats<SP: StateProvider>(
 /// * `state`  - The application state.
 /// * `params` - The parameters for the request.
 /// 
-#[utoipa::path(
+#[cfg_attr(feature = "utoipa", utoipa::path(
 	get,
 	path = "/api/stats/history",
 	tag  = "health",
@@ -221,7 +221,7 @@ pub async fn get_stats<SP: StateProvider>(
 	responses(
 		(status = 200, description = "Historical application statistics interval data", body = StatsHistoryResponse),
 	)
-)]
+))]
 pub async fn get_stats_history<SP: StateProvider>(
 	State(state):  State<Arc<SP>>,
 	Query(params): Query<GetStatsHistoryParams>,
@@ -286,7 +286,7 @@ pub async fn get_stats_history<SP: StateProvider>(
 /// * `params` - The parameters for the request.
 /// * `ws_req` - The websocket request.
 /// 
-#[utoipa::path(
+#[cfg_attr(feature = "utoipa", utoipa::path(
 	get,
 	path = "/api/stats/feed",
 	tag  = "health",
@@ -296,7 +296,7 @@ pub async fn get_stats_history<SP: StateProvider>(
 	responses(
 		(status = 200, description = "Application statistics event feed"),
 	),
-)]
+))]
 pub async fn get_stats_feed<SP: StateProvider>(
 	State(state):  State<Arc<SP>>,
 	Query(params): Query<GetStatsFeedParams>,

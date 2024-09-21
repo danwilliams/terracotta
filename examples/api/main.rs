@@ -1,8 +1,18 @@
 //! Terracotta: API example
 //! 
-//! Boilerplate webserver application based on Axum, with minimal functionality
-//! enabled suitable for an API: only health endpoints, statistics, and basic
-//! error-handling (no authentication, no asset serving, no HTML templates).
+//! Boilerplate webserver application based on Axum, with minimal functionality,
+//! suitable for an API:
+//! 
+//! **Enabled**
+//!   - Health endpoints
+//!   - Statistics
+//!   - Basic error-handling (no templates)
+//!   - OpenAPI documentation
+//! 
+//! **Disabled**
+//!   - Authentication
+//!   - Asset serving
+//!   - HTML templates
 //! 
 
 

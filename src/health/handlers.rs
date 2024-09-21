@@ -28,14 +28,14 @@ use axum::Json;
 /// This endpoint is designed for use with uptime monitors. It simply returns
 /// a 200 code and no content.
 /// 
-#[utoipa::path(
+#[cfg_attr(feature = "utoipa", utoipa::path(
 	get,
 	path = "/api/ping",
 	tag  = "health",
 	responses(
 		(status = 200, description = "Availability check"),
 	),
-)]
+))]
 pub async fn get_ping() {}
 
 //		get_version																
@@ -43,14 +43,14 @@ pub async fn get_ping() {}
 /// 
 /// This endpoint returns the current version of the API.
 /// 
-#[utoipa::path(
+#[cfg_attr(feature = "utoipa", utoipa::path(
 	get,
 	path = "/api/version",
 	tag  = "health",
 	responses(
 		(status = 200, description = "Current version retrieved successfully"),
 	),
-)]
+))]
 pub async fn get_version() -> Json<HealthVersionResponse> {
 	Json(HealthVersionResponse {
 		version: env!("CARGO_PKG_VERSION").to_owned(),

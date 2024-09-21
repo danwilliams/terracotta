@@ -5,6 +5,8 @@
 //		Packages
 
 use serde::Serialize;
+
+#[cfg(feature = "utoipa")]
 use utoipa::ToSchema;
 
 
@@ -13,7 +15,8 @@ use utoipa::ToSchema;
 
 //		HealthVersionResponse													
 /// The current version information returned by the `/api/version` endpoint.
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, ToSchema)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "utoipa", derive(ToSchema))]
 #[non_exhaustive]
 pub struct HealthVersionResponse {
 	//		Public properties													

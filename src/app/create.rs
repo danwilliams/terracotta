@@ -37,10 +37,9 @@ use crate::errors::{
 	routing::RouterExt as ErrorsRouterExt,
 };
 #[cfg(feature = "errors")]
-use ::{
-	axum::routing::MethodRouter,
-	utoipa::openapi::OpenApi,
-};
+use axum::routing::MethodRouter;
+#[cfg(all(feature = "errors", feature = "utoipa"))]
+use utoipa::openapi::OpenApi;
 
 
 
@@ -57,10 +56,12 @@ use ::{
 /// * `openapi`   - The OpenAPI documentation.
 /// 
 #[cfg(all(feature = "auth", feature = "stats"))]
+#[cfg_attr(feature = "utoipa", expect(clippy::shadow_reuse, reason = "Needed for conditional compilation"))]
 pub fn app_full<SP, U, UP>(
 	state:     &Arc<SP>,
 	protected: Vec<(&str, MethodRouter<Arc<SP>>)>,
 	public:    Vec<(&str, MethodRouter<Arc<SP>>)>,
+	#[cfg(feature = "utoipa")]
 	openapi:   OpenApi,
 ) -> Router
 where
@@ -68,10 +69,13 @@ where
 	U:  AuthUser,
 	UP: AuthUserProvider<User = U>,
 {
-	Router::new()
+	let router = Router::new()
 		.protected_routes::<_, U>(protected, state)
 		.public_routes(public)
-		.add_openapi("/api-docs", openapi)
+	;
+	#[cfg(feature = "utoipa")]
+	let router = router.add_openapi("/api-docs", openapi);
+	router
 		.fallback(no_route)
 		.add_protected_error_catcher::<_, U>(state)
 		.add_error_template(state)
@@ -92,35 +96,27 @@ where
 /// * `openapi` - The OpenAPI documentation.
 /// 
 #[cfg(feature = "errors")]
+#[expect(clippy::shadow_reuse,  reason = "Needed for conditional compilation")]
+#[expect(clippy::similar_names, reason = "Different enough")]
 pub fn app_minimal<SP>(
 	state:   &Arc<SP>,
 	routes:  Vec<(&str, MethodRouter<Arc<SP>>)>,
+	#[cfg(feature = "utoipa")]
 	openapi: OpenApi,
 ) -> Router
 where
 	SP: StateProvider,
 {
+	let router = Router::new().public_routes(routes);
+	#[cfg(feature = "utoipa")]
+	let router = router.add_openapi("/api-docs", openapi);
+	let router = router.fallback(no_route);
 	#[cfg(feature = "tera")]
-	{
-		Router::new()
-			.public_routes(routes)
-			.add_openapi("/api-docs", openapi)
-			.fallback(no_route)
-			.add_error_template(state)
-			.with_state(Arc::clone(state))
-			.add_http_logging()
-			.add_error_catcher()
-	}
-	#[cfg(not(feature = "tera"))]
-	{
-		Router::new()
-			.public_routes(routes)
-			.add_openapi("/api-docs", openapi)
-			.fallback(no_route)
-			.with_state(Arc::clone(state))
-			.add_http_logging()
-			.add_error_catcher()
-	}
+	let router = router.add_error_template(state);
+	router
+		.with_state(Arc::clone(state))
+		.add_http_logging()
+		.add_error_catcher()
 }
 
 //		server																	

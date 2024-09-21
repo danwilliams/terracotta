@@ -1,8 +1,17 @@
 //! Terracotta: Minimal example
 //! 
-//! Boilerplate webserver application based on Axum, with minimal functionality
-//! enabled: only health endpoints, error-handling, and HTML templates (no
-//! authentication, no statistics, no asset serving).
+//! Boilerplate webserver application based on Axum, with minimal functionality:
+//! 
+//! **Enabled**
+//!   - Health endpoints
+//!   - Error-handling (with HTML error pages)
+//!   - HTML templates
+//! 
+//! **Disabled**
+//!   - Authentication
+//!   - Asset serving
+//!   - Statistics
+//!   - OpenAPI documentation
 //! 
 
 
@@ -25,7 +34,6 @@ mod config;
 mod handlers;
 mod routes;
 mod state;
-mod utility;
 
 
 
@@ -35,7 +43,6 @@ use crate::{
 	config::Config,
 	routes::routes,
 	state::AppState,
-	utility::ApiDoc,
 };
 use std::sync::Arc;
 use terracotta::app::{
@@ -46,7 +53,6 @@ use terracotta::app::{
 };
 use tikv_jemallocator::Jemalloc;
 use tracing::info;
-use utoipa::OpenApi;
 
 
 
@@ -67,7 +73,7 @@ async fn main() -> Result<(), AppError> {
 	let config = load_config::<Config>()?;
 	let _guard = setup_logging(&config.logdir);
 	let state  = Arc::new(AppState::new(config));
-	let app    = create_app(&state, routes(), ApiDoc::openapi());
+	let app    = create_app(&state, routes());
 	let server = create_server(app, &state).await?;
 	info!("Listening on {}", state.address().expect("Server address not set"));
 	server.await.unwrap()

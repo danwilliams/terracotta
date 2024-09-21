@@ -30,7 +30,7 @@ lto       = "thin" # Enable link-time optimisation (fast)
 
 [features]
 default = []
-full    = ["assets", "auth", "errors", "health", "stats", "tera"]
+full    = ["assets", "auth", "errors", "health", "stats", "tera", "utoipa"]
 
 #	Feature modules
 assets  = [                  "dep:include_dir", "dep:mime_guess", "dep:rubedo", "dep:smart-default", "dep:tokio-util"]
@@ -41,6 +41,7 @@ stats   = [                  "dep:chrono", "dep:flume", "dep:indexmap", "dep:ite
 
 #	Feature abilities
 tera    = [                  "dep:include_dir", "dep:tera"]
+utoipa  = [                  "dep:utoipa", "dep:utoipa-rapidoc", "dep:utoipa-redoc", "dep:utoipa-swagger-ui"]
 
 #==============================[  DEPENDENCIES  ]===============================
 
@@ -71,10 +72,10 @@ tracing            = {                  version = "0.1.40" }
 tracing-appender   = {                  version = "0.2.3" }
 tracing-subscriber = {                  version = "0.3.18", features = ["env-filter"] }
 url                = { optional = true, version = "2.5.2" }
-utoipa             = {                  version = "4.2.3", features = ["axum_extras", "chrono", "preserve_order", "indexmap"] }
-utoipa-rapidoc     = {                  version = "4.0.0", features = ["axum"] }
-utoipa-redoc       = {                  version = "4.0.0", features = ["axum"] }
-utoipa-swagger-ui  = {                  version = "7.1.0", features = ["axum"] }
+utoipa             = { optional = true, version = "4.2.3", features = ["axum_extras", "chrono", "preserve_order", "indexmap"] }
+utoipa-rapidoc     = { optional = true, version = "4.0.0", features = ["axum"] }
+utoipa-redoc       = { optional = true, version = "4.0.0", features = ["axum"] }
+utoipa-swagger-ui  = { optional = true, version = "7.1.0", features = ["axum"] }
 velcro             = { optional = true, version = "0.5.4" }
 
 [dev-dependencies]
@@ -90,7 +91,7 @@ tikv-jemallocator  = "0.6.0"
 [[example]]
 name = "api"
 path = "examples/api/main.rs"
-required-features = ["errors", "health", "stats"]
+required-features = ["errors", "health", "stats", "utoipa"]
 
 [[example]]
 name = "full"

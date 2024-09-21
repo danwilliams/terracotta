@@ -17,10 +17,14 @@ use tower_http::{
 	trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
 use tracing::{Level, Span, debug, error};
-use utoipa::openapi::OpenApi;
-use utoipa_rapidoc::RapiDoc;
-use utoipa_redoc::{Redoc, Servable};
-use utoipa_swagger_ui::SwaggerUi;
+
+#[cfg(feature = "utoipa")]
+use ::{
+	utoipa::openapi::OpenApi,
+	utoipa_rapidoc::RapiDoc,
+	utoipa_redoc::{Redoc, Servable},
+	utoipa_swagger_ui::SwaggerUi,
+};
 
 
 
@@ -47,6 +51,7 @@ where
 	///               will be used.
 	/// * `openapi` - The OpenAPI specification to use.
 	/// 
+	#[cfg(feature = "utoipa")]
 	#[must_use]
 	fn add_openapi<P: AsRef<str>>(self, prefix: P, openapi: OpenApi) -> Self;
 	
@@ -100,6 +105,7 @@ where
 	}
 	
 	//		add_openapi															
+	#[cfg(feature = "utoipa")]
 	fn add_openapi<P: AsRef<str>>(self, prefix: P, openapi: OpenApi) -> Self {
 		self
 			.merge(RapiDoc::new(format!("{}/openapi.json", prefix.as_ref()))

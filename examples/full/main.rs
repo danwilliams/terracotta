@@ -1,7 +1,7 @@
 //! Terracotta: Full example
 //! 
-//! Boilerplate webserver application based on Axum, with full functionality
-//! enabled.
+//! Boilerplate webserver application based on Axum, with full functionality,
+//! i.e. all features enabled.
 //! 
 
 

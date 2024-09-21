@@ -7,6 +7,8 @@
 use chrono::NaiveDateTime;
 use core::str::FromStr;
 use serde::Deserialize;
+
+#[cfg(feature = "utoipa")]
 use utoipa::{IntoParams, ToSchema};
 
 
@@ -15,7 +17,8 @@ use utoipa::{IntoParams, ToSchema};
 
 //		MeasurementType															
 /// The type of measurement to get statistics for.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, ToSchema)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(ToSchema))]
 #[serde(rename_all = "lowercase")]
 #[non_exhaustive]
 pub enum MeasurementType {
@@ -51,7 +54,8 @@ impl FromStr for MeasurementType {
 //		GetStatsHistoryParams													
 /// The parameters for the [`get_stats_history()`](super::handlers::get_stats_history())
 /// handler.
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, IntoParams, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(IntoParams))]
 #[non_exhaustive]
 pub struct GetStatsHistoryParams {
 	//		Public properties													
@@ -84,7 +88,8 @@ pub struct GetStatsHistoryParams {
 //		GetStatsFeedParams														
 /// The parameters for the [`get_stats_feed()`](super::handlers::get_stats_feed())
 /// handler.
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, IntoParams, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(IntoParams))]
 #[non_exhaustive]
 pub struct GetStatsFeedParams {
 	//		Public properties													
