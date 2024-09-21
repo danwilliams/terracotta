@@ -1,8 +1,8 @@
 //! Terracotta: Minimal example
 //! 
 //! Boilerplate webserver application based on Axum, with minimal functionality
-//! enabled: only error-handling and health endpoints (no authentication, no
-//! statistics, no asset serving).
+//! enabled: only health endpoints, error-handling, and HTML templates (no
+//! authentication, no statistics, no asset serving).
 //! 
 
 

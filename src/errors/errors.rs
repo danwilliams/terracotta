@@ -8,8 +8,10 @@ use axum::{
 	http::StatusCode,
 	response::{IntoResponse, Response},
 };
-use tera::Error as TemplateError;
 use thiserror::Error as ThisError;
+
+#[cfg(feature = "tera")]
+use tera::Error as TemplateError;
 
 
 
@@ -21,6 +23,7 @@ use thiserror::Error as ThisError;
 #[non_exhaustive]
 pub enum ErrorsError {
 	/// Error when rendering the template.
+	#[cfg(feature = "tera")]
 	#[error("Template error: {0}")]
 	TemplateError(#[from] TemplateError),
 }

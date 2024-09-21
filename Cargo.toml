@@ -34,8 +34,8 @@ full    = ["assets", "auth", "errors", "health", "stats", "tera"]
 
 #	Feature modules
 assets  = [                  "dep:include_dir", "dep:mime_guess", "dep:rubedo", "dep:smart-default", "dep:tokio-util"]
-auth    = ["errors",         "dep:tower-sessions", "dep:url"]
-errors  = [          "tera", "dep:rubedo"]
+auth    = ["errors", "tera", "dep:tower-sessions", "dep:url"]
+errors  = [                  "dep:rubedo"]
 health  = [                  ]
 stats   = [                  "dep:chrono", "dep:flume", "dep:indexmap", "dep:itertools", "dep:parking_lot", "dep:rubedo", "dep:serde_json", "dep:smart-default", "dep:tikv-jemalloc-ctl", "dep:velcro"]
 
@@ -90,7 +90,7 @@ tikv-jemallocator  = "0.6.0"
 [[example]]
 name = "api"
 path = "examples/api/main.rs"
-required-features = ["health", "stats"]
+required-features = ["errors", "health", "stats"]
 
 [[example]]
 name = "full"
@@ -100,7 +100,7 @@ required-features = ["full"]
 [[example]]
 name = "minimal"
 path = "examples/minimal/main.rs"
-required-features = ["errors", "health"]
+required-features = ["errors", "health", "tera"]
 
 #=================================[  LINTS  ]===================================
 

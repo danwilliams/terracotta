@@ -4,14 +4,22 @@
 
 //		Packages
 
-use super::middleware::{final_error_layer, graceful_error_layer};
-use crate::app::state::StateProvider as AppStateProvider;
+use super::middleware::final_error_layer;
 use axum::{
 	Router,
-	middleware::{from_fn, from_fn_with_state},
+	middleware::from_fn,
 };
-use std::sync::Arc;
 use tower_http::catch_panic::CatchPanicLayer;
+
+#[cfg(feature = "tera")]
+use super::middleware::graceful_error_layer;
+#[cfg(feature = "tera")]
+use crate::app::state::StateProvider as AppStateProvider;
+#[cfg(feature = "tera")]
+use ::{
+	axum::middleware::from_fn_with_state,
+	std::sync::Arc,
+};
 
 
 
@@ -35,6 +43,7 @@ where
 	/// 
 	/// * `state` - The application state.
 	/// 
+	#[cfg(feature = "tera")]
 	#[must_use]
 	fn add_error_template<SP>(self, state: &Arc<SP>) -> Self
 	where
@@ -55,6 +64,7 @@ where
 	}
 	
 	//		add_error_template													
+	#[cfg(feature = "tera")]
 	fn add_error_template<SP>(self, state: &Arc<SP>) -> Self
 	where
 		SP: AppStateProvider,

@@ -6,19 +6,28 @@
 
 //		Packages
 
-use super::errors::ErrorsError;
-use crate::app::state::StateProvider as AppStateProvider;
 use axum::{
 	body::Body,
-	extract::State,
-	http::{HeaderValue, Request, StatusCode},
+	http::{Request, StatusCode},
 	middleware::Next,
 	response::{Html, IntoResponse, Response},
 };
 use rubedo::http::UnpackedResponseBody;
-use std::sync::Arc;
-use tera::Context as Template;
 use tracing::error;
+
+#[cfg(feature = "tera")]
+use super::errors::ErrorsError;
+#[cfg(feature = "tera")]
+use crate::app::state::StateProvider as AppStateProvider;
+#[cfg(feature = "tera")]
+use ::{
+	axum::{
+		extract::State,
+		http::HeaderValue,
+	},
+	std::sync::Arc,
+	tera::Context as Template,
+};
 
 
 
@@ -57,6 +66,7 @@ pub async fn no_route() -> impl IntoResponse {
 /// 
 /// If there is an error rendering the error page, an error will be returned.
 /// 
+#[cfg(feature = "tera")]
 pub async fn graceful_error_layer<SP>(
 	State(state): State<Arc<SP>>,
 	request:      Request<Body>,

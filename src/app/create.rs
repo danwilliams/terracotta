@@ -6,10 +6,9 @@
 
 use super::{
 	errors::AppError,
-	routing::RouterExt,
 	state::StateProvider,
 };
-use axum::{Router, routing::MethodRouter};
+use axum::Router;
 use core::net::SocketAddr;
 use std::sync::Arc;
 use tokio::{
@@ -17,7 +16,6 @@ use tokio::{
 	task::JoinHandle as TaskHandle,
 	spawn as spawn_async,
 };
-use utoipa::openapi::OpenApi;
 
 #[cfg(all(feature = "auth", feature = "stats"))]
 use crate::{
@@ -32,9 +30,16 @@ use crate::{
 	},
 };
 #[cfg(feature = "errors")]
+use super::routing::RouterExt;
+#[cfg(feature = "errors")]
 use crate::errors::{
 	middleware::no_route,
 	routing::RouterExt as ErrorsRouterExt,
+};
+#[cfg(feature = "errors")]
+use ::{
+	axum::routing::MethodRouter,
+	utoipa::openapi::OpenApi,
 };
 
 
@@ -86,6 +91,7 @@ where
 /// * `routes`  - The routes.
 /// * `openapi` - The OpenAPI documentation.
 /// 
+#[cfg(feature = "errors")]
 pub fn app_minimal<SP>(
 	state:   &Arc<SP>,
 	routes:  Vec<(&str, MethodRouter<Arc<SP>>)>,
@@ -94,7 +100,7 @@ pub fn app_minimal<SP>(
 where
 	SP: StateProvider,
 {
-	#[cfg(feature = "errors")]
+	#[cfg(feature = "tera")]
 	{
 		Router::new()
 			.public_routes(routes)
@@ -105,13 +111,15 @@ where
 			.add_http_logging()
 			.add_error_catcher()
 	}
-	#[cfg(not(feature = "errors"))]
+	#[cfg(not(feature = "tera"))]
 	{
 		Router::new()
 			.public_routes(routes)
 			.add_openapi("/api-docs", openapi)
+			.fallback(no_route)
 			.with_state(Arc::clone(state))
 			.add_http_logging()
+			.add_error_catcher()
 	}
 }
 
