@@ -7,9 +7,12 @@
 use core::net::{IpAddr, SocketAddr};
 
 #[cfg(feature = "tera")]
-use super::config::HtmlTemplates;
+use super::{
+	config::HtmlTemplates,
+	errors::AppError,
+};
 #[cfg(feature = "tera")]
-use tera::{Context, Error as TemplateError, Tera};
+use tera::{Context, Tera};
 
 
 
@@ -48,7 +51,7 @@ pub trait StateProvider: Send + Sync + 'static {
 	/// If the template cannot be rendered, an error is returned.
 	/// 
 	#[cfg(feature = "tera")]
-	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, TemplateError>;
+	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, AppError>;
 	
 	//		set_address															
 	/// Sets the actual address the server is running on.

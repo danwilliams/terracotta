@@ -12,11 +12,7 @@ use super::{
 };
 #[cfg(feature = "tera")]
 use ::{
-	axum::response::Html,
-	std::{
-		fs,
-		sync::Arc,
-	},
+	std::fs,
 	tera::Context,
 };
 
@@ -45,10 +41,10 @@ use ::{
 /// 
 #[cfg(feature = "tera")]
 pub fn render<SP>(
-	state:    &Arc<SP>,
+	state:    &SP,
 	template: &str,
 	context:  &Context,
-) -> Result<Html<String>, AppError>
+) -> Result<String, AppError>
 where
 	SP: StateProvider,
 {
@@ -71,7 +67,7 @@ where
 			).map_err(|err| AppError::CouldNotAddTemplate(local_template, err))?;
 		};
 	};
-	Ok(Html(tera.render(template, context)?))
+	Ok(tera.render(template, context)?)
 }
 
 

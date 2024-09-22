@@ -9,11 +9,13 @@ use core::net::{IpAddr, SocketAddr};
 use include_dir::include_dir;
 use parking_lot::RwLock;
 use std::sync::Arc;
-use tera::{Context, Error as TemplateError, Tera};
+use tera::{Context, Tera};
 use terracotta::app::{
 	config::HtmlTemplates,
+	errors::AppError,
 	init::setup_tera,
 	state::StateProvider as AppStateProvider,
+	utility::render,
 };
 
 
@@ -83,8 +85,8 @@ impl AppStateProvider for AppState {
 	}
 	
 	//		render																
-	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, TemplateError> {
-		self.tera.render(template.as_ref(), context)
+	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, AppError> {
+		render(self, template.as_ref(), context)
 	}
 	
 	//		set_address															
