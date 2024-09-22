@@ -38,51 +38,63 @@ pub enum LoadingBehavior {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
 pub struct Config {
 	//		Public properties													
-	/// The loading behaviour for local, non-baked-in resources. This allows
-	/// local resources to be used to complement the baked-in resources.
-	pub local_loading: LocalLoading,
+	/// Loading configuration for HTML templates.
+	pub html_templates:   HtmlTemplates,
 	
-	/// The paths for local, non-baked-in resources.
-	pub local_paths:   LocalPaths,
+	/// Loading configuration for protected static assets.
+	pub protected_assets: ProtectedAssets,
+	
+	/// Loading configuration for public static assets.
+	pub public_assets:    PublicAssets,
 	
 	/// The configuration options for serving static files.
-	pub static_files:  StaticFiles,
+	pub static_files:     StaticFiles,
 }
 
-//		LocalLoading															
-/// The loading behaviour for local, non-baked-in resources.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
-pub struct LocalLoading {
-	//		Public properties													
-	/// The loading behaviour for HTML templates.
-	#[default(LoadingBehavior::Deny)]
-	pub html:             LoadingBehavior,
-	
-	/// The loading behaviour for protected static assets.
-	#[default(LoadingBehavior::Deny)]
-	pub protected_assets: LoadingBehavior,
-	
-	/// The loading behaviour for public static assets.
-	#[default(LoadingBehavior::Deny)]
-	pub public_assets:    LoadingBehavior,
-}
-
-//		LocalPaths																
-/// The local paths for non-baked-in resources.
+//		HtmlTemplates															
+/// Loading configuration for HTML templates.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
-pub struct LocalPaths {
+pub struct HtmlTemplates {
 	//		Public properties													
-	/// The path to the HTML templates.
+	/// The loading behaviour for local, non-baked-in HTML templates. This
+	/// allows local HTML templates to be used to complement the baked-in
+	/// templates.
+	#[default(LoadingBehavior::Deny)]
+	pub behavior:   LoadingBehavior,
+	
+	/// The path to the local, non-baked-in HTML templates.
 	#[default = "html"]
-	pub html:             PathBuf,
+	pub local_path: PathBuf,
+}
+
+//		ProtectedAssets															
+/// Loading configuration for protected static assets.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
+pub struct ProtectedAssets {
+	//		Public properties													
+	/// The loading behaviour for local, non-baked-in protected static assets.
+	/// This allows local assets to be used to complement the baked-in assets.
+	#[default(LoadingBehavior::Deny)]
+	pub behavior:   LoadingBehavior,
 	
-	/// The path to the protected static assets.
+	/// The path to the local, non-baked-in protected static assets.
 	#[default = "content"]
-	pub protected_assets: PathBuf,
+	pub local_path: PathBuf,
+}
+
+//		PublicAssets															
+/// Loading configuration for public static assets.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
+pub struct PublicAssets {
+	//		Public properties													
+	/// The loading behaviour for local, non-baked-in public static assets. This
+	/// allows local assets to be used to complement the baked-in assets.
+	#[default(LoadingBehavior::Deny)]
+	pub behavior:   LoadingBehavior,
 	
-	/// The path to the public static assets.
+	/// The path to the local, non-baked-in public static assets.
 	#[default = "static"]
-	pub public_assets:    PathBuf,
+	pub local_path: PathBuf,
 }
 
 //		StaticFiles																

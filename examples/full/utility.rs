@@ -72,10 +72,10 @@ pub fn render(
 	template: &str,
 	context:  &Context,
 ) -> Html<String> {
-	let local_template = state.config.assets.local_paths.html.join(format!("{template}.tera.html"));
-	let local_layout   = state.config.assets.local_paths.html.join("layout.tera.html");
+	let local_template = state.config.assets.html_templates.local_path.join(format!("{template}.tera.html"));
+	let local_layout   = state.config.assets.html_templates.local_path.join("layout.tera.html");
 	let mut tera       = state.template.clone();
-	if state.config.assets.local_loading.html == LoadingBehavior::Override {
+	if state.config.assets.html_templates.behavior == LoadingBehavior::Override {
 		if local_layout.exists() {
 			tera.add_raw_template("layout", &fs::read_to_string(local_layout).ok().unwrap()).unwrap();
 		};

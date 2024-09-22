@@ -110,13 +110,13 @@ async fn get_static_asset<SP: StateProvider>(
 	let (basedir, local_path, behavior) = match context {
 		AssetContext::Public => (
 			state.assets_dir(),
-			state.config().local_paths.public_assets.join(path),
-			&state.config().local_loading.public_assets
+			state.config().public_assets.local_path.join(path),
+			&state.config().public_assets.behavior
 		),
 		AssetContext::Protected => (
 			state.content_dir(),
-			state.config().local_paths.protected_assets.join(path),
-			&state.config().local_loading.protected_assets
+			state.config().protected_assets.local_path.join(path),
+			&state.config().protected_assets.behavior
 		),
 	};
 	let is_local = match *behavior {
