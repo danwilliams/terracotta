@@ -4,10 +4,12 @@ logdir = "log"
 title  = "Terracotta"
 
 [assets.local_loading]
+html             = "Deny"
 protected_assets = "Override"
 public_assets    = "Override"
 
 [assets.local_paths]
+html             = "html"
 protected_assets = "content"
 public_assets    = "static"
 

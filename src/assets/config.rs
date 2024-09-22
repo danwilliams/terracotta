@@ -54,6 +54,10 @@ pub struct Config {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
 pub struct LocalLoading {
 	//		Public properties													
+	/// The loading behaviour for HTML templates.
+	#[default(LoadingBehavior::Deny)]
+	pub html:             LoadingBehavior,
+	
 	/// The loading behaviour for protected static assets.
 	#[default(LoadingBehavior::Deny)]
 	pub protected_assets: LoadingBehavior,
@@ -68,6 +72,10 @@ pub struct LocalLoading {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
 pub struct LocalPaths {
 	//		Public properties													
+	/// The path to the HTML templates.
+	#[default = "html"]
+	pub html:             PathBuf,
+	
 	/// The path to the protected static assets.
 	#[default = "content"]
 	pub protected_assets: PathBuf,

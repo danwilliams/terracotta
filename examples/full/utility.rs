@@ -4,6 +4,12 @@
 
 //		Packages
 
+use axum::response::Html;
+use std::{
+	fs,
+	sync::Arc,
+};
+use tera::Context;
 use terracotta::{health, stats};
 use utoipa::OpenApi;
 
@@ -25,6 +31,7 @@ use utoipa::OpenApi;
 	components(
 		schemas(
 			health::responses::HealthVersionResponse,
+			stats::MeasurementType,
 			stats::responses::StatsResponse,
 			stats::responses::StatsResponseForPeriod,
 			stats::responses::StatsHistoryResponse,
@@ -35,5 +42,43 @@ use utoipa::OpenApi;
 	),
 )]
 pub struct ApiDoc;
+
+
+
+//		Functions
+
+//		render																	
+/// Renders a template.
+/// 
+/// Renders a template with the given context and returns the result.
+/// 
+/// If the application has been configured to allow template overrides, the
+/// local filesystem will be searched, and any matching templates found will be
+/// used in preference to the baked-in ones.
+/// 
+/// # Parameters
+/// 
+/// * `state`    - The application state.
+/// * `template` - The name of the template to render.
+/// * `context`  - The context to render the template with.
+/// 
+pub fn render(
+	state:    &Arc<AppState>,
+	template: &str,
+	context:  &Context,
+) -> Html<String> {
+	let local_template = state.config.local_paths.html.join(format!("{template}.tera.html"));
+	let local_layout   = state.config.local_paths.html.join("layout.tera.html");
+	let mut tera       = state.template.clone();
+	if state.config.local_loading.html == LoadingBehavior::Override {
+		if local_layout.exists() {
+			tera.add_raw_template("layout", &fs::read_to_string(local_layout).ok().unwrap()).unwrap();
+		};
+		if local_template.exists() {
+			tera.add_raw_template(template, &fs::read_to_string(local_template).ok().unwrap()).unwrap();
+		};
+	};
+	Html(tera.render(template, context).unwrap())
+}
 
 

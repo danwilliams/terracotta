@@ -1,16 +1,17 @@
 [package]
-name         = "terracotta"
-version      = "0.3.0"
-description  = "Boilerplate webserver application based on Axum"
-categories   = ["asynchronous", "authentication", "rust-patterns", "web-programming", "web-programming::http-server"]
-keywords     = ["web", "server", "boilerplate", "example", "authentication"]
-edition      = "2021"
-rust-version = "1.81.0"
-license      = "MIT"
-authors      = ["Dan Williams <dan@dotfive.co.uk>"]
-repository   = "https://github.com/danwilliams/terracotta"
-readme       = "README.md"
-exclude      = [
+name          = "terracotta"
+version       = "0.3.2"
+description   = "Boilerplate webserver application based on Axum"
+categories    = ["asynchronous", "authentication", "rust-patterns", "web-programming", "web-programming::http-server"]
+keywords      = ["web", "server", "boilerplate", "example", "authentication"]
+edition       = "2021"
+rust-version  = "1.81.0"
+license       = "MIT"
+authors       = ["Dan Williams <dan@dotfive.co.uk>"]
+documentation = "https://docs.rs/terracotta"
+repository    = "https://github.com/danwilliams/terracotta"
+readme        = "README.md"
+exclude       = [
     "docs/",
     "examples/",
 ]
