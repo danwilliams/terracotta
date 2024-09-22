@@ -35,6 +35,7 @@ pub struct Config {
 	pub title:  String,
 	
 	/// Loading configuration for HTML templates.
+	#[serde(rename = "html_templates")]
 	pub html:   HtmlTemplates,
 }
 

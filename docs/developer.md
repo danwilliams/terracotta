@@ -1,12 +1,13 @@
 # Developer documentation
 
-This file contains information of use to developers wanting to use Terracotta in
-their own projects. The rules and information contained here should serve as a
-good baseline for any project, but can be changed as required.
+This file contains information of use to developers wanting to use a Terracotta
+project template in their own projects. The rules and information contained here
+should serve as a good baseline for any project.
 
 The main sections in this document are:
 
   - [Getting started](#getting-started)
+  - [Setup](#setup)
   - [Codebase structure](#codebase-structure)
   - [API endpoint structure](#api-endpoint-structure)
   - [API endpoint commit checklist](#api-endpoint-commit-checklist)
@@ -20,13 +21,13 @@ The main sections in this document are:
 [Create repo from template]: https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template
 [Rustmark]:                  https://crates.io/crates/rustmark
 
-The Terracotta repository is set up as a template repository on GitHub, so that
-you can easily [click the "Use this template" button to create a new repository
-based on it][Create repo from template]. You can then clone your new repository
-and start working on it. This will give you a starting point where you have all
-the project files, but none of the commit history. This is the
-currently-recommended way to start a new project using Terracotta (there are
-plans to also have a command-line tool at a later date).
+The Terracotta project template repositories are set up as a template
+repositories on GitHub, so that you can easily [click the "Use this template"
+button to create a new repository based on it][Create repo from template]. You
+can then clone your new repository and start working on it. This will give you a
+starting point where you have all the project files, but none of the commit
+history. This is the currently-recommended way to start a new project using
+Terracotta (there are plans to also have a command-line tool at a later date).
 
 You may instead decide that you want to fork the repository, or clone it and
 then push it to a new repository. This is also fine, but you should be aware of
@@ -36,14 +37,14 @@ the following points:
     specifically relevant to Terracotta, and so mention of e.g. release versions
     will be misleading as your project will most likely maintain its own,
     independent versioning scheme.
-  - You will also have the various release version tags created on the
-    Terracotta repository, which will be misleading for the same reason, and
-    likely conflict with your own tags.
+  - You will also have the various release version tags created on the relevant
+    Terracotta project template repository, which will be misleading for the
+    same reason, and likely conflict with your own tags.
   - There is no particular advantage to maintaining a Git tree association with
-    Terracotta as an upstream repository, and as the development you do on your
-    application will lead to conflicts, you are best not be pulling in updates
-    for it. You should instead apply any Terracotta updates manually. This is
-    the same as when using other web application scaffolds.
+    the Terracotta project template as an upstream repository, and as the
+    development you do on your application will lead to conflicts, you are best
+    not be pulling in updates for it. You should instead apply any updates
+    manually. This is the same as when using other web application scaffolds.
   - Forks on GitHub are treated as subsidiaries of the original repository, and
     not first-class repositories in their own right. For this reason, [commits
     made to forks don't count as contributions in user profiles][Commits to forks],
@@ -64,11 +65,86 @@ Terracotta updates have been applied manually, and it is not a "true" fork in
 GitHub terms.
 
 
+## Setup
+
+[Rustup]: https://rustup.rs/
+
+The steps to set up a Terracotta project are simple and standard. You need a
+reasonably-recent Rust environment, on a Linux or Mac machine. There are
+currently no special requirements beyond what is needed to build a standard Rust
+project.
+
+Note that these instructions are for building the application yourself, which
+will usually be in context of having used [Terracotta as a template for a new
+project](#getting-started). In this case these steps will apply for your project
+too.
+
+### Environment
+
+There are some key points to note about the environment you choose:
+
+  - Debian and Ubuntu are the Linux distros of choice, although other distros
+    should also work just fine, as there are no special requirements.
+  - Running natively on MacOS works fine.
+  - Running natively on Windows is not targeted or tested, and there are no
+    plans to support it, so although it may work, it also may not. Running on
+    WSL does work fine, and is the recommended way to run on Windows.
+
+Typically, you will set up Rust using [`rustup`][Rustup], which is the
+recommended way to install Rust. The `stable` toolchain is targeted, as the
+focus is on stability and correctness, rather than bleeding-edge features.
+
+Once you have Rust installed, you can build the project using `cargo build`.
+This will download and compile all dependencies, and build the project. You can
+then run the project using `cargo run`.
+
+### Configuration
+
+Because configuration applies to the examples as well as to a new project, the
+various options are covered in the [Configuration](docs/examples.md#configuration)
+section of the examples documentation.
+
+### Running
+
+A Terracotta-based project can typically be run using the `cargo run` command,
+or by running the compiled binary directly. The server will listen on port 8000
+by default, and will serve content from the `static` directory, plus any request
+handlers that you define. The `static` directory contains the static files to be
+served.
+
+### Testing
+
+You can run the test suite using `cargo test`. This will run all unit and
+integration tests.
+
+**Note that, at present, there are very few tests written specifically for this
+project, as it is mostly a combination of other crates from the Rust ecosystem.
+Those tests that do exist are intended to be examples of approach, and are not
+exhaustive. Additional tests might be added when the project is more mature, and
+sensible things to test have been clearly identified.**
+
+### Documentation
+
+You can build the developer documentation using `cargo doc`. This will generate
+HTML files and place them into `target/doc`. You can then open the documentation
+in your browser by opening `target/doc/terracotta/index.html`.
+
+Building the documentation for local development use will also provide you with
+links to the source code.
+
+### Deployment
+
+You can find information on how to deploy a Terracotta-based project in the
+[documentation for each project template](docs/examples.md). The README files
+have details about Docker, for example.
+
+
 ## Codebase structure
 
-The code in this repository follows a simple and straightforward layout, which
-is intended to be easy to understand and extend. You should absolutely modify
-the file structure to suit the shape of your own web application.
+The code in the examples and template repositories follows a simple and
+straightforward layout, which is intended to be easy to understand and extend.
+You should absolutely modify the file structure to suit the shape of your own
+web application.
 
 The basic folder structure is:
 
