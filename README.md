@@ -232,13 +232,18 @@ and testing, and when there are large content files.
 It is possible to supplement or override HTML templates and static assets.
 Static assets are subdivided into protected and public.
 
-The following options should be specified under a `[local_loading]` heading:
+The following type headings are available:
 
-  - `html`             - The loading behaviour for HTML templates.
-  - `protected_assets` - The loading behaviour for protected static assets.
-  - `public_assets`    - The loading behaviour for public static assets.
+  - `html_templates`   - HTML templates.
+  - `assets.protected` - Protected static assets.
+  - `assets.public`    - Public static assets.
 
-Each of these options can be one of the following values:
+The following options should be specified under the individual type headings:
+
+  - `behavior`   - The loading behaviour.
+  - `local_path` - The path to the files on the local filesystem.
+
+The `behavior` option can be one of the following values:
 
   - `Deny`       - Deny loading from the local filesystem. This is the default
                    for all the options.
@@ -247,31 +252,25 @@ Each of these options can be one of the following values:
   - `Override`   - Load from the local filesystem if present, and otherwise load
                    from the baked-in resources.
 
-As shown here:
+For those types configured to allow loading from the local filesystem, the
+following options can be specified under the individual type headings:
 
-```toml
-[local_loading]
-html             = "Deny"
-protected_assets = "Override"   # default is "Deny"
-public_assets    = "Override"   # default is "Deny"
-```
-
-For those options that allow loading from the local filesystem, the following
-options can be specified under a `[local_paths]` heading:
-
-  - `html`             - The path to the HTML templates. Defaults to `html`.
-  - `protected_assets` - The path to the protected static assets. Defaults to
-                         `content`.
-  - `public_assets`    - The path to the public static assets. Defaults to
-                         `static`.
+  - `local_path` - The path to the files.
 
 As shown here:
 
 ```toml
-[local_paths]
-html             = "html"
-protected_assets = "content"
-public_assets    = "static"
+[html_templates]
+behavior   = "Deny"
+local_path = "html"
+
+[assets.protected]
+behavior   = "Override"   # default is "Deny"
+local_path = "content"
+
+[assets.public]
+behavior   = "Override"   # default is "Deny"
+local_path = "static"
 ```
 
 An example is provided, `rustacean-flat-happy.png`, which is available through
@@ -300,7 +299,8 @@ that they would need to be decreased a little on a very busy system with a lot
 of large files, where the memory usage could become a problem and the raw speed
 of each download becomes a secondary concern.
 
-The following options should be specified under a `[static_files]` heading:
+The following options should be specified under an `[assets.static_files]`
+heading:
 
   - `stream_threshold` - The size of the file, in KB, above which it will be
                          streamed to the client. Defaults to `1000` (1MiB).
@@ -314,7 +314,7 @@ Each of these options accepts an integer value.
 As shown here:
 
 ```toml
-[static_files]
+[assets.static_files]
 stream_threshold = 1000 # 1MiB — files above this size will be streamed
 stream_buffer    = 256  # 256KB
 read_buffer      = 128  # 128KB

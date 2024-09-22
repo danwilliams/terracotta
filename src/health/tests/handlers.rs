@@ -1,8 +1,8 @@
 #![allow(non_snake_case, reason = "To enable test function name organisation")]
 
-//		Tests
+//		Packages
 
-use super::super::*;
+use super::*;
 use axum::{
 	http::StatusCode,
 	response::IntoResponse,
@@ -12,6 +12,10 @@ use rubedo::{
 	sugar::s,
 };
 use serde_json::json;
+
+
+
+//		Tests
 
 //		ping																	
 #[expect(clippy::unit_arg, reason = "Needed for the test")]
