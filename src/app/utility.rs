@@ -12,8 +12,8 @@ use super::{
 };
 #[cfg(feature = "tera")]
 use ::{
-	std::fs,
 	tera::Context,
+	tokio::fs,
 };
 
 
@@ -40,14 +40,14 @@ use ::{
 /// If the template cannot be loaded or rendered, an error will be returned.
 /// 
 #[cfg(feature = "tera")]
-pub fn render<SP, T>(
+pub async fn render<SP, T>(
 	state:    &SP,
 	template: T,
 	context:  &Context,
 ) -> Result<String, AppError>
 where
 	SP: StateProvider,
-	T:  AsRef<str>,
+	T:  AsRef<str> + Send,
 {
 	let local_template = state.html_templates_config().local_path.join(format!("{}.tera.html", template.as_ref()));
 	let local_layout   = state.html_templates_config().local_path.join("layout.tera.html");
@@ -56,14 +56,14 @@ where
 		if local_layout.exists() {
 			tera.add_raw_template(
 				"layout",
-				&fs::read_to_string(&local_layout)
+				&fs::read_to_string(&local_layout).await
 					.map_err(|err| AppError::CouldNotLoadTemplate(local_layout.clone(), err))?
 			).map_err(|err| AppError::CouldNotAddTemplate(local_layout, err))?;
 		};
 		if local_template.exists() {
 			tera.add_raw_template(
 				template.as_ref(),
-				&fs::read_to_string(&local_template)
+				&fs::read_to_string(&local_template).await
 					.map_err(|err| AppError::CouldNotLoadTemplate(local_template.clone(), err))?
 			).map_err(|err| AppError::CouldNotAddTemplate(local_template, err))?;
 		};

@@ -62,7 +62,7 @@ pub async fn get_login<SP: AppStateProvider>(
 	template.insert("Title",   &state.title());
 	template.insert("PageURL", &uri.path_and_query().map_or_else(|| s!("/"), ToString::to_string));
 	template.insert("Failed",  &failed);
-	Ok(Html(state.render("login", &template)?))
+	Ok(Html(state.render("login", &template).await?))
 }
 
 //		post_login																

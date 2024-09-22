@@ -87,7 +87,7 @@ where
 			template.insert("Title", &state.title());
 			(
 				parts,
-				Html(state.render("404-notfound", &template)?),
+				Html(state.render("404-notfound", &template).await?),
 			).into_response()
 		},
 		//		500: Internal Server Error										
@@ -100,7 +100,7 @@ where
 			drop(parts.headers.insert("error-handled", HeaderValue::from_static("gracefully")));
 			(
 				parts,
-				Html(state.render("500-error", &template)?),
+				Html(state.render("500-error", &template).await?),
 			).into_response()
 		},
 		//		Everything else													

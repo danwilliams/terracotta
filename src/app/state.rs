@@ -12,7 +12,10 @@ use super::{
 	errors::AppError,
 };
 #[cfg(feature = "tera")]
-use tera::{Context, Tera};
+use ::{
+	core::future::Future,
+	tera::{Context, Tera},
+};
 
 
 
@@ -51,7 +54,11 @@ pub trait StateProvider: Send + Sync + 'static {
 	/// If the template cannot be rendered, an error is returned.
 	/// 
 	#[cfg(feature = "tera")]
-	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, AppError>;
+	fn render<T: AsRef<str> + Send>(
+		&self,
+		template: T,
+		context:  &Context,
+	) -> impl Future<Output = Result<String, AppError>> + Send;
 	
 	//		set_address															
 	/// Sets the actual address the server is running on.

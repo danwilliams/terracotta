@@ -109,8 +109,8 @@ impl AppStateProvider for AppState {
 	}
 	
 	//		render																
-	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, AppError> {
-		render(self, template.as_ref(), context)
+	async fn render<T: AsRef<str> + Send>(&self, template: T, context: &Context) -> Result<String, AppError> {
+		render(self, template.as_ref(), context).await
 	}
 	
 	//		set_address															
