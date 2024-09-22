@@ -14,7 +14,10 @@ use super::{
 	state::StateProvider,
 	utility::{build_uri, extract_uri_query_parts},
 };
-use crate::app::state::StateProvider as AppStateProvider;
+use crate::app::{
+	errors::AppError,
+	state::StateProvider as AppStateProvider,
+};
 use axum::{
 	Form,
 	extract::State,
@@ -47,14 +50,14 @@ use tracing::{info, warn};
 pub async fn get_login<SP: AppStateProvider>(
 	State(state): State<Arc<SP>>,
 	mut uri:      Uri,
-) -> Result<Html<String>, AuthError> {
+) -> Result<Html<String>, AppError> {
 	let mut params = extract_uri_query_parts(&uri);
 	let mut failed = false;
 	if params.contains_key("failed") {
 		failed     = true;
 		drop(params.remove("failed"));
 	}
-	uri              = build_uri(uri.path(), &params)?;
+	uri              = build_uri(uri.path(), &params).map_err(AuthError::from)?;
 	let mut template = Template::new();
 	template.insert("Title",   &state.title());
 	template.insert("PageURL", &uri.path_and_query().map_or_else(|| s!("/"), ToString::to_string));

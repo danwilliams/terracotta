@@ -9,7 +9,6 @@ use axum::{
 	http::{StatusCode, uri::InvalidUri},
 	response::{IntoResponse, Response},
 };
-use tera::Error as TemplateError;
 use thiserror::Error as ThisError;
 use tower_sessions::session::Error as SessionError;
 
@@ -26,10 +25,6 @@ pub enum AuthError {
 	/// Error when handling sessions.
 	#[error("Session error: {0}")]
 	SessionError(#[from] SessionError),
-	
-	/// Error when rendering the template.
-	#[error("Template error: {0}")]
-	TemplateError(#[from] TemplateError),
 	
 	/// There was a problem parsing the URL.
 	#[error("URL error: {0}")]

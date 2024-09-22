@@ -16,6 +16,9 @@ use std::{
 };
 use thiserror::Error as ThisError;
 
+#[cfg(feature = "auth")]
+use crate::auth::errors::AuthError;
+
 #[cfg(feature = "tera")]
 use tera::Error as TemplateError;
 
@@ -28,6 +31,11 @@ use tera::Error as TemplateError;
 #[derive(Debug, ThisError)]
 #[non_exhaustive]
 pub enum AppError {
+	/// Error with authentication.
+	#[cfg(feature = "auth")]
+	#[error("Authentication error: {0}")]
+	AuthError(#[from] AuthError),
+	
 	/// Error when loading config.
 	#[error("Configuration error: {0}")]
 	ConfigError(#[from] FigmentError),
