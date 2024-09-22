@@ -34,7 +34,7 @@ use utoipa::OpenApi;
 
 //		LoadingBehavior															
 /// The possible options for loading local, non-baked-in resources.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum LoadingBehavior {
 	/// Deny loading of local resources.
 	Deny,
@@ -357,14 +357,14 @@ where
 /// * `context`  - The context to render the template with.
 /// 
 pub fn render(
-	state:    Arc<AppState>,
+	state:    &Arc<AppState>,
 	template: &str,
-	context:  Context,
+	context:  &Context,
 ) -> Html<String> {
-	let local_template = state.Config.local_paths.html.join(format!("{}.tera.html", template));
-	let local_layout   = state.Config.local_paths.html.join("layout.tera.html");
-	let mut tera       = state.Template.clone();
-	if state.Config.local_loading.html == LoadingBehavior::Override {
+	let local_template = state.config.local_paths.html.join(format!("{template}.tera.html"));
+	let local_layout   = state.config.local_paths.html.join("layout.tera.html");
+	let mut tera       = state.template.clone();
+	if state.config.local_loading.html == LoadingBehavior::Override {
 		if local_layout.exists() {
 			tera.add_raw_template("layout", &fs::read_to_string(local_layout).ok().unwrap()).unwrap();
 		};
@@ -372,7 +372,7 @@ pub fn render(
 			tera.add_raw_template(template, &fs::read_to_string(local_template).ok().unwrap()).unwrap();
 		};
 	};
-	Html(tera.render(template, &context).unwrap())
+	Html(tera.render(template, context).unwrap())
 }
 
 

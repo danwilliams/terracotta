@@ -4,7 +4,7 @@
 
 //		Packages
 
-use crate::utility::{AppState, build_uri, extract_uri_query_parts};
+use crate::utility::{AppState, build_uri, extract_uri_query_parts, render};
 use axum::{
 	Extension,
 	Form,
@@ -319,7 +319,7 @@ pub async fn get_login(
 	context.insert("Title",   &state.config.title);
 	context.insert("PageURL", &uri.path_and_query().unwrap().to_string());
 	context.insert("Failed",  &failed);
-	render(state, "login", context)
+	render(&state, "login", &context)
 }
 
 //		post_login																

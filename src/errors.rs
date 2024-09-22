@@ -6,7 +6,7 @@
 
 use crate::{
 	auth::{User, get_login},
-	utility::AppState,
+	utility::{AppState, render},
 };
 use axum::{
 	Extension,
@@ -85,7 +85,7 @@ pub async fn graceful_error_layer(
 			context.insert("Title", &state.config.title);
 			(
 				parts,
-				render(state, "404-notfound", context),
+				render(&state, "404-notfound", &context),
 			).into_response()
 		},
 		//		500: Internal Server Error										
@@ -98,7 +98,7 @@ pub async fn graceful_error_layer(
 			drop(parts.headers.insert("error-handled", "gracefully".parse().unwrap()));
 			(
 				parts,
-				render(state, "500-error", context),
+				render(&state, "500-error", &context),
 			).into_response()
 		},
 		//		Everything else													
