@@ -40,18 +40,19 @@ use ::{
 /// If the template cannot be loaded or rendered, an error will be returned.
 /// 
 #[cfg(feature = "tera")]
-pub fn render<SP>(
+pub fn render<SP, T>(
 	state:    &SP,
-	template: &str,
+	template: T,
 	context:  &Context,
 ) -> Result<String, AppError>
 where
 	SP: StateProvider,
+	T:  AsRef<str>,
 {
-	let local_template = state.html_templates_config().local_path.join(format!("{template}.tera.html"));
+	let local_template = state.html_templates_config().local_path.join(format!("{}.tera.html", template.as_ref()));
 	let local_layout   = state.html_templates_config().local_path.join("layout.tera.html");
-	let mut tera       = state.tera().clone();
-	if state.html_templates_config().behavior == LoadingBehavior::Override {
+	Ok(if state.html_templates_config().behavior == LoadingBehavior::Override {
+		let mut tera   = state.tera().clone();
 		if local_layout.exists() {
 			tera.add_raw_template(
 				"layout",
@@ -61,13 +62,15 @@ where
 		};
 		if local_template.exists() {
 			tera.add_raw_template(
-				template,
+				template.as_ref(),
 				&fs::read_to_string(&local_template)
 					.map_err(|err| AppError::CouldNotLoadTemplate(local_template.clone(), err))?
 			).map_err(|err| AppError::CouldNotAddTemplate(local_template, err))?;
 		};
-	};
-	Ok(tera.render(template, context)?)
+		tera.render(template.as_ref(), context)?
+	} else {
+		state.tera().render(template.as_ref(), context)?
+	})
 }
 
 
