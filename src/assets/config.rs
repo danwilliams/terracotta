@@ -21,9 +21,11 @@ use std::path::PathBuf;
 pub struct Config {
 	//		Public properties													
 	/// Loading configuration for protected static assets.
+	#[serde(rename = "protected")]
 	pub protected_assets: ProtectedAssets,
 	
 	/// Loading configuration for public static assets.
+	#[serde(rename = "public")]
 	pub public_assets:    PublicAssets,
 	
 	/// The configuration options for serving static files.

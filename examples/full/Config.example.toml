@@ -3,15 +3,15 @@ port   = 8000
 logdir = "log"
 title  = "Terracotta"
 
-[assets.html_templates]
+[html_templates]
 behavior   = "Deny"
 local_path = "html"
 
-[assets.protected_assets]
+[assets.protected]
 behavior   = "Override"
 local_path = "content"
 
-[assets.public_assets]
+[assets.public]
 behavior   = "Override"
 local_path = "static"
 

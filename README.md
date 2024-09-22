@@ -234,9 +234,9 @@ Static assets are subdivided into protected and public.
 
 The following type headings are available:
 
-  - `assets.html_templates`   - HTML templates.
-  - `assets.protected_assets` - Protected static assets.
-  - `assets.public_assets`    - Public static assets.
+  - `html_templates`   - HTML templates.
+  - `assets.protected` - Protected static assets.
+  - `assets.public`    - Public static assets.
 
 The following options should be specified under the individual type headings:
 
@@ -260,15 +260,15 @@ following options can be specified under the individual type headings:
 As shown here:
 
 ```toml
-[assets.html_templates]
+[html_templates]
 behavior   = "Deny"
 local_path = "html"
 
-[assets.protected_assets]
+[assets.protected]
 behavior   = "Override"   # default is "Deny"
 local_path = "content"
 
-[assets.public_assets]
+[assets.public]
 behavior   = "Override"   # default is "Deny"
 local_path = "static"
 ```
@@ -299,7 +299,8 @@ that they would need to be decreased a little on a very busy system with a lot
 of large files, where the memory usage could become a problem and the raw speed
 of each download becomes a secondary concern.
 
-The following options should be specified under a `[static_files]` heading:
+The following options should be specified under an `[assets.static_files]`
+heading:
 
   - `stream_threshold` - The size of the file, in KB, above which it will be
                          streamed to the client. Defaults to `1000` (1MiB).
@@ -313,7 +314,7 @@ Each of these options accepts an integer value.
 As shown here:
 
 ```toml
-[static_files]
+[assets.static_files]
 stream_threshold = 1000 # 1MiB — files above this size will be streamed
 stream_buffer    = 256  # 256KB
 read_buffer      = 128  # 128KB
