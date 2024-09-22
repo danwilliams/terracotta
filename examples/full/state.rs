@@ -60,7 +60,7 @@ pub struct AppState {
 	pub stats:       AsyncRwLock<StatsState>,
 	
 	/// The Tera template engine.
-	pub template:    Tera,
+	pub tera:        Tera,
 }
 
 //󰭅		AppState																
@@ -108,7 +108,7 @@ impl AppStateProvider for AppState {
 	
 	//		render																
 	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, TemplateError> {
-		self.template.render(template.as_ref(), context)
+		self.tera.render(template.as_ref(), context)
 	}
 	
 	//		set_address															
@@ -118,7 +118,7 @@ impl AppStateProvider for AppState {
 	
 	//		tera																
 	fn tera(&self) -> &Tera {
-		&self.template
+		&self.tera
 	}
 	
 	//		title																
@@ -163,7 +163,7 @@ impl Default for AppState {
 			config:      Config::default(),
 			content_dir: Arc::new(include_dir!("examples/resources/content")),
 			stats:       AsyncRwLock::new(StatsState::default()),
-			template:    setup_tera(&Arc::new(include_dir!("examples/resources/html")))
+			tera:        setup_tera(&Arc::new(include_dir!("examples/resources/html")))
 				.expect("Error loading templates")
 			,
 		}

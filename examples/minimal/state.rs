@@ -30,13 +30,13 @@ use terracotta::app::{
 pub struct AppState {
 	//		Public properties													
 	/// The address the server is running on.
-	pub address:  RwLock<Option<SocketAddr>>,
+	pub address: RwLock<Option<SocketAddr>>,
 	
 	/// The application configuration.
-	pub config:   Config,
+	pub config:  Config,
 	
 	/// The Tera template engine.
-	pub template: Tera,
+	pub tera:    Tera,
 }
 
 //󰭅		AppState																
@@ -84,7 +84,7 @@ impl AppStateProvider for AppState {
 	
 	//		render																
 	fn render<T: AsRef<str>>(&self, template: T, context: &Context) -> Result<String, TemplateError> {
-		self.template.render(template.as_ref(), context)
+		self.tera.render(template.as_ref(), context)
 	}
 	
 	//		set_address															
@@ -94,7 +94,7 @@ impl AppStateProvider for AppState {
 	
 	//		tera																
 	fn tera(&self) -> &Tera {
-		&self.template
+		&self.tera
 	}
 	
 	//		title																
@@ -108,9 +108,9 @@ impl Default for AppState {
 	//		default																
 	fn default() -> Self {
 		Self {
-			address:  RwLock::new(None),
-			config:   Config::default(),
-			template: setup_tera(&Arc::new(include_dir!("examples/resources/html")))
+			address: RwLock::new(None),
+			config:  Config::default(),
+			tera:    setup_tera(&Arc::new(include_dir!("examples/resources/html")))
 				.expect("Error loading templates")
 			,
 		}

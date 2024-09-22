@@ -27,7 +27,7 @@ pub async fn get_index(State(state): State<Arc<AppState>>) -> Html<String> {
 	let mut template = Template::new();
 	template.insert("Title",   &state.config.title);
 	template.insert("Content", "Index");
-	Html(state.template.render("index", &template).unwrap())
+	Html(state.tera.render("index", &template).unwrap())
 }
 
 
