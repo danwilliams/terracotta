@@ -4,13 +4,18 @@
 
 //		Packages
 
+use crate::state::AppState;
 use axum::response::Html;
 use std::{
 	fs,
 	sync::Arc,
 };
 use tera::Context;
-use terracotta::{health, stats};
+use terracotta::{
+	assets::config::LoadingBehavior,
+	health,
+	stats,
+};
 use utoipa::OpenApi;
 
 
@@ -31,7 +36,7 @@ use utoipa::OpenApi;
 	components(
 		schemas(
 			health::responses::HealthVersionResponse,
-			stats::MeasurementType,
+			stats::requests::MeasurementType,
 			stats::responses::StatsResponse,
 			stats::responses::StatsResponseForPeriod,
 			stats::responses::StatsHistoryResponse,
@@ -67,10 +72,10 @@ pub fn render(
 	template: &str,
 	context:  &Context,
 ) -> Html<String> {
-	let local_template = state.config.local_paths.html.join(format!("{template}.tera.html"));
-	let local_layout   = state.config.local_paths.html.join("layout.tera.html");
+	let local_template = state.config.assets.local_paths.html.join(format!("{template}.tera.html"));
+	let local_layout   = state.config.assets.local_paths.html.join("layout.tera.html");
 	let mut tera       = state.template.clone();
-	if state.config.local_loading.html == LoadingBehavior::Override {
+	if state.config.assets.local_loading.html == LoadingBehavior::Override {
 		if local_layout.exists() {
 			tera.add_raw_template("layout", &fs::read_to_string(local_layout).ok().unwrap()).unwrap();
 		};

@@ -25,6 +25,7 @@ use utoipa::OpenApi;
 	components(
 		schemas(
 			health::responses::HealthVersionResponse,
+			stats::requests::MeasurementType,
 			stats::responses::StatsResponse,
 			stats::responses::StatsResponseForPeriod,
 			stats::responses::StatsHistoryResponse,
