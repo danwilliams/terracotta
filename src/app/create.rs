@@ -10,7 +10,6 @@ use super::{
 };
 use axum::Router;
 use core::net::SocketAddr;
-use std::sync::Arc;
 use tokio::{
 	net::TcpListener,
 	task::JoinHandle as TaskHandle,
@@ -29,6 +28,8 @@ use crate::{
 		state::StateProvider as StatsStateProvider,
 	},
 };
+#[cfg(any(feature = "auth", feature = "errors"))]
+use std::sync::Arc;
 #[cfg(feature = "errors")]
 use super::routing::RouterExt;
 #[cfg(feature = "errors")]
@@ -134,7 +135,7 @@ where
 /// 
 pub async fn server<SP>(
 	app:   Router,
-	state: &Arc<SP>
+	state: &SP,
 ) -> Result<TaskHandle<Result<(), AppError>>, AppError>
 where
 	SP: StateProvider,

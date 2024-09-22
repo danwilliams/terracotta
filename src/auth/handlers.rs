@@ -95,7 +95,7 @@ where
 {
 	let uri        = login.uri.parse::<Uri>()?;
 	let mut params = extract_uri_query_parts(&uri);
-	if let Some(ref user) = UP::find_by_credentials(&state, &login.credentials) {
+	if let Some(ref user) = UP::find_by_credentials(&*state, &login.credentials) {
 		info!("Logging in user: {}", user.to_loggable_string());
 		auth.login(user).await?;
 	} else {

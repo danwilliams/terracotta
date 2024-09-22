@@ -273,7 +273,7 @@ pub async fn start<SP: StateProvider>(state: &Arc<SP>) {
 			_ = timer.tick() => {
 				//	Ensure last period is wrapped up
 				stats_processor(
-					&appstate,
+					&*appstate,
 					None,
 					&mut timing_stats,
 					&mut conn_stats,
@@ -286,7 +286,7 @@ pub async fn start<SP: StateProvider>(state: &Arc<SP>) {
 				if let Ok(response_metrics) = message {
 					//	Process response time
 					stats_processor(
-						&appstate,
+						&*appstate,
 						Some(response_metrics),
 						&mut timing_stats,
 						&mut conn_stats,
@@ -323,7 +323,7 @@ pub async fn start<SP: StateProvider>(state: &Arc<SP>) {
 /// * `current_second` - The current second.
 /// 
 async fn stats_processor<SP: StateProvider>(
-	state:          &Arc<SP>,
+	state:          &SP,
 	metrics:        Option<ResponseMetrics>,
 	timing_stats:   &mut StatsForPeriod,
 	conn_stats:     &mut StatsForPeriod,

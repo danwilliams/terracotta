@@ -73,7 +73,7 @@ async fn main() -> Result<(), AppError> {
 	let state  = Arc::new(AppState::new(config));
 	start_stats_processor(&state).await;
 	let app    = create_app::<_, User, User>(&state, protected(), public(), ApiDoc::openapi());
-	let server = create_server(app, &state).await?;
+	let server = create_server(app, &*state).await?;
 	info!("Listening on {}", state.address().expect("Server address not set"));
 	server.await.unwrap()
 }

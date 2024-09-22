@@ -5,7 +5,6 @@
 //		Packages
 
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use terracotta::auth::{
 	middleware::{User as AuthUser, Credentials as AuthCredentials, UserProvider as AuthUserProvider},
 	state::StateProvider as AuthStateProvider,
@@ -70,7 +69,7 @@ impl AuthUserProvider for User {
 	
 	//		find_by_credentials													
 	fn find_by_credentials<SP: AuthStateProvider>(
-		state:       &Arc<SP>,
+		state:       &SP,
 		credentials: &Self::Credentials,
 	) -> Option<Self> {
 		state
@@ -82,7 +81,7 @@ impl AuthUserProvider for User {
 	
 	//		find_by_id															
 	fn find_by_id<SP: AuthStateProvider>(
-		state: &Arc<SP>,
+		state: &SP,
 		id:    &<Self::User as AuthUser>::Id,
 	) -> Option<Self> {
 		state

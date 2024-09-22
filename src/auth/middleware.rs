@@ -87,7 +87,7 @@ impl<U: User> Context<U> {
 	/// 
 	/// * `state` - The application state.
 	/// 
-	pub async fn get_user<SP, UP>(&self, state: &Arc<SP>) -> Option<U>
+	pub async fn get_user<SP, UP>(&self, state: &SP) -> Option<U>
 	where
 		SP: StateProvider,
 		UP: UserProvider<User = U>,
@@ -235,7 +235,7 @@ pub trait UserProvider: Debug + 'static {
 	/// * `credentials` - The credentials to check.
 	/// 
 	fn find_by_credentials<SP: StateProvider>(
-		state:       &Arc<SP>,
+		state:       &SP,
 		credentials: &Self::Credentials,
 	) -> Option<Self::User>;
 	
@@ -253,7 +253,7 @@ pub trait UserProvider: Debug + 'static {
 	/// * `id`    - The identifying field to search for.
 	/// 
 	fn find_by_id<SP: StateProvider>(
-		state: &Arc<SP>,
+		state: &SP,
 		id:    &<Self::User as User>::Id,
 	) -> Option<Self::User>;
 }

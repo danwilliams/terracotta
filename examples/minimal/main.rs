@@ -74,7 +74,7 @@ async fn main() -> Result<(), AppError> {
 	let _guard = setup_logging(&config.logdir);
 	let state  = Arc::new(AppState::new(config));
 	let app    = create_app(&state, routes());
-	let server = create_server(app, &state).await?;
+	let server = create_server(app, &*state).await?;
 	info!("Listening on {}", state.address().expect("Server address not set"));
 	server.await.unwrap()
 }
