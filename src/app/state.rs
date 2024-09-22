@@ -9,7 +9,7 @@ use core::net::{IpAddr, SocketAddr};
 #[cfg(feature = "tera")]
 use super::config::HtmlTemplates;
 #[cfg(feature = "tera")]
-use tera::{Context, Error as TemplateError};
+use tera::{Context, Error as TemplateError, Tera};
 
 
 
@@ -58,6 +58,11 @@ pub trait StateProvider: Send + Sync + 'static {
 	/// * `address` - The actual address the server is running on.
 	/// 
 	fn set_address(&self, address: Option<SocketAddr>);
+	
+	//		tera																
+	/// Gets the application's Tera instance.
+	#[cfg(feature = "tera")]
+	fn tera(&self) -> &Tera;
 	
 	//		title																
 	/// Gets the application title.

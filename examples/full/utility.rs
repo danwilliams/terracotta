@@ -4,7 +4,6 @@
 
 //		Packages
 
-use crate::state::AppState;
 use axum::response::Html;
 use std::{
 	fs,
@@ -14,7 +13,8 @@ use tera::Context;
 use terracotta::{
 	app::{
 		config::LoadingBehavior,
-		state::StateProvider,
+		errors::AppError,
+		state::StateProvider as AppStateProvider,
 	},
 	health,
 	stats,
@@ -70,23 +70,38 @@ pub struct ApiDoc;
 /// * `template` - The name of the template to render.
 /// * `context`  - The context to render the template with.
 /// 
-pub fn render(
-	state:    &Arc<AppState>,
+/// # Errors
+/// 
+/// If the template cannot be loaded or rendered, an error will be returned.
+/// 
+pub fn render<SP>(
+	state:    &Arc<SP>,
 	template: &str,
 	context:  &Context,
-) -> Html<String> {
+) -> Result<Html<String>, AppError>
+where
+	SP: AppStateProvider,
+{
 	let local_template = state.html_templates_config().local_path.join(format!("{template}.tera.html"));
 	let local_layout   = state.html_templates_config().local_path.join("layout.tera.html");
-	let mut tera       = state.template.clone();
+	let mut tera       = state.tera().clone();
 	if state.html_templates_config().behavior == LoadingBehavior::Override {
 		if local_layout.exists() {
-			tera.add_raw_template("layout", &fs::read_to_string(local_layout).ok().unwrap()).unwrap();
+			tera.add_raw_template(
+				"layout",
+				&fs::read_to_string(&local_layout)
+					.map_err(|err| AppError::CouldNotLoadTemplate(local_layout.clone(), err))?
+			).map_err(|err| AppError::CouldNotAddTemplate(local_layout, err))?;
 		};
 		if local_template.exists() {
-			tera.add_raw_template(template, &fs::read_to_string(local_template).ok().unwrap()).unwrap();
+			tera.add_raw_template(
+				template,
+				&fs::read_to_string(&local_template)
+					.map_err(|err| AppError::CouldNotLoadTemplate(local_template.clone(), err))?
+			).map_err(|err| AppError::CouldNotAddTemplate(local_template, err))?;
 		};
 	};
-	Html(tera.render(template, context).unwrap())
+	Ok(Html(tera.render(template, context)?))
 }
 
 

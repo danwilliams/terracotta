@@ -92,6 +92,11 @@ impl AppStateProvider for AppState {
 		*self.address.write() = address;
 	}
 	
+	//		tera																
+	fn tera(&self) -> &Tera {
+		&self.template
+	}
+	
 	//		title																
 	fn title(&self) -> &String {
 		&self.config.title

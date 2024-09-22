@@ -40,6 +40,16 @@ pub enum AppError {
 	#[error("Could not start server: {0}")]
 	CouldNotStartServer(IoError),
 	
+	/// Could not add the template to Tera.
+	#[cfg(feature = "tera")]
+	#[error("Could not add template {0}: {1}")]
+	CouldNotAddTemplate(PathBuf, TemplateError),
+	
+	/// I/O error when trying to load the template.
+	#[cfg(feature = "tera")]
+	#[error("Could not load template {0}: {1}")]
+	CouldNotLoadTemplate(PathBuf, IoError),
+	
 	/// Error when reading files.
 	#[error("Glob pattern error: {0}")]
 	GlobError(#[from] PatternError),
