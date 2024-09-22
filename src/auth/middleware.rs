@@ -11,9 +11,9 @@ use super::{
 	handlers::get_login,
 	state::StateProvider,
 };
-use crate::{
-	app::state::StateProvider as AppStateProvider,
-	errors::errors::ErrorsError,
+use crate::app::{
+	errors::AppError,
+	state::StateProvider as AppStateProvider
 };
 use axum::{
 	Extension,
@@ -358,7 +358,7 @@ pub async fn protected_error_layer<SP, U>(
 	uri:                Uri,
 	request:            Request<Body>,
 	next:               Next,
-) -> Result<Response, ErrorsError>
+) -> Result<Response, AppError>
 where
 	SP: AppStateProvider,
 	U:  User,

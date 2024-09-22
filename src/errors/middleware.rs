@@ -16,9 +16,10 @@ use rubedo::http::UnpackedResponseBody;
 use tracing::error;
 
 #[cfg(feature = "tera")]
-use super::errors::ErrorsError;
-#[cfg(feature = "tera")]
-use crate::app::state::StateProvider as AppStateProvider;
+use crate::app::{
+	errors::AppError,
+	state::StateProvider as AppStateProvider,
+};
 #[cfg(feature = "tera")]
 use ::{
 	axum::{
@@ -71,7 +72,7 @@ pub async fn graceful_error_layer<SP>(
 	State(state): State<Arc<SP>>,
 	request:      Request<Body>,
 	next:         Next,
-) -> Result<Response, ErrorsError>
+) -> Result<Response, AppError>
 where
 	SP: AppStateProvider,
 {
