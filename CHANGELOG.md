@@ -5,6 +5,7 @@
 [Docker]:              https://www.docker.com/
 [Figment]:             https://crates.io/crates/figment
 [Font Awesome]:        https://fontawesome.com/
+[Hyper]:               https://crates.io/crates/hyper
 [Keep a Changelog]:    https://keepachangelog.com/en/1.0.0/
 [OpenAPI]:             https://www.openapis.org/
 [RapiDoc]:             https://mrin9.github.io/RapiDoc/
@@ -18,6 +19,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog][], and this project adheres to
 [Semantic Versioning][].
+
+
+## 0.3.2 (22 September 2024)
+
+### Added
+
+  - Added loading of HTML templates from the local filesystem at runtime
+      - New `utility::render()` function
+      - New configuration settings
+  - Added custom JS and CSS files
+
+### Fixed
+
+  - Added a missing OpenAPI type definition
+
+### Changed
+
+  - Amended page title headings to apply line via CSS instead of using `HR` tags
+  - Tweaked fonts for main text plus `H1`/`H2`/`H3`
+  - CSS tweaks
 
 
 ## 0.3.1 (21 September 2024)
