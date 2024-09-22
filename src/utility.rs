@@ -278,6 +278,7 @@ impl Serialize for Endpoint {
 	),
 	components(
 		schemas(
+			stats::MeasurementType,
 			stats::StatsResponse,
 			stats::StatsResponseForPeriod,
 			stats::StatsHistoryResponse,
