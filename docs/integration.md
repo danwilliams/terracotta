@@ -23,6 +23,10 @@ available.
   - **`GET /api/ping`** \
     Returns a `200 OK` response with an empty body.
 
+  - **`GET /api/version`** \
+    Returns a `200 OK` response with a JSON body containing the current version
+    of the application.
+
 The health check endpoints are not authenticated, and not versioned.
 
 ### Statistics

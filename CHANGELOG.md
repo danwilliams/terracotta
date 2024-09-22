@@ -20,6 +20,27 @@ The format is based on [Keep a Changelog][], and this project adheres to
 [Semantic Versioning][].
 
 
+## 0.3.1 (21 September 2024)
+
+### Added
+
+  - Added `/api/version` endpoint to `health` module
+  - Added MSRV (Minimum Supported Rust Version) in `Cargo.toml`, set to 1.81.0
+  - Added standard linting configuration
+  - Added missing documentation
+
+### Changed
+
+  - Upgraded from `axum-sessions` to `tower-sessions`
+  - Upgraded to [Axum][] 0.7 and [Hyper][] 1.0
+  - Updated [Font Awesome][] from 6.4.0 -> 6.6.0
+  - Updated [Bulma][] from 0.9.4 -> 1.0.2
+  - Adjusted logo/nav CSS for dark mode
+  - Changed Titlecase configuration fields to lowercase
+  - Improved utility functions
+  - Updated crate dependencies
+
+
 ## 0.3.0 (28 October 2023)
 
 ### Added

@@ -1,4 +1,6 @@
-#![allow(non_snake_case)]
+//! Utility functions and types for the application.
+
+
 
 //		Packages
 
@@ -10,13 +12,15 @@ use axum::{
 	http::{Method, Uri},
 	response::Html,
 };
-use ring::hmac;
+use core::{
+	fmt::Display,
+	net::IpAddr,
+};
 use serde::{Deserialize, Serialize, Serializer};
 use smart_default::SmartDefault;
 use std::{
 	collections::HashMap,
 	fs,
-	net::IpAddr,
 	path::PathBuf,
 	sync::Arc,
 };
@@ -140,7 +144,7 @@ pub struct StaticFiles {
 	//		Public properties													
 	/// The file size at which to start streaming, in KB. Below this size, the
 	/// file will be read into memory and served all at once.
-	#[default = 1000]
+	#[default = 1_000]
 	pub stream_threshold: usize,
 	
 	/// The size of the stream buffer to use when streaming files, in KB.
@@ -223,23 +227,16 @@ pub struct StatsOptions {
 /// This is used to store global state information that is shared between
 /// requests.
 /// 
-#[allow(dead_code)]
 pub struct AppState {
 	//		Public properties													
 	/// The application configuration.
-	pub Config:   Config,
+	pub config:   Config,
 	
 	/// The application statistics.
-	pub Stats:    AppStateStats,
-	
-	/// The application secret.
-	pub Secret:   [u8; 64],
-	
-	/// The HMAC key used to sign and verify sessions.
-	pub Key:      hmac::Key,
+	pub stats:    AppStateStats,
 	
 	/// The Tera template engine.
-	pub Template: Tera,
+	pub template: Tera,
 }
 
 //		Endpoint																
@@ -272,12 +269,14 @@ impl Serialize for Endpoint {
 #[openapi(
 	paths(
 		health::get_ping,
+		health::get_version,
 		stats::get_stats,
 		stats::get_stats_history,
 		stats::get_stats_feed,
 	),
 	components(
 		schemas(
+			health::HealthVersionResponse,
 			stats::MeasurementType,
 			stats::StatsResponse,
 			stats::StatsResponseForPeriod,
@@ -303,7 +302,7 @@ pub struct ApiDoc;
 /// 
 /// * `uri` - The URI to extract the query parts from.
 /// 
-pub fn extract_uri_query_parts(uri: Uri) -> HashMap<String, String> {
+pub fn extract_uri_query_parts(uri: &Uri) -> HashMap<String, String> {
 	uri
 		.query()
 		.map(|v| {
@@ -322,15 +321,21 @@ pub fn extract_uri_query_parts(uri: Uri) -> HashMap<String, String> {
 /// * `path`   - The path to build the URI from.
 /// * `params` - The query parameters to add to the URI.
 /// 
-pub fn build_uri(path: String, params: HashMap<String, String>) -> Uri {
+pub fn build_uri<S, K, V>(path: S, params: &HashMap<K, V>) -> Uri
+where
+	S: AsRef<str>,
+	K: AsRef<str> + Display,
+	V: AsRef<str> + Display,
+{
 	Uri::builder()
 		.path_and_query(format!("{}?{}",
-			path,
+			path.as_ref(),
 			params
 				.iter()
-				.map(|(k, v)| format!("{}={}", k, v))
+				.map(|(k, v)| format!("{k}={v}"))
 				.collect::<Vec<String>>()
 				.join("&")
+			,
 		))
 		.build()
 		.unwrap()

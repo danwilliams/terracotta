@@ -1,11 +1,16 @@
+//! Error-handling middleware.
+
+
+
 //		Packages
 
 use crate::{
 	auth::{User, get_login},
-	utility::*,
+	utility::AppState,
 };
 use axum::{
 	Extension,
+	body::Body,
 	extract::State,
 	http::{Request, StatusCode, Uri},
 	middleware::Next,
@@ -52,22 +57,22 @@ pub async fn no_route() -> impl IntoResponse {
 /// * `request` - The request.
 /// * `next`    - The next middleware.
 /// 
-pub async fn graceful_error_layer<B>(
+pub async fn graceful_error_layer(
 	State(state):    State<Arc<AppState>>,
 	Extension(user): Extension<Option<User>>,
 	uri:             Uri,
-	request:         Request<B>,
-	next:            Next<B>,
+	request:         Request<Body>,
+	next:            Next,
 ) -> Response {
 	let response          = next.run(request).await;
 	let (mut parts, body) = response.into_parts();
 	match parts.status {
 		//		404: Not Found													
 		StatusCode::NOT_FOUND             => {
-			parts.headers.remove("content-length");
-			parts.headers.remove("content-type");
+			drop(parts.headers.remove("content-length"));
+			drop(parts.headers.remove("content-type"));
 			if parts.headers.contains_key("protected") {
-				parts.headers.remove("protected");
+				drop(parts.headers.remove("protected"));
 				if user.is_none() {
 					parts.status = StatusCode::UNAUTHORIZED;
 					return (
@@ -77,7 +82,7 @@ pub async fn graceful_error_layer<B>(
 				}
 			}
 			let mut context = Context::new();
-			context.insert("Title", &state.Config.title);
+			context.insert("Title", &state.config.title);
 			(
 				parts,
 				render(state, "404-notfound", context),
@@ -87,10 +92,10 @@ pub async fn graceful_error_layer<B>(
 		StatusCode::INTERNAL_SERVER_ERROR => {
 			error!("Internal server error: {}", UnpackedResponseBody::from(body));
 			let mut context = Context::new();
-			context.insert("Title", &state.Config.title);
-			parts.headers.remove("content-length");
-			parts.headers.remove("content-type");
-			parts.headers.insert("error-handled", "gracefully".parse().unwrap());
+			context.insert("Title", &state.config.title);
+			drop(parts.headers.remove("content-length"));
+			drop(parts.headers.remove("content-type"));
+			drop(parts.headers.insert("error-handled", "gracefully".parse().unwrap()));
 			(
 				parts,
 				render(state, "500-error", context),
@@ -118,23 +123,23 @@ pub async fn graceful_error_layer<B>(
 /// * `request` - The request.
 /// * `next`    - The next middleware.
 /// 
-pub async fn final_error_layer<B>(
-	request:  Request<B>,
-	next:     Next<B>,
+pub async fn final_error_layer(
+	request:  Request<Body>,
+	next:     Next,
 ) -> Response {
 	let response = next.run(request).await;
 	match response.status() {
 		StatusCode::INTERNAL_SERVER_ERROR => {
 			let (mut parts, body) = response.into_parts();
 			if parts.headers.contains_key("error-handled") {
-				parts.headers.remove("error-handled");
+				drop(parts.headers.remove("error-handled"));
 				return (parts, body).into_response();
 			}
-			parts.headers.remove("content-length");
-			parts.headers.remove("content-type");
+			drop(parts.headers.remove("content-length"));
+			drop(parts.headers.remove("content-type"));
 			(
 				parts,
-				Html(r#"<h1>Internal server error</h1>"#),
+				Html(r"<h1>Internal server error</h1>"),
 			).into_response()
 		},
 		_                                 => response,

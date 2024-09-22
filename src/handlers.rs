@@ -1,9 +1,13 @@
+//! Endpoint handlers for the application.
+
+
+
 //		Packages
 
 use crate::{
 	ASSETS_DIR,
 	CONTENT_DIR,
-	utility::*,
+	utility::{AppState, LoadingBehavior},
 };
 use axum::{
 	body::Body,
@@ -26,7 +30,7 @@ use tokio_util::io::ReaderStream;
 
 //		AssetContext															
 /// The protection contexts for static assets.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum AssetContext {
 	/// Public files.
 	Public,
@@ -48,9 +52,9 @@ pub enum AssetContext {
 /// 
 pub async fn get_index(State(state): State<Arc<AppState>>) -> Html<String> {
 	let mut context = Context::new();
-	context.insert("Title",   &state.Config.title);
+	context.insert("Title",   &state.config.title);
 	context.insert("Content", "Index");
-	Html(state.Template.render("index", &context).unwrap())
+	Html(state.template.render("index", &context).unwrap())
 }
 
 //		get_protected_static_asset												
@@ -102,16 +106,16 @@ async fn get_static_asset(
 	let (basedir, local_path, behavior) = match context {
 		AssetContext::Public    => (
 			&ASSETS_DIR,
-			state.Config.local_paths.public_assets.join(path),
-			&state.Config.local_loading.public_assets
+			state.config.local_paths.public_assets.join(path),
+			&state.config.local_loading.public_assets
 		),
 		AssetContext::Protected => (
 			&CONTENT_DIR,
-			state.Config.local_paths.protected_assets.join(path),
-			&state.Config.local_loading.protected_assets
+			state.config.local_paths.protected_assets.join(path),
+			&state.config.local_loading.protected_assets
 		),
 	};
-	let is_local = match behavior {
+	let is_local = match *behavior {
 		LoadingBehavior::Deny       => false,
 		LoadingBehavior::Supplement => basedir.get_file(path).is_none(),
 		LoadingBehavior::Override   => local_path.exists(),
@@ -124,14 +128,14 @@ async fn get_static_asset(
 	}
 	let body = if is_local {
 		let mut file   = File::open(local_path).await.ok().unwrap();
-		let config     =  &state.Config.static_files;
-		if file.metadata().await.unwrap().len() as usize > 1024 * config.stream_threshold {
-			let reader = BufReader::with_capacity(1024 * config.read_buffer, file);
-			let stream = ReaderStream::with_capacity(reader, 1024 * config.stream_buffer);
-			Body::wrap_stream(stream)
+		let config     =  &state.config.static_files;
+		if file.metadata().await.unwrap().len() > config.stream_threshold.saturating_mul(1_024) as u64 {
+			let reader = BufReader::with_capacity(config.read_buffer.saturating_mul(1_024), file);
+			let stream = ReaderStream::with_capacity(reader, config.stream_buffer.saturating_mul(1_024));
+			Body::from_stream(stream)
 		} else {
 			let mut contents = vec![];
-			file.read_to_end(&mut contents).await.unwrap();
+			let _count = file.read_to_end(&mut contents).await.unwrap();
 			Body::from(contents)
 		}
 	} else {

@@ -1,35 +1,31 @@
-#![allow(non_snake_case)]
+//! Authentication functionality.
+
+
 
 //		Packages
 
-use crate::{
-	utility::*,
-};
+use crate::utility::{AppState, build_uri, extract_uri_query_parts};
 use axum::{
 	Extension,
 	Form,
 	async_trait,
+	body::Body,
 	extract::{FromRequestParts, State},
 	http::{Request, StatusCode, Uri, request::Parts},
 	middleware::Next,
 	response::{Html, IntoResponse, Redirect, Response},
 };
-use axum_sessions::SessionHandle;
-use base64::engine::{Engine as _, general_purpose::STANDARD as BASE64};
-use ring::hmac;
+use core::convert::Infallible;
 use rubedo::sugar::s;
-use secrecy::{ExposeSecret, SecretVec};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tera::Context;
+use tower_sessions::Session;
 use tracing::info;
 
 
 
 //		Constants
-
-/// The key used to store the session's authentication ID.
-const SESSION_AUTH_ID_KEY: &str = "_auth_id";
 
 /// The key used to store the session's user ID.
 const SESSION_USER_ID_KEY: &str = "_user_id";
@@ -85,9 +81,9 @@ impl User {
 	/// * `username` - The username to search for.
 	/// * `password` - The password to match.
 	/// 
-	pub async fn find(state: Arc<AppState>, username: &String, password: &String) -> Option<Self> {
-		if state.Config.users.contains_key(username) {
-			let pass = state.Config.users.get(username).unwrap();
+	pub fn find(state: &Arc<AppState>, username: &String, password: &String) -> Option<Self> {
+		if state.config.users.contains_key(username) {
+			let pass = state.config.users.get(username)?;
 			if pass == password {
 				return Some(Self {
 					username: username.clone(),
@@ -109,21 +105,15 @@ impl User {
 	/// * `state`    - The application state.
 	/// * `username` - The username to search for.
 	/// 
-	pub async fn find_by_id(state: Arc<AppState>, id: &String) -> Option<Self> {
-		if state.Config.users.contains_key(id) {
-			let password = state.Config.users.get(id).unwrap();
+	pub fn find_by_id(state: &Arc<AppState>, id: &String) -> Option<Self> {
+		if state.config.users.contains_key(id) {
+			let password = state.config.users.get(id)?;
 			return Some(Self {
 				username: id.clone(),
 				password: password.clone(),
 			});
 		}
 		None
-	}
-	
-	//		get_password_hash													
-	/// Hashes the user's password.
-	pub fn get_password_hash(&self) -> SecretVec<u8> {
-		SecretVec::new(self.password.clone().into())
 	}
 }
 
@@ -140,11 +130,8 @@ pub struct AuthContext {
 	pub current_user: Option<User>,
 	
 	//		Private properties													
-	/// The session handle.
-	session_handle:   SessionHandle,
-	
-	/// The HMAC key.
-	key:              hmac::Key,
+	/// The active session.
+	session:          Session,
 }
 
 impl AuthContext {
@@ -153,27 +140,14 @@ impl AuthContext {
 	/// 
 	/// # Parameters
 	/// 
-	/// * `session_handle` - The session handle.
-	/// * `key`            - The HMAC key.
+	/// * `session` - The active session.
+	/// * `key`     - The HMAC key.
 	/// 
-	pub fn new(session_handle: SessionHandle, key: hmac::Key) -> Self {
+	pub const fn new(session: Session) -> Self {
 		Self {
 			current_user: None,
-			session_handle,
-			key,
+			session,
 		}
-	}
-	
-	//		get_session_auth_id													
-	/// Gets the session's authentication ID.
-	/// 
-	/// # Parameters
-	/// 
-	/// * `password_hash` - The user's password hash.
-	/// 
-	fn get_session_auth_id(&self, password_hash: &[u8]) -> String {
-		let tag = hmac::sign(&self.key, password_hash);
-		BASE64.encode(tag.as_ref())
 	}
 	
 	//		get_user															
@@ -186,24 +160,12 @@ impl AuthContext {
 	/// 
 	/// * `appstate` - The application state.
 	/// 
-	pub async fn get_user(&mut self, appstate: Arc<AppState>) -> Option<User> {
-		let session                 = self.session_handle.read().await;
-		if let Some(user_id)        = session.get::<String>(SESSION_USER_ID_KEY) {
-			if let Some(user)       = User::find_by_id(Arc::clone(&appstate), &user_id).await {
-				let session_auth_id = session
-					.get::<String>(SESSION_AUTH_ID_KEY)
-					.and_then(|auth_id| BASE64.decode(auth_id).ok())
-					.unwrap_or_default()
-				;
-				drop(session);
-				let password_hash   = user.get_password_hash();
-				let data            = password_hash.expose_secret();
-				if hmac::verify(&self.key, data, &session_auth_id).is_ok() {
-					return Some(user);
-				} else {
-					self.logout().await;
-				}
+	pub async fn get_user(&self, appstate: &Arc<AppState>) -> Option<User> {
+		if let Ok(Some(user_id)) = self.session.get::<String>(SESSION_USER_ID_KEY).await {
+			if let Some(user)    = User::find_by_id(appstate, &user_id) {
+				return Some(user);
 			}
+			self.logout().await;
 		}
 		None
 	}
@@ -219,11 +181,8 @@ impl AuthContext {
 	/// * `user` - The user to log in.
 	/// 
 	pub async fn login(&mut self, user: &User) {
-		let auth_id       = self.get_session_auth_id(user.get_password_hash().expose_secret());
 		let user_id       = &user.username;
-		let mut session   = self.session_handle.write().await;
-		session.insert(SESSION_AUTH_ID_KEY, auth_id).unwrap();
-		session.insert(SESSION_USER_ID_KEY, user_id).unwrap();
+		self.session.insert(SESSION_USER_ID_KEY, user_id).await.unwrap();
 		self.current_user = Some(user.clone());
 	}
 	
@@ -232,16 +191,15 @@ impl AuthContext {
 	/// 
 	/// Logs the current user out by destroying the session.
 	/// 
-	pub async fn logout(&mut self) {
-		let mut session = self.session_handle.write().await;
-		session.destroy();
+	pub async fn logout(&self) {
+		self.session.clear().await;
 	}
 }
 
 #[async_trait]
 impl<State> FromRequestParts<State> for AuthContext
 where State: Send + Sync {
-	type Rejection = std::convert::Infallible;
+	type Rejection = Infallible;
 	
 	//		from_request_parts													
 	/// Creates an authentication context from the request parts.
@@ -251,8 +209,9 @@ where State: Send + Sync {
 	/// * `parts` - The request parts.
 	/// * `state` - The application state.
 	/// 
+	#[expect(clippy::expect_used, reason = "Misconfiguration, so hard quit")]
 	async fn from_request_parts(parts: &mut Parts, state: &State) -> Result<Self, Self::Rejection> {
-		let Extension(auth_cx): Extension<AuthContext> =
+		let Extension(auth_cx): Extension<Self> =
 			Extension::from_request_parts(parts, state)
 				.await
 				.expect("Auth extension/layer missing")
@@ -274,27 +233,27 @@ where State: Send + Sync {
 /// 
 /// # Parameters
 /// 
-/// * `appstate`       - The application state.
-/// * `session_handle` - The session handle.
-/// * `request`        - The request.
-/// * `next`           - The next middleware.
+/// * `appstate` - The application state.
+/// * `session`  - The session handle.
+/// * `request`  - The request.
+/// * `next`     - The next middleware.
 /// 
-pub async fn auth_layer<B>(
-	State(appstate):           State<Arc<AppState>>,
-	Extension(session_handle): Extension<SessionHandle>,
-	mut request:               Request<B>,
-	next:                      Next<B>,
+pub async fn auth_layer(
+	State(appstate):    State<Arc<AppState>>,
+	Extension(session): Extension<Session>,
+	mut request:        Request<Body>,
+	next:               Next,
 ) -> Response {
-	let mut auth_cx      = AuthContext::new(session_handle, appstate.Key.clone());
-	let user             = auth_cx.get_user(Arc::clone(&appstate)).await;
+	let mut auth_cx      = AuthContext::new(session);
+	let user             = auth_cx.get_user(&appstate).await;
 	let mut username     = s!("none");
-	if user.is_some() {
-		username         = user.as_ref().unwrap().username.clone();
+	if let Some(ref u) = user {
+		username.clone_from(&u.username);
 	}
-	info!("Current user: {}", username);
+	info!("Current user: {username}");
 	auth_cx.current_user = user;
-	request.extensions_mut().insert(auth_cx.clone());
-	request.extensions_mut().insert(auth_cx.current_user);
+	drop(request.extensions_mut().insert(auth_cx.clone()));
+	drop(request.extensions_mut().insert(auth_cx.current_user));
 	next.run(request).await
 }
 
@@ -313,12 +272,12 @@ pub async fn auth_layer<B>(
 /// * `request`  - The request.
 /// * `next`     - The next middleware.
 /// 
-pub async fn protect<B>(
+pub async fn protect(
 	State(appstate): State<Arc<AppState>>,
 	Extension(user): Extension<Option<User>>,
 	uri:             Uri,
-	request:         Request<B>,
-	next:            Next<B>,
+	request:         Request<Body>,
+	next:            Next,
 ) -> Response {
 	match user {
 		Some(_) => {
@@ -349,15 +308,15 @@ pub async fn get_login(
 	State(state): State<Arc<AppState>>,
 	mut uri:      Uri,
 ) -> Html<String> {
-	let mut params  = extract_uri_query_parts(uri.clone());
+	let mut params  = extract_uri_query_parts(&uri);
 	let mut failed  = false;
 	if params.contains_key("failed") {
 		failed      = true;
-		params.remove("failed");
+		drop(params.remove("failed"));
 	}
-	uri             = build_uri(uri.path().to_string(), params);
+	uri             = build_uri(uri.path(), &params);
 	let mut context = Context::new();
-	context.insert("Title",   &state.Config.title);
+	context.insert("Title",   &state.config.title);
 	context.insert("PageURL", &uri.path_and_query().unwrap().to_string());
 	context.insert("Failed",  &failed);
 	render(state, "login", context)
@@ -382,16 +341,16 @@ pub async fn post_login(
 	Form(login):  Form<PostLogin>,
 ) -> Redirect {
 	let uri        = login.uri.parse::<Uri>().unwrap();
-	let mut params = extract_uri_query_parts(uri.clone());
-	let user       = User::find(Arc::clone(&state), &login.username, &login.password).await;
+	let mut params = extract_uri_query_parts(&uri);
+	let user       = User::find(&state, &login.username, &login.password);
 	if user.is_some() {
 		info!("Logging in user: {}", user.as_ref().unwrap().username);
 		auth.login(user.as_ref().unwrap()).await;
 	} else {
-		params.insert(s!("failed"), s!(""));
+		drop(params.insert(s!("failed"), s!("")));
 		info!("Failed login attempt for user: {}", &login.username);
 	}
-	Redirect::to(build_uri(uri.path().to_string(), params).path_and_query().unwrap().to_string().as_str())
+	Redirect::to(build_uri(uri.path(), &params).path_and_query().unwrap().to_string().as_str())
 }
 
 //		get_logout																
@@ -404,7 +363,7 @@ pub async fn post_login(
 /// * `auth` - The authentication context.
 /// 
 pub async fn get_logout(
-	mut auth: AuthContext,
+	auth: AuthContext,
 ) -> Redirect {
 	if auth.current_user.is_some() {
 		info!("Logging out user: {}", auth.current_user.as_ref().unwrap().username);

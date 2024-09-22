@@ -1,4 +1,4 @@
-#![allow(non_snake_case)]
+#![allow(non_snake_case, reason = "To enable test function name organisation")]
 
 //		Tests
 
@@ -10,16 +10,14 @@ use axum::{
 	response::IntoResponse,
 };
 use chrono::Duration;
+use core::sync::atomic::AtomicUsize;
 use figment::{Figment, providers::Serialized};
 use flume::{self};
 use parking_lot::Mutex;
-use rand::Rng;
-use ring::hmac::{HMAC_SHA512, self};
 use rubedo::{
-	http::{ResponseExt, UnpackedResponse, UnpackedResponseBody, UnpackedResponseHeader},
+	http::{ResponseExt, UnpackedResponse, UnpackedResponseBody},
 	sugar::s,
 };
-use std::sync::atomic::AtomicUsize;
 use tera::Tera;
 use tokio::sync::broadcast;
 use velcro::hash_map;
@@ -28,11 +26,10 @@ use velcro::hash_map;
 fn prepare_state(start: NaiveDateTime) -> AppState {
 	let (sender, _)     = flume::unbounded();
 	let (tx, _)         = broadcast::channel(10);
-	let secret          = rand::thread_rng().gen::<[u8; 64]>();
 	let mut state       = AppState {
-		Config:           Figment::from(Serialized::defaults(Config::default())).extract().unwrap(),
-		Stats:            AppStateStats {
-			Data:                AppStats {
+		config:           Figment::from(Serialized::defaults(Config::default())).extract().unwrap(),
+		stats:            AppStateStats {
+			data:                AppStats {
 				started_at:      start,
 				last_second:     RwLock::new((start + Duration::seconds(95)).with_nanosecond(0).unwrap()),
 				connections:     AtomicUsize::new(5),
@@ -44,7 +41,7 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 						StatusCode::NOT_FOUND:             3,
 						StatusCode::INTERNAL_SERVER_ERROR: 2,
 					},
-					times:       Default::default(),
+					times:       StatsForPeriod::default(),
 					endpoints:   hash_map!{
 						Endpoint {
 							method:     Method::GET,
@@ -57,19 +54,17 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 							count:      10,
 						},
 					},
-					connections: Default::default(),
-					memory:      Default::default(),
+					connections: StatsForPeriod::default(),
+					memory:      StatsForPeriod::default(),
 				}),
 				..Default::default()
 			},
-			Queue:               sender,
-			Broadcast:           tx,
+			queue:               sender,
+			broadcast:           tx,
 		},
-		Secret:           secret,
-		Key:              hmac::Key::new(HMAC_SHA512, &secret),
-		Template:         Tera::default(),
+		template:         Tera::default(),
 	};
-	state.Config.stats_periods = hash_map!{
+	state.config.stats_periods = hash_map!{
 		s!("second"):          1,
 		s!("minute"):         60,
 		s!("hour"):        3_600,
@@ -86,16 +81,13 @@ async fn stats() {
 	let start           = Utc::now().naive_utc() - Duration::seconds(99);
 	let state           = prepare_state(start);
 	let unpacked        = get_stats(State(Arc::new(state))).await.into_response().unpack().unwrap();
-	let crafted         = UnpackedResponse {
-		status:           StatusCode::OK,
-		headers:          vec![
+	let crafted         = UnpackedResponse::new(
+		StatusCode::OK,
+		vec![
 			//	Axum automatically adds a content-type header.
-			UnpackedResponseHeader {
-				name:     s!("content-type"),
-				value:    s!("application/json"),
-			},
+			(s!("content-type"), s!("application/json")),
 		],
-		body:             UnpackedResponseBody::new(json!({
+		UnpackedResponseBody::new(json!({
 			"started_at":  start.with_nanosecond(0).unwrap(),
 			"last_second": (start + Duration::seconds(95)).with_nanosecond(0).unwrap(),
 			"uptime":      99,
@@ -212,7 +204,7 @@ async fn stats() {
 				},
 			},
 		})),
-	};
+	);
 	assert_json_eq!(unpacked, crafted);
 }
 
@@ -224,23 +216,20 @@ async fn stats_history() {
 	let start        = Utc::now().naive_utc() - Duration::seconds(99);
 	let state        = prepare_state(start);
 	{
-		let mut buffers = state.Stats.Data.buffers.write();
+		let mut buffers = state.stats.data.buffers.write();
 		buffers.responses  .push_front(StatsForPeriod::default());
 		buffers.connections.push_front(StatsForPeriod::default());
 		buffers.memory     .push_front(StatsForPeriod::default());
 	}
 	let params       = GetStatsHistoryParams::default();
 	let unpacked     = get_stats_history(State(Arc::new(state)), Query(params)).await.into_response().unpack().unwrap();
-	let crafted      = UnpackedResponse {
-		status:        StatusCode::OK,
-		headers:       vec![
+	let crafted      = UnpackedResponse::new(
+		StatusCode::OK,
+		vec![
 			//	Axum automatically adds a content-type header.
-			UnpackedResponseHeader {
-				name:  s!("content-type"),
-				value: s!("application/json"),
-			},
+			(s!("content-type"), s!("application/json")),
 		],
-		body:          UnpackedResponseBody::new(json!({
+		UnpackedResponseBody::new(json!({
 			"last_second":     (start + Duration::seconds(95)).with_nanosecond(0).unwrap(),
 			"times": [
 				{
@@ -267,7 +256,7 @@ async fn stats_history() {
 				},
 			],
 		})),
-	};
+	);
 	assert_json_eq!(unpacked, crafted);
 }
 
