@@ -7,6 +7,7 @@
 use core::net::IpAddr;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
+use terracotta::app::config::HtmlTemplates;
 
 
 
@@ -32,6 +33,9 @@ pub struct Config {
 	/// The title of the application.
 	#[default = "Terracotta"]
 	pub title:  String,
+	
+	/// Loading configuration for HTML templates.
+	pub html:   HtmlTemplates,
 }
 
 

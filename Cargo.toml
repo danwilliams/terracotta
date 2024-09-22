@@ -37,7 +37,7 @@ health  = [                  ]
 stats   = [                  "dep:chrono", "dep:flume", "dep:indexmap", "dep:itertools", "dep:parking_lot", "dep:rubedo", "dep:serde_json", "dep:smart-default", "dep:tikv-jemalloc-ctl", "dep:velcro"]
 
 #	Feature abilities
-tera    = [                  "dep:include_dir", "dep:tera"]
+tera    = [                  "dep:include_dir", "dep:smart-default", "dep:tera"]
 utoipa  = [                  "dep:utoipa", "dep:utoipa-rapidoc", "dep:utoipa-redoc", "dep:utoipa-swagger-ui"]
 
 #==============================[  DEPENDENCIES  ]===============================

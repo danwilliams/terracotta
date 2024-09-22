@@ -11,6 +11,7 @@ use parking_lot::RwLock;
 use std::sync::Arc;
 use tera::{Context, Error as TemplateError, Tera};
 use terracotta::app::{
+	config::HtmlTemplates,
 	init::setup_tera,
 	state::StateProvider as AppStateProvider,
 };
@@ -69,6 +70,11 @@ impl AppStateProvider for AppState {
 	//		host																
 	fn host(&self) -> IpAddr {
 		self.config.host
+	}
+	
+	//		html_templates_config												
+	fn html_templates_config(&self) -> &HtmlTemplates {
+		&self.config.html
 	}
 	
 	//		port																

@@ -6,28 +6,10 @@
 
 //		Packages
 
+use crate::app::config::LoadingBehavior;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 use std::path::PathBuf;
-
-
-
-//		Enums
-
-//		LoadingBehavior															
-/// The possible options for loading local, non-baked-in resources.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[expect(clippy::exhaustive_enums, reason = "Exhaustive")]
-pub enum LoadingBehavior {
-	/// Deny loading of local resources.
-	Deny,
-	
-	/// Load local resources if the baked-in resources are not present.
-	Supplement,
-	
-	/// Load local resources if they exist, otherwise load baked-in resources.
-	Override,
-}
 
 
 
@@ -38,9 +20,6 @@ pub enum LoadingBehavior {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
 pub struct Config {
 	//		Public properties													
-	/// Loading configuration for HTML templates.
-	pub html_templates:   HtmlTemplates,
-	
 	/// Loading configuration for protected static assets.
 	pub protected_assets: ProtectedAssets,
 	
@@ -49,22 +28,6 @@ pub struct Config {
 	
 	/// The configuration options for serving static files.
 	pub static_files:     StaticFiles,
-}
-
-//		HtmlTemplates															
-/// Loading configuration for HTML templates.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]
-pub struct HtmlTemplates {
-	//		Public properties													
-	/// The loading behaviour for local, non-baked-in HTML templates. This
-	/// allows local HTML templates to be used to complement the baked-in
-	/// templates.
-	#[default(LoadingBehavior::Deny)]
-	pub behavior:   LoadingBehavior,
-	
-	/// The path to the local, non-baked-in HTML templates.
-	#[default = "html"]
-	pub local_path: PathBuf,
 }
 
 //		ProtectedAssets															

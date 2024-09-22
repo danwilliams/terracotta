@@ -7,8 +7,8 @@
 
 //		Packages
 
+use crate::app::config::LoadingBehavior;
 use super::{
-	config::LoadingBehavior,
 	errors::AssetsError,
 	state::StateProvider,
 };

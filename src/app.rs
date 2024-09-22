@@ -4,6 +4,7 @@
 
 //		Modules
 
+pub mod config;
 pub mod create;
 pub mod errors;
 pub mod init;

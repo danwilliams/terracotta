@@ -7,6 +7,8 @@
 use core::net::{IpAddr, SocketAddr};
 
 #[cfg(feature = "tera")]
+use super::config::HtmlTemplates;
+#[cfg(feature = "tera")]
 use tera::{Context, Error as TemplateError};
 
 
@@ -19,6 +21,11 @@ pub trait StateProvider: Send + Sync + 'static {
 	//		address																
 	/// Gets the actual address the server is running on.
 	fn address(&self) -> Option<SocketAddr>;
+	
+	//		html_templates_config												
+	/// Gets the configuration for the HTML templates.
+	#[cfg(feature = "tera")]
+	fn html_templates_config(&self) -> &HtmlTemplates;
 	
 	//		host																
 	/// Gets the configured host, in the form of an IP address.

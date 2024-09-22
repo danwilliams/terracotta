@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 use std::collections::HashMap;
 use terracotta::{
+	app::config::HtmlTemplates,
 	assets::config::Config as AssetsConfig,
 	stats::config::Config as StatsConfig,
 };
@@ -37,6 +38,9 @@ pub struct Config {
 	/// The title of the application.
 	#[default = "Terracotta"]
 	pub title:  String,
+	
+	/// Loading configuration for HTML templates.
+	pub html:   HtmlTemplates,
 	
 	/// The configuration options for serving static assets.
 	pub assets: AssetsConfig,
