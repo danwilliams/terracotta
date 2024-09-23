@@ -21,6 +21,34 @@ The format is based on [Keep a Changelog][], and this project adheres to
 [Semantic Versioning][].
 
 
+## 0.4.0 (23 September 2024)
+
+### Added
+
+  - Added a `lib.rs` file so that Terracotta is now a library, with:
+      - `app` module
+      - `assets` module
+      - `auth` module
+      - `errors` module
+      - `health` module
+      - `stats` module
+  - Added working examples
+      - `full` example with all features enabled
+      - `minimal` example with only the core features enabled
+      - `api` example suitable for building APIs
+
+### Changed
+
+  - Changed Terracotta from being a binary template into a library, with a full
+    restructuring of the codebase
+  - Updated documentation
+
+### Removed
+
+  - Removed `main.rs` and non-library functionality (available as examples now)
+  - Removed the `Dockerfile` as this is no longer relevant
+
+
 ## 0.3.2 (22 September 2024)
 
 ### Added
