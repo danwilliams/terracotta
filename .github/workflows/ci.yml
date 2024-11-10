@@ -39,7 +39,7 @@ jobs:
         run: cargo clippy --all-features --all-targets
       
       - name: Documentation
-        run: cargo doc --no-deps
+        run: cargo doc
       
       - name: Check deadlinks
         run: cargo deadlinks
