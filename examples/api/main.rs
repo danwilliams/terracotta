@@ -57,9 +57,11 @@ use terracotta::{
 	},
 	stats::worker::start as start_stats_processor,
 };
-use tikv_jemallocator::Jemalloc;
 use tracing::info;
 use utoipa::OpenApi;
+
+#[cfg(not(windows))]
+use tikv_jemallocator::Jemalloc;
 
 
 
@@ -67,6 +69,7 @@ use utoipa::OpenApi;
 
 /// The global allocator. This is changed to [`Jemalloc`] in order to obtain
 /// memory usage statistics.
+#[cfg(not(windows))]
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 

@@ -60,7 +60,6 @@ serde_json         = { optional = true, version = "1.0.128", features = ["preser
 smart-default      = { optional = true, version = "0.7.1" }
 tera               = { optional = true, version = "1.20.0" }
 thiserror          = {                  version = "1.0.63" }
-tikv-jemalloc-ctl  = { optional = true, version = "0.6.0", features = ["stats"] }
 tokio              = {                  version = "1.40.0", features = ["fs", "io-std", "io-util", "macros", "rt-multi-thread"] }
 tokio-util         = { optional = true, version = "0.7.12", features = ["io", "io-util"] }
 tower-http         = {                  version = "0.5.2", features = ["catch-panic", "trace"] }
@@ -75,12 +74,17 @@ utoipa-redoc       = { optional = true, version = "4.0.0", features = ["axum"] }
 utoipa-swagger-ui  = { optional = true, version = "7.1.0", features = ["axum"] }
 velcro             = { optional = true, version = "0.5.4" }
 
+[target.'cfg(not(windows))'.dependencies]
+tikv-jemalloc-ctl  = { optional = true, version = "0.6.0", features = ["stats"] }
+
 [dev-dependencies]
 assert-json-diff   = "2.0.2"
 parking_lot        = "0.12.3"
 rubedo             = "0.6.2"
 serde_json         = { version = "1.0.128", features = ["preserve_order"] }
 smart-default      = "0.7.1"
+
+[target.'cfg(not(windows))'.dev-dependencies]
 tikv-jemallocator  = "0.6.0"
 
 #================================[  EXAMPLES  ]=================================

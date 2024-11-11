@@ -57,6 +57,7 @@ pub mod stats;
 mod examples {
 	use parking_lot as _;
 	use smart_default as _;
+	#[cfg(not(windows))]
 	use tikv_jemallocator as _;
 }
 

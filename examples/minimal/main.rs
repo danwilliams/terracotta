@@ -51,8 +51,10 @@ use terracotta::app::{
 	init::{load_config, setup_logging},
 	state::StateProvider,
 };
-use tikv_jemallocator::Jemalloc;
 use tracing::info;
+
+#[cfg(not(windows))]
+use tikv_jemallocator::Jemalloc;
 
 
 
@@ -60,6 +62,7 @@ use tracing::info;
 
 /// The global allocator. This is changed to [`Jemalloc`] in order to obtain
 /// memory usage statistics.
+#[cfg(not(windows))]
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 

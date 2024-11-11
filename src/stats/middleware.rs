@@ -23,8 +23,13 @@ use chrono::{NaiveDateTime, Utc};
 use core::sync::atomic::Ordering;
 use smart_default::SmartDefault;
 use std::sync::Arc;
-use tikv_jemalloc_ctl::stats::allocated as Malloc;
-use tracing::{error, warn};
+use tracing::error;
+
+#[cfg(not(windows))]
+use ::{
+	tikv_jemalloc_ctl::stats::allocated as Malloc,
+	tracing::warn,
+};
 
 
 
@@ -124,10 +129,15 @@ pub async fn stats_layer<SP: StateProvider>(
 			,
 			status_code: response.status(),
 			connections: stats_state.data.connections.load(Ordering::Relaxed) as u64,
-			memory:	     Malloc::read()
-				.inspect_err(|err| warn!("Could not read memory usage: {err}"))
-				.unwrap_or_default() as u64
-			,
+			memory:	     {
+				#[cfg(not(windows))]
+				{ Malloc::read()
+					.inspect_err(|err| warn!("Could not read memory usage: {err}"))
+					.unwrap_or_default() as u64
+				}
+				#[cfg(windows)]
+				{ 0_u64 }
+			},
 		}).await.inspect_err(|err| error!("Failed to send response time: {err}")));
 	}
 	
