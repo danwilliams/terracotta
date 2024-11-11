@@ -36,10 +36,16 @@ jobs:
         run: cargo clippy --all-targets
       
       - name: Clippy (all features)
-        run: cargo clippy --all-features --all-targets
+        run: cargo clippy --all-features
       
+      - name: Examples
+        run: |
+          cargo clippy --example full    --features=full
+          cargo clippy --example minimal --features="errors health tera"
+          cargo clippy --example api     --features="errors health stats utoipa"
+          
       - name: Documentation
-        run: cargo doc
+        run: cargo doc --all-features
       
       - name: Check deadlinks
         run: cargo deadlinks
@@ -67,20 +73,23 @@ jobs:
       - name: Check each feature
         run: cargo hack check --each-feature --no-dev-deps
       
+      # The following actions specifically set the targets, excluding examples,
+      # because the examples have their own required feature sets
+      
       - name: Check feature powerset
         run: cargo hack check --feature-powerset --no-dev-deps
       
       - name: Clippy each feature
-        run: cargo hack clippy --each-feature --all-targets
+        run: cargo hack clippy --each-feature --lib --bins --tests --benches
       
       - name: Clippy feature powerset
-        run: cargo hack clippy --feature-powerset --all-targets
+        run: cargo hack clippy --feature-powerset --lib --bins --tests --benches
       
       - name: Test each feature
-        run: cargo hack test --each-feature
+        run: cargo hack test --each-feature --lib --bins --tests --benches
       
       - name: Test feature powerset
-        run: cargo hack test --feature-powerset
+        run: cargo hack test --feature-powerset --lib --bins --tests --benches
 
   msrv:
     name: Check MSRV
