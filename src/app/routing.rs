@@ -59,7 +59,7 @@ where
 	/// Adds public routes to the router.
 	/// 
 	/// This is a convenience method that adds the given routes to the router.
-	/// It is useful when combined with [`protected_routes()`](#method.protected_routes)
+	/// It is useful when combined with [`protected_routes()`][#cfg(feature = "auth")](crate::auth::routing::RouterExt::protected_routes())
 	/// to clearly separate public and protected routes.
 	/// 
 	/// # Parameters
@@ -68,7 +68,7 @@ where
 	/// 
 	/// # See also
 	/// 
-	/// * [`protected_routes()`](#method.protected_routes)
+	/// * [`protected_routes()`][#cfg(feature = "auth")](crate::auth::routing::RouterExt::protected_routes())
 	/// 
 	#[must_use]
 	fn public_routes(self, routes: Vec<(&str, MethodRouter<S>)>) -> Self;

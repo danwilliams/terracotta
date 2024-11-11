@@ -73,7 +73,7 @@ where
 	/// 
 	/// # See also
 	/// 
-	/// * [`public_routes()`](#method.public_routes)
+	/// * [`public_routes()`](crate::app::routing::RouterExt::public_routes())
 	/// 
 	#[must_use]
 	fn protected_routes<SP, U>(self, routes: Vec<(&str, MethodRouter<S>)>, state: &Arc<SP>) -> Self
