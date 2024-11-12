@@ -133,11 +133,11 @@ The following options should be specified under an `[assets.static_files]`
 heading:
 
   - `stream_threshold` - The size of the file, in KB, above which it will be
-                         streamed to the client. Defaults to `1000` (1MiB).
+                         streamed to the client. Defaults to `1000` (1MB).
   - `stream_buffer`    - The size of the stream buffer to use when streaming
-                         files, in KB. Defaults to `256` (256KB).
+                         files, in KB. Defaults to `256` (256KiB).
   - `read_buffer`      - The size of the read buffer to use when streaming
-                         files, in KB. Defaults to `128` (128KB).
+                         files, in KB. Defaults to `128` (128KiB).
 
 Each of these options accepts an integer value.
 
@@ -145,9 +145,9 @@ As shown here:
 
 ```toml
 [assets.static_files]
-stream_threshold = 1000 # 1MiB — files above this size will be streamed
-stream_buffer    = 256  # 256KB
-read_buffer      = 128  # 128KB
+stream_threshold = 1000 # 1MB — files above this size will be streamed
+stream_buffer    = 256  # 256KiB
+read_buffer      = 128  # 128KiB
 ```
 
 ### User list

@@ -16,9 +16,9 @@ behavior   = "Override"
 local_path = "static"
 
 [assets.static_files]
-stream_threshold = 1000
-stream_buffer    = 256
-read_buffer      = 128
+stream_threshold = 1000 # 1MB - files above this size will be streamed
+stream_buffer    = 256  # 256KiB
+read_buffer      = 128  # 128KiB
 
 [stats]
 enabled                = true
