@@ -21,6 +21,20 @@ The format is based on [Keep a Changelog][], and this project adheres to
 [Semantic Versioning][].
 
 
+## 0.4.1 (12 November 2024)
+
+### Fixed
+
+  - Disabled `Jemalloc` on Windows
+  - Fixed broken links in Rustdocs
+
+### Changed
+
+  - Updated lint configuration for Rust 1.82
+  - Updated crate dependencies
+  - Corrected error in docs
+
+
 ## 0.4.0 (23 September 2024)
 
 ### Added
