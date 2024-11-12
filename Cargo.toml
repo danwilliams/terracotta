@@ -43,31 +43,31 @@ utoipa  = [                  "dep:utoipa", "dep:utoipa-rapidoc", "dep:utoipa-red
 #==============================[  DEPENDENCIES  ]===============================
 
 [dependencies]
-axum               = {                  version = "0.7.5", features = ["ws"] }
-bytes              = {                  version = "1.7.1" }
+axum               = {                  version = "0.7.7", features = ["ws"] }
+bytes              = {                  version = "1.8.0" }
 chrono             = { optional = true, version = "0.4.38", features = ["std", "alloc", "clock", "serde"] }
 figment            = {                  version = "0.10.19", features = ["toml", "env"] }
-flume              = { optional = true, version = "0.11.0", features = ["async"] }
+flume              = { optional = true, version = "0.11.1", features = ["async"] }
 glob               = {                  version = "0.3.1" }
 include_dir        = { optional = true, version = "0.7.4", features = ["glob"] }
-indexmap           = { optional = true, version = "2.5.0", features = ["serde"] }
+indexmap           = { optional = true, version = "2.6.0", features = ["serde"] }
 itertools          = { optional = true, version = "0.13.0" }
 mime_guess         = { optional = true, version = "2.0.5" }
 parking_lot        = { optional = true, version = "0.12.3" }
-rubedo             = { optional = true, version = "0.6.2" }
-serde              = {                  version = "1.0.210", features = ["derive"] }
-serde_json         = { optional = true, version = "1.0.128", features = ["preserve_order"] }
+rubedo             = { optional = true, version = "0.6.3" }
+serde              = {                  version = "1.0.215", features = ["derive"] }
+serde_json         = { optional = true, version = "1.0.132", features = ["preserve_order"] }
 smart-default      = { optional = true, version = "0.7.1" }
 tera               = { optional = true, version = "1.20.0" }
-thiserror          = {                  version = "1.0.63" }
-tokio              = {                  version = "1.40.0", features = ["fs", "io-std", "io-util", "macros", "rt-multi-thread"] }
+thiserror          = {                  version = "2.0.3" }
+tokio              = {                  version = "1.41.1", features = ["fs", "io-std", "io-util", "macros", "rt-multi-thread"] }
 tokio-util         = { optional = true, version = "0.7.12", features = ["io", "io-util"] }
-tower-http         = {                  version = "0.5.2", features = ["catch-panic", "trace"] }
+tower-http         = {                  version = "0.6.1", features = ["catch-panic", "trace"] }
 tower-sessions     = { optional = true, version = "0.13.0", features = ["signed"] }
 tracing            = {                  version = "0.1.40" }
 tracing-appender   = {                  version = "0.2.3" }
 tracing-subscriber = {                  version = "0.3.18", features = ["env-filter"] }
-url                = { optional = true, version = "2.5.2" }
+url                = { optional = true, version = "2.5.3" }
 utoipa             = { optional = true, version = "4.2.3", features = ["axum_extras", "chrono", "preserve_order", "indexmap"] }
 utoipa-rapidoc     = { optional = true, version = "4.0.0", features = ["axum"] }
 utoipa-redoc       = { optional = true, version = "4.0.0", features = ["axum"] }
@@ -80,8 +80,8 @@ tikv-jemalloc-ctl  = { optional = true, version = "0.6.0", features = ["stats"] 
 [dev-dependencies]
 assert-json-diff   = "2.0.2"
 parking_lot        = "0.12.3"
-rubedo             = "0.6.2"
-serde_json         = { version = "1.0.128", features = ["preserve_order"] }
+rubedo             = "0.6.3"
+serde_json         = { version = "1.0.132", features = ["preserve_order"] }
 smart-default      = "0.7.1"
 
 [target.'cfg(not(windows))'.dev-dependencies]
