@@ -6,7 +6,7 @@
 
 use super::state::StateProvider;
 use axum::http::{Method, StatusCode};
-use chrono::{TimeDelta, NaiveDateTime, SubsecRound, Utc};
+use chrono::{TimeDelta, NaiveDateTime, SubsecRound as _, Utc};
 use core::time::Duration;
 use serde::{Serialize, Serializer};
 use smart_default::SmartDefault;
@@ -398,7 +398,7 @@ async fn stats_processor<SP: StateProvider>(
 		new_second = metrics.started_at.trunc_subsecs(0);
 	} else {
 		new_second = Utc::now().naive_utc().trunc_subsecs(0);
-	};
+	}
 	
 	//	Check to see if we've moved into a new time period. We want to increment
 	//	the request count and total response time until it "ticks" over into

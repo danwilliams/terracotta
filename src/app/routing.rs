@@ -22,7 +22,7 @@ use tracing::{Level, Span, debug, error};
 use ::{
 	utoipa::openapi::OpenApi,
 	utoipa_rapidoc::RapiDoc,
-	utoipa_redoc::{Redoc, Servable},
+	utoipa_redoc::{Redoc, Servable as _},
 	utoipa_swagger_ui::SwaggerUi,
 };
 

@@ -7,7 +7,7 @@
 use super::errors::AppError;
 use figment::{
 	Figment,
-	providers::{Env, Format, Serialized, Toml},
+	providers::{Env, Format as _, Serialized, Toml},
 };
 use std::io::stdout;
 use serde::{Serialize, de::DeserializeOwned};
@@ -15,10 +15,10 @@ use tracing::Level;
 use tracing_appender::{self, non_blocking, non_blocking::WorkerGuard, rolling::daily};
 use tracing_subscriber::{
 	EnvFilter,
-	fmt::{layer, writer::MakeWriterExt},
-	layer::SubscriberExt,
+	fmt::{layer, writer::MakeWriterExt as _},
+	layer::SubscriberExt as _,
 	registry,
-	util::SubscriberInitExt,
+	util::SubscriberInitExt as _,
 };
 
 #[cfg(feature = "tera")]
@@ -43,6 +43,7 @@ use ::{
 /// If there is a problem loading the configuration, or if the configuration is
 /// invalid, an error will be returned.
 /// 
+#[expect(clippy::result_large_err, reason = "Size doesn't matter here as it's only for config")]
 pub fn load_config<T>() -> Result<T, AppError>
 where
 	T: Default + DeserializeOwned + Serialize,
@@ -106,6 +107,7 @@ pub fn setup_logging<S: AsRef<str>>(logdir: S) -> WorkerGuard {
 /// parsing the template, an error will be returned.
 /// 
 #[cfg(feature = "tera")]
+#[expect(clippy::result_large_err, reason = "Size doesn't matter here as it's only for config")]
 pub fn setup_tera(template_dir: &Arc<Dir<'static>>) -> Result<Tera, AppError> {
 	let templates = template_dir
 		.find("**/*.tera.html")?

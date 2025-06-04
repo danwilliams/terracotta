@@ -22,7 +22,7 @@ use mime_guess::{self};
 use std::sync::Arc;
 use tokio::{
 	fs::File,
-	io::{AsyncReadExt, BufReader},
+	io::{AsyncReadExt as _, BufReader},
 };
 use tokio_util::io::ReaderStream;
 

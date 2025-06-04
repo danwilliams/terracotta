@@ -49,7 +49,7 @@ use terracotta::app::{
 	create::{app_minimal as create_app, server as create_server},
 	errors::AppError,
 	init::{load_config, setup_logging},
-	state::StateProvider,
+	state::StateProvider as _,
 };
 use tracing::info;
 
@@ -72,6 +72,7 @@ static GLOBAL: Jemalloc = Jemalloc;
 
 //		main																	
 #[tokio::main]
+#[expect(clippy::result_large_err, reason = "Size doesn't matter here as it's only for the main process")]
 async fn main() -> Result<(), AppError> {
 	let config = load_config::<Config>()?;
 	let _guard = setup_logging(&config.logdir);

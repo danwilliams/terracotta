@@ -20,22 +20,22 @@ use tokio::{
 use crate::{
 	auth::{
 		middleware::{User as AuthUser, UserProvider as AuthUserProvider},
-		routing::RouterExt as AuthRouterExt,
+		routing::RouterExt as _,
 		state::StateProvider as AuthStateProvider,
 	},
 	stats::{
-		routing::RouterExt as StatsRouterExt,
+		routing::RouterExt as _,
 		state::StateProvider as StatsStateProvider,
 	},
 };
 #[cfg(any(feature = "auth", feature = "errors"))]
 use std::sync::Arc;
 #[cfg(feature = "errors")]
-use super::routing::RouterExt;
+use super::routing::RouterExt as _;
 #[cfg(feature = "errors")]
 use crate::errors::{
 	middleware::no_route,
-	routing::RouterExt as ErrorsRouterExt,
+	routing::RouterExt as _,
 };
 #[cfg(feature = "errors")]
 use axum::routing::MethodRouter;

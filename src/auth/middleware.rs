@@ -22,7 +22,7 @@ use axum::{
 	extract::{FromRequestParts, State, rejection::ExtensionRejection},
 	http::{Request, StatusCode, Uri, request::Parts},
 	middleware::Next,
-	response::{IntoResponse, Response},
+	response::{IntoResponse as _, Response},
 };
 use core::fmt::{Debug, Display};
 use rubedo::sugar::s;

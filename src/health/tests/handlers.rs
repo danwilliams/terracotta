@@ -5,10 +5,10 @@
 use super::*;
 use axum::{
 	http::StatusCode,
-	response::IntoResponse,
+	response::IntoResponse as _,
 };
 use rubedo::{
-	http::{ResponseExt, UnpackedResponse, UnpackedResponseBody},
+	http::{ResponseExt as _, UnpackedResponse, UnpackedResponseBody},
 	sugar::s,
 };
 use serde_json::json;

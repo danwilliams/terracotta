@@ -6,7 +6,7 @@
 
 use axum::http::StatusCode;
 use core::hash::BuildHasher;
-use serde::{Serialize, Serializer};
+use serde::{Serialize as _, Serializer};
 use std::collections::{BTreeMap, HashMap};
 
 

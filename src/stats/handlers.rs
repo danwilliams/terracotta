@@ -28,15 +28,15 @@ use axum::{
 	extract::ws::{Message, WebSocketUpgrade, WebSocket},
 	response::Response,
 };
-use chrono::{NaiveDateTime, SubsecRound, Utc};
+use chrono::{NaiveDateTime, SubsecRound as _, Utc};
 use core::{
 	sync::atomic::Ordering,
 	time::Duration,
 };
 use indexmap::IndexMap;
-use itertools::Itertools;
+use itertools::Itertools as _;
 use rubedo::{
-	std::IteratorExt,
+	std::IteratorExt as _,
 	sugar::s,
 };
 use serde_json::json;
@@ -234,7 +234,7 @@ pub async fn get_stats_history<SP: StateProvider>(
 		limit:  Option<usize>,
 	) -> Vec<StatsResponseForPeriod> {
 		buffer.iter()
-			.take_while(|entry| from.map_or(true, |time| entry.started_at >= time))
+			.take_while(|entry| from.is_none_or(|time| entry.started_at >= time))
 			.limit(limit)
 			.map(StatsResponseForPeriod::from)
 			.collect()
@@ -335,7 +335,6 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 	//		Preparation															
 	info!("WebSocket connection established");
 	//	Subscribe to the broadcast channel
-	#[expect(clippy::significant_drop_in_scrutinee, reason = "Short-lived")]
 	let mut rx = if let Some(ref broadcaster) = state.state().read().await.broadcaster {
 		broadcaster.subscribe()
 	} else {

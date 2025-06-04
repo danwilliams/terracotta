@@ -11,14 +11,14 @@ use super::super::{
 use assert_json_diff::assert_json_eq;
 use axum::{
 	http::{Method, StatusCode},
-	response::IntoResponse,
+	response::IntoResponse as _,
 };
-use chrono::{TimeDelta, SubsecRound};
+use chrono::{TimeDelta, SubsecRound as _};
 use core::sync::atomic::AtomicUsize;
 use figment::{Figment, providers::Serialized};
 use parking_lot::{Mutex, RwLock};
 use rubedo::{
-	http::{ResponseExt, UnpackedResponse, UnpackedResponseBody},
+	http::{ResponseExt as _, UnpackedResponse, UnpackedResponseBody},
 	sugar::s,
 };
 use serde::{Deserialize, Serialize};

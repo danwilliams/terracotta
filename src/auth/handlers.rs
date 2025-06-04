@@ -100,7 +100,8 @@ where
 		auth.login(user).await?;
 	} else {
 		drop(params.insert(s!("failed"), s!("")));
-		warn!("Failed login attempt for user: {}", &login.credentials.to_loggable_string());
+		let credentials_string = login.credentials.to_loggable_string();
+		warn!("Failed login attempt for user: {}", &credentials_string);
 	}
 	Ok(Redirect::to(
 		&build_uri(uri.path(), &params)?

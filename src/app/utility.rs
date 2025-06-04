@@ -59,14 +59,14 @@ where
 				&fs::read_to_string(&local_layout).await
 					.map_err(|err| AppError::CouldNotLoadTemplate(local_layout.clone(), err))?
 			).map_err(|err| AppError::CouldNotAddTemplate(local_layout, err))?;
-		};
+		}
 		if local_template.exists() {
 			tera.add_raw_template(
 				template.as_ref(),
 				&fs::read_to_string(&local_template).await
 					.map_err(|err| AppError::CouldNotLoadTemplate(local_template.clone(), err))?
 			).map_err(|err| AppError::CouldNotAddTemplate(local_template, err))?;
-		};
+		}
 		tera.render(template.as_ref(), context)?
 	} else {
 		state.tera().render(template.as_ref(), context)?
