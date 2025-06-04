@@ -5,7 +5,7 @@
 
 
 
-//		Global configuration
+//		Global configuration																							
 
 //	Customisations of the standard linting configuration
 #![allow(clippy::doc_markdown,            reason = "Too many false positives")]
@@ -38,7 +38,7 @@
 
 
 
-//		Modules
+//		Modules																											
 
 pub mod app;
 #[cfg(feature = "assets")]

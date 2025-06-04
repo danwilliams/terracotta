@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use super::state::StateProvider;
 use axum::http::{Method, StatusCode};
@@ -27,7 +27,7 @@ use utoipa::ToSchema;
 
 
 
-//		Structs
+//		Structs																											
 
 //		Endpoint																
 /// A formalised definition of an endpoint for identification.
@@ -192,7 +192,7 @@ pub struct ResponseMetrics {
 
 
 
-//		Functions
+//		Functions																										
 
 //		start																	
 /// Starts the statistics processor.

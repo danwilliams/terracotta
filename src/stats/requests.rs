@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use chrono::NaiveDateTime;
 use core::str::FromStr;
@@ -13,7 +13,7 @@ use utoipa::{IntoParams, ToSchema};
 
 
 
-//		Enums
+//		Enums																											
 
 //		MeasurementType															
 /// The type of measurement to get statistics for.
@@ -49,7 +49,7 @@ impl FromStr for MeasurementType {
 
 
 
-//		Structs
+//		Structs																											
 
 //		GetStatsHistoryParams													
 /// The parameters for the [`get_stats_history()`](super::handlers::get_stats_history())

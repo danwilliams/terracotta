@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use crate::state::AppState;
 use axum::{
@@ -14,7 +14,7 @@ use tera::Context as Template;
 
 
 
-//		Functions
+//		Functions																										
 
 //		get_index																
 /// Shows the index page.

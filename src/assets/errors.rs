@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use axum::{
 	http::{Error as HttpError, StatusCode},
@@ -18,7 +18,7 @@ use thiserror::Error as ThisError;
 
 
 
-//		Enums
+//		Enums																											
 
 //		AssetsError																
 /// Represents all possible errors that can occur when dealing with assets.

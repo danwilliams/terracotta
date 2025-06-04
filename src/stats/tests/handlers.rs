@@ -1,6 +1,6 @@
 #![allow(non_snake_case, reason = "To enable test function name organisation")]
 
-//		Packages
+//		Packages																										
 
 use super::*;
 use super::super::{
@@ -28,7 +28,7 @@ use velcro::hash_map;
 
 
 
-//		Structs
+//		Structs																											
 
 //		Config																	
 /// The main configuration options for the application.
@@ -70,7 +70,7 @@ impl StateProvider for AppState {
 
 
 
-//		Functions
+//		Functions																										
 
 //		prepare_state															
 fn prepare_state(start: NaiveDateTime) -> AppState {
@@ -123,7 +123,7 @@ fn prepare_state(start: NaiveDateTime) -> AppState {
 
 
 
-//		Tests
+//		Tests																											
 
 //		stats																	
 #[tokio::test]

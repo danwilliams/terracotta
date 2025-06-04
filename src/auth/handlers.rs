@@ -5,7 +5,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use super::{
 	errors::AuthError,
@@ -31,7 +31,7 @@ use tracing::{info, warn};
 
 
 
-//		Functions
+//		Functions																										
 
 //		get_login																
 /// Shows the login page.

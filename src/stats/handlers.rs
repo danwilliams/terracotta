@@ -6,7 +6,7 @@
 
 
 
-//		Modules
+//		Modules																											
 
 #[cfg(test)]
 #[path = "tests/handlers.rs"]
@@ -14,7 +14,7 @@ mod tests;
 
 
 
-//		Packages
+//		Packages																										
 
 use super::{
 	requests::{GetStatsFeedParams, GetStatsHistoryParams, MeasurementType},
@@ -54,7 +54,7 @@ use velcro::btree_map;
 
 
 
-//		Functions
+//		Functions																										
 
 //		get_stats																
 /// Application statistics overview.

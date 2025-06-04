@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use axum::http::{
 	Uri,
@@ -19,7 +19,7 @@ use url::form_urlencoded;
 
 
 
-//		Structs
+//		Structs																											
 
 //		InvalidUriParts															
 /// Represents an error when constructing a URI from parts.
@@ -46,7 +46,7 @@ impl Error for InvalidUriParts {}
 
 
 
-//		Functions
+//		Functions																										
 
 //		extract_uri_query_parts													
 /// Extracts the query parts from a URI.

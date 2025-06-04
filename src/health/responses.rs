@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use serde::Serialize;
 
@@ -11,7 +11,7 @@ use utoipa::ToSchema;
 
 
 
-//		Structs
+//		Structs																											
 
 //		HealthVersionResponse													
 /// The current version information returned by the `/api/version` endpoint.

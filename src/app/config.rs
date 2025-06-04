@@ -4,7 +4,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 #[cfg(any(feature = "assets", feature = "tera"))]
 use serde::{Deserialize, Serialize};
@@ -17,7 +17,7 @@ use ::{
 
 
 
-//		Enums
+//		Enums																											
 
 //		LoadingBehavior															
 /// The possible options for loading local, non-baked-in resources.
@@ -37,7 +37,7 @@ pub enum LoadingBehavior {
 
 
 
-//		Structs
+//		Structs																											
 
 //		HtmlTemplates															
 /// Loading configuration for HTML templates.

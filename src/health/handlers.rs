@@ -5,7 +5,7 @@
 
 
 
-//		Modules
+//		Modules																											
 
 #[cfg(test)]
 #[path = "tests/handlers.rs"]
@@ -13,14 +13,14 @@ mod tests;
 
 
 
-//		Packages
+//		Packages																										
 
 use super::responses::HealthVersionResponse;
 use axum::Json;
 
 
 
-//		Functions
+//		Functions																										
 
 //		get_ping																
 /// Availability check.

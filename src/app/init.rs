@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use super::errors::AppError;
 use figment::{
@@ -30,7 +30,7 @@ use ::{
 
 
 
-//		Functions
+//		Functions																										
 
 //		load_config																
 /// Loads the application configuration.

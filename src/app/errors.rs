@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use axum::{
 	http::StatusCode,
@@ -24,7 +24,7 @@ use tera::Error as TemplateError;
 
 
 
-//		Enums
+//		Enums																											
 
 //		AppError																
 /// Represents all possible errors that can occur in the application.

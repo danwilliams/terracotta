@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use axum::{
 	Router,
@@ -28,7 +28,7 @@ use ::{
 
 
 
-//		Traits
+//		Traits																											
 
 //§		RouterExt																
 /// Extension methods for the Axum [`Router`].

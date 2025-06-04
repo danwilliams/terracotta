@@ -4,7 +4,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
@@ -12,7 +12,7 @@ use std::collections::HashMap;
 
 
 
-//		Structs
+//		Structs																											
 
 //		Config																	
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, SmartDefault)]

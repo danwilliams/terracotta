@@ -4,7 +4,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use crate::app::config::LoadingBehavior;
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,7 @@ use std::path::PathBuf;
 
 
 
-//		Structs
+//		Structs																											
 
 //		Config																	
 /// The configuration options for gathering and processing statistics.

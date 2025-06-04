@@ -4,7 +4,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use super::{
 	errors::AuthError,
@@ -32,14 +32,14 @@ use tracing::info;
 
 
 
-//		Constants
+//		Constants																										
 
 /// The key used to store the session's user ID.
 const SESSION_USER_ID_KEY: &str = "_user_id";
 
 
 
-//		Structs
+//		Structs																											
 
 //		Context																	
 /// The authentication context.
@@ -154,7 +154,7 @@ where
 
 
 
-//		Traits
+//		Traits																											
 
 //§		Credentials																
 /// An instance of user data providing enough functionality for authentication.
@@ -258,7 +258,7 @@ pub trait UserProvider: Debug + 'static {
 
 
 
-//		Functions
+//		Functions																										
 
 //		auth_layer																
 /// Prepare the authentication context.

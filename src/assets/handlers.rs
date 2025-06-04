@@ -5,7 +5,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use crate::app::config::LoadingBehavior;
 use super::{
@@ -28,7 +28,7 @@ use tokio_util::io::ReaderStream;
 
 
 
-//		Enums
+//		Enums																											
 
 //		AssetContext															
 /// The protection contexts for static assets.
@@ -44,7 +44,7 @@ pub enum AssetContext {
 
 
 
-//		Functions
+//		Functions																										
 
 //		get_protected_static_asset												
 /// Serves protected static assets.

@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use super::{
 	config::Config,
@@ -25,7 +25,7 @@ use velcro::hash_map;
 
 
 
-//		Structs
+//		Structs																											
 
 //		State																
 /// Statistics-related central constructs to be stored in application state.
@@ -153,7 +153,7 @@ pub struct StatsBuffers {
 
 
 
-//		Traits
+//		Traits																											
 
 //§		StateProvider															
 /// A trait for providing the application state aspects for statistics.

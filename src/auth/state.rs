@@ -2,14 +2,14 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use crate::app::state::StateProvider as AppStateProvider;
 use std::collections::HashMap;
 
 
 
-//		Traits
+//		Traits																											
 
 //§		StateProvider															
 /// A trait for providing the application state aspects for authentication.

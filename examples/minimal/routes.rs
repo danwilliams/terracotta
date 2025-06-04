@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use crate::{
 	handlers::get_index,
@@ -14,7 +14,7 @@ use terracotta::health::handlers::{get_ping, get_version};
 
 
 
-//		Functions
+//		Functions																										
 
 //		routes																	
 /// Returns a list of routes.

@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use crate::config::Config;
 use core::net::{IpAddr, SocketAddr};
@@ -20,7 +20,7 @@ use terracotta::app::{
 
 
 
-//		Structs
+//		Structs																											
 
 //		AppState																
 /// The application state.

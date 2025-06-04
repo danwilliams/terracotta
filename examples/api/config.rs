@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use core::net::IpAddr;
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,7 @@ use terracotta::stats::config::Config as StatsConfig;
 
 
 
-//		Structs
+//		Structs																											
 
 //		Config																	
 /// The main configuration options for the application.

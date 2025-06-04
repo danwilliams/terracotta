@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use crate::state::AppState;
 use axum::{
@@ -14,7 +14,7 @@ use std::sync::Arc;
 
 
 
-//		Functions
+//		Functions																										
 
 //		get_index																
 /// Provides data for the index route.

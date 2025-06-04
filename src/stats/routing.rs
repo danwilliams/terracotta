@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use super::{
 	middleware::stats_layer,
@@ -16,7 +16,7 @@ use std::sync::Arc;
 
 
 
-//		Traits
+//		Traits																											
 
 //§		RouterExt																
 /// Error-handling extension methods for the Axum [`Router`].

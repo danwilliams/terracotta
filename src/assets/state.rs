@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use super::config::Config;
 use include_dir::Dir;
@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 
 
-//		Traits
+//		Traits																											
 
 //§		StateProvider															
 /// A trait for providing the application state aspects for assets.

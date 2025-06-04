@@ -6,7 +6,7 @@
 
 
 
-//		Global configuration
+//		Global configuration																							
 
 //	Customisations of the standard linting configuration
 #![allow(unreachable_pub,                 reason = "Not useful in binaries")]
@@ -18,7 +18,7 @@
 
 
 
-//		Modules
+//		Modules																											
 
 mod auth;
 mod config;
@@ -29,7 +29,7 @@ mod utility;
 
 
 
-//		Packages
+//		Packages																										
 
 use crate::{
 	auth::User,
@@ -56,7 +56,7 @@ use tikv_jemallocator::Jemalloc;
 
 
 
-//		Constants
+//		Constants																										
 
 /// The global allocator. This is changed to [`Jemalloc`] in order to obtain
 /// memory usage statistics.
@@ -66,7 +66,7 @@ static GLOBAL: Jemalloc = Jemalloc;
 
 
 
-//		Functions
+//		Functions																										
 
 //		main																	
 #[tokio::main]

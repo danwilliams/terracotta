@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use axum::http::StatusCode;
 use core::hash::BuildHasher;
@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, HashMap};
 
 
 
-//		Functions
+//		Functions																										
 
 //		serialize_status_codes													
 /// Returns a list of serialised status code entries and their values.

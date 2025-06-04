@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use super::{
 	worker::{Endpoint, StatsForPeriod},
@@ -19,7 +19,7 @@ use utoipa::ToSchema;
 
 
 
-//		Structs
+//		Structs																											
 
 //		StatsResponse															
 /// The application statistics returned by the `/api/stats` endpoint.

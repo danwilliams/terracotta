@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use super::{
 	errors::AppError,
@@ -44,7 +44,7 @@ use utoipa::openapi::OpenApi;
 
 
 
-//		Functions
+//		Functions																										
 
 //		app_full																
 /// Creates the application router, with full functionality.

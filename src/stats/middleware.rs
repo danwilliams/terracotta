@@ -4,7 +4,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use super::{
 	state::StateProvider,
@@ -32,7 +32,7 @@ use ::{
 
 
 
-//		Structs
+//		Structs																											
 
 //		Context																	
 /// The statistics context.
@@ -71,7 +71,7 @@ where
 
 
 
-//		Functions
+//		Functions																										
 
 //		stats_layer																
 /// A middleware to collect statistics about requests and responses.

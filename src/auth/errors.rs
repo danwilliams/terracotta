@@ -2,7 +2,7 @@
 
 
 
-//		Packages
+//		Packages																										
 
 use super::utility::InvalidUriParts;
 use axum::{
@@ -14,7 +14,7 @@ use tower_sessions::session::Error as SessionError;
 
 
 
-//		Enums
+//		Enums																											
 
 //		AuthError																
 /// Represents all possible errors that can occur when dealing with
