@@ -12,7 +12,6 @@ use super::{
 };
 use axum::{
 	Extension,
-	async_trait,
 	body::Body,
 	extract::{FromRequestParts, State, rejection::ExtensionRejection},
 	http::{Request, request::Parts},
@@ -50,7 +49,6 @@ pub struct Context {
 }
 
 //󰭅		FromRequestParts														
-#[async_trait]
 impl<S> FromRequestParts<S> for Context
 where
 	S: Send + Sync,

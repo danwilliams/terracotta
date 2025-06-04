@@ -58,6 +58,7 @@ impl Serialize for Endpoint {
 //		StatsForPeriod															
 /// Average, maximum, minimum, and count of values for a period of time.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, SmartDefault)]
+#[cfg_attr(feature = "utoipa", derive(ToSchema))]
 #[non_exhaustive]
 pub struct StatsForPeriod {
 	//		Public properties													

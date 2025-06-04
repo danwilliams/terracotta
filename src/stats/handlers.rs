@@ -353,7 +353,7 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 		//		Ping															
 		//	Send a ping at regular intervals
 		_ = timer.tick() => {
-			if let Err(err) = ws.send(Message::Ping(Vec::new())).await {
+			if let Err(err) = ws.send(Message::Ping(Vec::new().into())).await {
 				warn!("Failed to send ping over WebSocket: {err}");
 				break;
 			}
@@ -429,7 +429,7 @@ pub async fn ws_stats_feed<SP: StateProvider>(
 					}}
 				},
 			};
-			if let Err(err) = ws.send(Message::Text(response.to_string())).await {
+			if let Err(err) = ws.send(Message::Text(response.to_string().into())).await {
 				warn!("Failed to send data over WebSocket: {err}");
 				break;
 			}

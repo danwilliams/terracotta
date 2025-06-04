@@ -17,7 +17,6 @@ use crate::app::{
 };
 use axum::{
 	Extension,
-	async_trait,
 	body::Body,
 	extract::{FromRequestParts, State, rejection::ExtensionRejection},
 	http::{Request, StatusCode, Uri, request::Parts},
@@ -133,7 +132,6 @@ impl<U: User> Context<U> {
 }
 
 //󰭅		FromRequestParts														
-#[async_trait]
 impl<S, U> FromRequestParts<S> for Context<U>
 where
 	S: Send + Sync,

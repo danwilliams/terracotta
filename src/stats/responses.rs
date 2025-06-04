@@ -48,6 +48,7 @@ pub struct StatsResponse {
 	
 	/// The number of responses that have been handled, by status code.
 	#[serde(serialize_with = "serialize_status_codes")]
+	#[cfg_attr(feature = "utoipa", schema(value_type = HashMap<String, u64>))]
 	pub codes:       HashMap<StatusCode, u64>,
 	
 	/// The average, maximum, and minimum response times in microseconds, plus
@@ -56,6 +57,7 @@ pub struct StatsResponse {
 	
 	/// The average, maximum, and minimum response times in microseconds, plus
 	/// sample count, grouped by endpoint, since the application last started.
+	#[cfg_attr(feature = "utoipa", schema(value_type = HashMap<String, StatsResponseForPeriod>))]
 	pub endpoints:   HashMap<Endpoint, StatsResponseForPeriod>,
 	
 	/// The average, maximum, and minimum open connections, plus sample count,
